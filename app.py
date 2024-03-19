@@ -33,7 +33,7 @@ def get_model():
     tokenizer = AutoTokenizer.from_pretrained(mode_name_or_path, trust_remote_code=True)
     # 从预训练的模型中获取模型，并设置模型参数
     model = AutoModelForCausalLM.from_pretrained(mode_name_or_path, trust_remote_code=True, torch_dtype=torch.bfloat16).cuda()
-    model.eval()  
+    model.eval()
     return tokenizer, model
 
 # 加载Chatglm3的model和tokenizer
@@ -52,7 +52,7 @@ for msg in st.session_state.messages:
 if prompt := st.chat_input():
     # 在聊天界面上显示用户的输入
     st.chat_message("user").write(prompt)
-    # 构建输入     
+    # 构建输入
     response, history = model.chat(tokenizer, prompt, meta_instruction=system_prompt, history=st.session_state.messages)
     # 将模型的输出添加到session_state中的messages列表中
     st.session_state.messages.append((prompt, response))
