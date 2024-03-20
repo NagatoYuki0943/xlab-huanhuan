@@ -8,7 +8,7 @@ print("torch version: ", torch.__version__)
 print("transformers version: ", transformers.__version__)
 
 
-model_dir = "./model/internlm2-chat-1_8b-sft"
+model_dir = "./models/internlm2-chat-1_8b-sft"
 adapter_dir = "./work_dirs/internlm2_lora_huanhuan/checkpoint-650"
 # adapter_dir = "./work_dirs/internlm2_1_8b_qlora_oasst1_e3_huanhuan/hf"
 

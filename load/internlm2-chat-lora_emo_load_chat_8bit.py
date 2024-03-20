@@ -9,7 +9,7 @@ print("transformers version: ", transformers.__version__)
 
 device = 'cuda' if torch.cuda.is_available() else 'cpu'
 
-model_dir = "./model/internlm2-chat-1_8b-sft"
+model_dir = "./models/internlm2-chat-1_8b-sft"
 adapter_dir = "./work_dirs/internlm2_1_8b_qlora_emo_e3/hf"
 
 

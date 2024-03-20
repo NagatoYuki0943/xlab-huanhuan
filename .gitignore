@@ -2,5 +2,5 @@ __pycache__/
 .vscode/
 .idea/
 
-model/
+models/
 work_dirs/

@@ -56,7 +56,7 @@ from xtuner.utils import PROMPT_TEMPLATE
 #                          PART 1  Settings                           #
 #######################################################################
 data_path = './data/recipe_dataset-single_xtuner.json'
-model_dir = './model/internlm2-chat-1_8b-sft'
+model_dir = './models/internlm2-chat-1_8b-sft'
 work_dir = './work_dirs/internlm2_1_8b_qlora_recipe_e3'
 
 launcher = 'none'

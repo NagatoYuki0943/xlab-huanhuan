@@ -268,8 +268,8 @@ unzip OpenCompassData-core-20231110.zip
 ```shell
 python run.py \
     --datasets ceval_gen \
-    --hf-path /root/model/huanhuan/kmno4zx/huanhuan-chat-internlm2 \
-    --tokenizer-path /root/model/huanhuan/kmno4zx/huanhuan-chat-internlm2 \
+    --hf-path /root/models/huanhuan/kmno4zx/huanhuan-chat-internlm2 \
+    --tokenizer-path /root/models/huanhuan/kmno4zx/huanhuan-chat-internlm2 \
     --tokenizer-kwargs padding_side='left' truncation='left'     trust_remote_code=True \
     --model-kwargs device_map='auto' trust_remote_code=True \
     --max-seq-len 2048 \
