@@ -2,7 +2,7 @@ from lmdeploy import pipeline, GenerationConfig, PytorchEngineConfig, ChatTempla
 
 
 if __name__ == '__main__':
-    backend_config = PytorchEngineConfig(session_len=2048)
+    backend_config = PytorchEngineConfig(session_len=2048, cache_max_entry_count=0.5)
     chat_template_config = ChatTemplateConfig(model_name='internlm2')
     gen_config = GenerationConfig(
         top_p=0.8,
@@ -12,7 +12,7 @@ if __name__ == '__main__':
     )
 
     pipe = pipeline(
-        './models/internlm2-chat-1_8b-sft',
+        './models/internlm2-chat-1_8b',
         backend_config=backend_config,
         chat_template_config=chat_template_config,
     )
