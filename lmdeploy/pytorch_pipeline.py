@@ -2,8 +2,11 @@ from lmdeploy import pipeline, GenerationConfig, PytorchEngineConfig, ChatTempla
 
 
 if __name__ == '__main__':
+    # https://lmdeploy.readthedocs.io/zh-cn/latest/api/pipeline.html#pytorchengineconfig
     backend_config = PytorchEngineConfig(session_len=2048, cache_max_entry_count=0.5)
-    chat_template_config = ChatTemplateConfig(model_name='internlm2')
+    # https://lmdeploy.readthedocs.io/zh-cn/latest/_modules/lmdeploy/model.html#ChatTemplateConfig
+    chat_template_config = ChatTemplateConfig(model_name='internlm2', system=None)
+    # https://lmdeploy.readthedocs.io/zh-cn/latest/api/pipeline.html#generationconfig
     gen_config = GenerationConfig(
         top_p=0.8,
         top_k=40,
@@ -11,12 +14,18 @@ if __name__ == '__main__':
         max_new_tokens=1024
     )
 
+    # https://github.com/InternLM/lmdeploy/blob/main/lmdeploy/api.py
     pipe = pipeline(
         './models/internlm2-chat-1_8b',
         backend_config=backend_config,
         chat_template_config=chat_template_config,
     )
 
+    #----------------------------------------------------------------------#
+    # prompts (List[str] | str | List[Dict] | List[Dict]): a batch of
+    #     prompts. It accepts: string prompt, a list of string prompts,
+    #     a chat history in OpenAI format or a list of chat history.
+    #----------------------------------------------------------------------#
     prompts = [[{
         'role': 'user',
         'content': 'Hi, pls intro yourself'
@@ -26,6 +35,7 @@ if __name__ == '__main__':
     }]]
 
     # https://lmdeploy.readthedocs.io/zh-cn/latest/api/pipeline.html
+    # https://github.com/InternLM/lmdeploy/blob/main/lmdeploy/serve/async_engine.py#L126
     responses = pipe(prompts, gen_config=gen_config)
     for response in responses:
         print(response)
@@ -35,7 +45,6 @@ if __name__ == '__main__':
         print('session_id:', response.session_id)
         print('finish_reason:', response.finish_reason)
         print()
-
     # Response(text='Hello! I am InternLM, a language model developed by Shanghai AI Laboratory. I am designed to help people by providing helpful, honest, and harmless responses. If you have any questions or need assistance with anything, feel free to ask!', generate_token_len=48, input_token_len=108, session_id=0, finish_reason='stop')
     # text: Hello! I am InternLM, a language model developed by Shanghai AI Laboratory. I am designed to help people by providing helpful, honest, and harmless responses. If you have any questions or need assistance with anything, feel free to ask!
     # generate_token_len: 48

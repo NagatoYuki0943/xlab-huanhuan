@@ -22,13 +22,13 @@ tokenizer = AutoTokenizer.from_pretrained(pretrained_model_name_or_path, use_fas
 
 # https://github.com/InternLM/xtuner/blob/main/xtuner/utils/templates.py#L24
 internlm2_chat = dict(
-        SYSTEM = '<|im_start|>system\n{system}<|im_end|>\n',
-        INSTRUCTION = ('<|im_start|>user\n{input}<|im_end|>\n'
-                       '<|im_start|>assistant\n'),
-        SUFFIX = '<|im_end|>',
-        SUFFIX_AS_EOS = True,
-        SEP = '\n',
-        STOP_WORDS = ['<|im_end|>'])
+    SYSTEM = '<|im_start|>system\n{system}<|im_end|>\n',
+    INSTRUCTION = ('<|im_start|>user\n{input}<|im_end|>\n'
+                   '<|im_start|>assistant\n'),
+    SUFFIX = '<|im_end|>',
+    SUFFIX_AS_EOS = True,
+    SEP = '\n',
+    STOP_WORDS = ['<|im_end|>'])
 
 def build_inputs(query: str, history: List[Tuple[str, str]] = [], meta_instruction="我是系统"):
     prompt = ""
@@ -173,5 +173,5 @@ trainer = Trainer(
 
 trainer.train()
 
-# 1080ti: 14h 10m
-# v100:   7h  30m
+# 1080ti: 14h:10m
+# v100:    7h:30m 13G men

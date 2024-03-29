@@ -4,6 +4,8 @@ https://lmdeploy.readthedocs.io/zh-cn/latest/
 
 https://github.com/InternLM/lmdeploy/blob/main/lmdeploy/cli
 
+https://github.com/InternLM/lmdeploy/blob/main/lmdeploy/api.py
+
 # help
 
 ```sh
@@ -51,6 +53,7 @@ Commands:
 lmdeploy chat torch ./models/internlm2-chat-1_8b
 
 lmdeploy chat turbomind ./models/internlm2-chat-1_8b
+lmdeploy chat turbomind ./models/internlm2-chat-1_8b-turbomind
 ```
 
 ### [chat torch/turbomind 支持的参数](https://github.com/InternLM/lmdeploy/blob/main/lmdeploy/cli/chat.py)
@@ -140,33 +143,157 @@ Commands:
 
 https://github.com/InternLM/lmdeploy/tree/main/docs/zh_cn/quantization
 
-### [w8a8](https://github.com/InternLM/lmdeploy/blob/main/docs/zh_cn/quantization/w8a8.md)
-
-使用 8 bit 整数对神经网络模型进行量化和推理的功能。
-
-在开始推理前，需要确保已经正确安装了 lmdeploy 和 openai/triton。
-
-将原 16bit 权重量化为 8bit，并保存至 `internlm-chat-7b-w8` 目录下，操作命令如下：
+### [KV Cache](https://github.com/InternLM/lmdeploy/blob/main/docs/zh_cn/quantization/kv_int8.md)
 
 ```sh
-lmdeploy lite smooth_quant internlm/internlm-chat-7b --work-dir ./internlm-chat-7b-w8
+> lmdeploy lite calibrate --help
+usage: lmdeploy lite calibrate [-h] [--work-dir WORK_DIR] [--calib-dataset CALIB_DATASET] [--calib-samples CALIB_SAMPLES]
+                               [--calib-seqlen CALIB_SEQLEN] [--device {cuda,cpu}]
+                               model
 
-lmdeploy lite smooth_quant ./models/internlm2-chat-1_8b --work-dir ./models/internlm2-chat-1_8b-w8
+Perform calibration on a given dataset.
+
+positional arguments:
+  model                 The name or path of the model to be loaded. Type: str
+
+options:
+  -h, --help            show this help message and exit
+  --work-dir WORK_DIR   The working directory to save results. Default: ./work_dir. Type: str
+  --calib-dataset CALIB_DATASET
+                        The calibration dataset name. Default: ptb. Type: str
+  --calib-samples CALIB_SAMPLES
+                        The number of samples for calibration. Default: 128. Type: int
+  --calib-seqlen CALIB_SEQLEN
+                        The sequence length for calibration. Default: 2048. Type: int
+  --device {cuda,cpu}   Device type of running. Default: cuda. Type: str
 ```
-
-然后，执行以下命令，即可在终端与模型对话：
 
 ```sh
-lmdeploy chat torch ./internlm-chat-7b-w8
+> lmdeploy lite kv_qparams --help
+usage: lmdeploy lite kv_qparams [-h] [--kv-bits KV_BITS] [--kv-sym] [--num-tp NUM_TP] [--tm-params [TM_PARAMS ...]] work_dir turbomind_dir
 
-lmdeploy chat torch ./models/internlm2-chat-1_8b-w8
+Export key and value stats.
 
-# 不支持 turbomind
+positional arguments:
+  work_dir              Directory path where the stats are saved. Type: str
+  turbomind_dir         Directory path where to save the results. Type: str
+
+options:
+  -h, --help            show this help message and exit
+  --kv-bits KV_BITS     Number of bits for quantization. Default: 8. Type: int
+  --kv-sym              Whether to use symmetric quantizaiton. Default: False
+  --num-tp NUM_TP       GPU number used in tensor parallelism. Should be 2^n. Default: None. Type: int
+  --tm-params [TM_PARAMS ...]
+                        Used key-values pairs in xxx=yyy format to update the turbomind model weights config. Default: None
 ```
 
-### [w4a16](https://github.com/InternLM/lmdeploy/blob/main/docs/zh_cn/quantization/w4a16.md)
+#### 量化步骤
+
+KV Cache 量化是将已经生成序列的 KV 变成 Int8，使用过程一共包括三步：
+
+第一步：计算 minmax。主要思路是通过计算给定输入样本在每一层不同位置处计算结果的统计情况。
+
+- 对于 Attention 的 K 和 V：取每个 Head 各自维度在所有Token的最大、最小和绝对值最大值。对每一层来说，上面三组值都是 `(num_heads, head_dim)` 的矩阵。这里的统计结果将用于本小节的 KV Cache。
+- 对于模型每层的输入：取对应维度的最大、最小、均值、绝对值最大和绝对值均值。每一层每个位置的输入都有对应的统计值，它们大多是 `(hidden_dim, )` 的一维向量，当然在 FFN 层由于结构是先变宽后恢复，因此恢复的位置维度并不相同。这里的统计结果用于下个小节的模型参数量化，主要用在缩放环节（回顾PPT内容）。
+
+第一步执行命令如下：
+
+**第一步**
+
+通过以下命令，获取量化参数，并保存至原HF模型目录
+
+在这个命令行中，会选择 128 条输入样本，每条样本长度为 2048，数据集选择 ptb/C4，输入模型后就会得到上面的各种统计值。值得说明的是，如果显存不足，可以适当调小 samples 的数量或 sample 的长度。
+
+```sh
+# 计算 minmax
+export HF_MODEL=internlm/internlm-chat-7b
+
+lmdeploy lite calibrate \
+  $HF_MODEL \
+  --calib-dataset 'ptb' \
+  --calib-samples 128 \
+  --calib-seqlen 2048 \
+  --work-dir $HF_MODEL
+
+lmdeploy lite calibrate \
+  ./models/internlm2-chat-1_8b \
+  --calib-dataset 'ptb' \
+  --calib-samples 128 \
+  --calib-seqlen 2048 \
+  --work-dir ./models/internlm2-chat-1_8b
+```
+
+**第二步**
+
+通过 minmax 获取量化参数。主要就是利用下面这个公式，获取每一层的 K V 中心值（zp）和缩放值（scale）。
+
+```sh
+zp = (min+max) / 2
+scale = (max-min) / 255
+quant: q = round( (f-zp) / scale)
+dequant: f = q * scale + zp
+```
+
+有这两个值就可以进行量化和解量化操作了。具体来说，就是对历史的 K 和 V 存储 quant 后的值，使用时在 dequant。
+
+第二步的执行命令如下：
+
+```sh
+# 通过 minmax 获取量化参数
+lmdeploy lite kv_qparams \
+  $WORK_DIR \
+  $TURBOMIND_DIR \
+  --num-tp 1
+
+lmdeploy lite kv_qparams \
+  ./models/internlm2-chat-1_8b \
+  ./models/internlm2-chat-1_8b-turbomind \
+  --num-tp 1
+```
+
+**第三步**
+
+修改配置。也就是修改 `weights/config.ini` 文件，这个我们在《2.6.2 模型配置实践》中已经提到过了（KV int8 开关），只需要把 `quant_policy` 改为 4 即可。或者添加参数`--quant-policy 4`以开启KV Cache int8模式。
+
+测试聊天效果。
+
+```sh
+lmdeploy chat turbomind $HF_MODEL --model-format hf --quant-policy 4
+
+lmdeploy chat turbomind ./models/internlm2-chat-1_8b --model-format hf --quant-policy 4
+lmdeploy chat turbomind ./models/internlm2-chat-1_8b-turbomind --quant-policy 4
+```
+
+### [W4A16](https://github.com/InternLM/lmdeploy/blob/main/docs/zh_cn/quantization/w4a16.md)
 
 使用 AWQ 算法，实现模型 4bit 权重量化。
+
+```sh
+> lmdeploy lite auto_awq --help
+usage: lmdeploy lite auto_awq [-h] [--work-dir WORK_DIR] [--calib-dataset CALIB_DATASET] [--calib-samples CALIB_SAMPLES]
+                              [--calib-seqlen CALIB_SEQLEN] [--device {cuda,cpu}] [--w-bits W_BITS] [--w-sym] [--w-group-size W_GROUP_SIZE]
+                              model
+
+Perform weight quantization using AWQ algorithm.
+
+positional arguments:
+  model                 The path of model in hf format. Type: str
+
+options:
+  -h, --help            show this help message and exit
+  --work-dir WORK_DIR   The working directory to save results. Default: ./work_dir. Type: str
+  --calib-dataset CALIB_DATASET
+                        The calibration dataset name. Default: ptb. Type: str
+  --calib-samples CALIB_SAMPLES
+                        The number of samples for calibration. Default: 128. Type: int
+  --calib-seqlen CALIB_SEQLEN
+                        The sequence length for calibration. Default: 2048. Type: int
+  --device {cuda,cpu}   Device type of running. Default: cuda. Type: str
+  --w-bits W_BITS       Bit number for weight quantization. Default: 4. Type: int
+  --w-sym               Whether to do symmetric quantization. Default: False
+  --w-group-size W_GROUP_SIZE
+                        Group size for weight quantization statistics. Default: 128. Type: int
+```
 
 #### 模型量化
 
@@ -264,41 +391,51 @@ lmdeploy serve api_client http://0.0.0.0:23333
 
 还可以通过 Swagger UI `http://0.0.0.0:23333` 在线阅读和试用 `api_server` 的各接口，也可直接查阅[文档](https://github.com/InternLM/lmdeploy/blob/main/docs/zh_cn/serving/api_server.md)，了解各接口的定义和使用方法。
 
-### kv_int8
-
-**第一步**
-
-通过以下命令，获取量化参数，并保存至原HF模型目录
+### [W8A8](https://github.com/InternLM/lmdeploy/blob/main/docs/zh_cn/quantization/w8a8.md)
 
 ```sh
-# get minmax
-export HF_MODEL=internlm/internlm-chat-7b
+> lmdeploy lite smooth_quant --help
+usage: lmdeploy lite smooth_quant [-h] [--work-dir WORK_DIR] [--calib-dataset CALIB_DATASET] [--calib-samples CALIB_SAMPLES]
+                                  [--calib-seqlen CALIB_SEQLEN] [--device {cuda,cpu}]
+                                  model
 
-lmdeploy lite calibrate \
-  $HF_MODEL \
-  --calib-dataset 'ptb' \
-  --calib-samples 128 \
-  --calib-seqlen 2048 \
-  --work-dir $HF_MODEL
+Perform w8a8 quantization using SmoothQuant.
 
-lmdeploy lite calibrate \
-  ./models/internlm2-chat-1_8b \
-  --calib-dataset 'ptb' \
-  --calib-samples 128 \
-  --calib-seqlen 2048 \
-  --work-dir ./models/internlm2-chat-1_8b
+positional arguments:
+  model                 The name or path of the model to be loaded. Type: str
+
+options:
+  -h, --help            show this help message and exit
+  --work-dir WORK_DIR   The working directory for outputs. defaults to "./work_dir". Type: str
+  --calib-dataset CALIB_DATASET
+                        The calibration dataset name. Default: ptb. Type: str
+  --calib-samples CALIB_SAMPLES
+                        The number of samples for calibration. Default: 128. Type: int
+  --calib-seqlen CALIB_SEQLEN
+                        The sequence length for calibration. Default: 2048. Type: int
+  --device {cuda,cpu}   Device type of running. Default: cuda. Type: str
 ```
 
-**第二步**
+使用 8 bit 整数对神经网络模型进行量化和推理的功能。
 
+在开始推理前，需要确保已经正确安装了 lmdeploy 和 openai/triton。
 
-
-测试聊天效果。注意需要添加参数`--quant-policy 4`以开启KV Cache int8模式。
+将原 16bit 权重量化为 8bit，并保存至 `internlm-chat-7b-w8` 目录下，操作命令如下：
 
 ```sh
-lmdeploy chat turbomind $HF_MODEL --model-format hf --quant-policy 4
+lmdeploy lite smooth_quant internlm/internlm-chat-7b --work-dir ./internlm-chat-7b-w8
 
-lmdeploy chat turbomind ./models/internlm2-chat-1_8b --quant-policy 4
+lmdeploy lite smooth_quant ./models/internlm2-chat-1_8b --work-dir ./models/internlm2-chat-1_8b-w8
+```
+
+然后，执行以下命令，即可在终端与模型对话：
+
+```sh
+lmdeploy chat torch ./internlm-chat-7b-w8
+
+lmdeploy chat torch ./models/internlm2-chat-1_8b-w8
+
+# 不支持 turbomind
 ```
 
 ## serve
@@ -324,8 +461,10 @@ Commands:
 
 ```sh
 lmdeploy serve gradio ./internlm-chat-7b-4bit --server-name {ip_addr} --server-port {port}
+lmdeploy serve api_server ./internlm-chat-7b-4bit --server-name {ip_addr} --server-port {port}
 
 lmdeploy serve gradio ./models/internlm2-chat-1_8b --server-name 127.0.0.1 --server-port 12345
+lmdeploy serve api_server ./models/internlm2-chat-1_8b --server-name 127.0.0.1 --server-port 12345
 ```
 
 ## convert
