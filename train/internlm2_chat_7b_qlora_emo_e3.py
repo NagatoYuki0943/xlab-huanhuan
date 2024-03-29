@@ -4,16 +4,16 @@ https://zhuanlan.zhihu.com/p/677761706
 train:
     xtuner train $CONFIG [other_config]
     ex:
-        xtuner train train/internlm_chat_7b_qlora_oasst1_e3.py --deepspeed deepspeed_zero2
+        xtuner train train/internlm2_chat_7b_qlora_emo_e3.py --deepspeed deepspeed_zero2
 
 convert:
     xtuner convert pth_to_hf $CONFIG $PATH_TO_PTH_MODEL $SAVE_PATH_TO_HF_MODEL --max-shard-size 2GB
 
     ex:
         xtuner convert pth_to_hf \
-            train/internlm_chat_7b_qlora_oasst1_e3.py \
-            work_dirs/internlm_chat_7b_qlora_oasst1_e3/epoch_3.pth \
-            work_dirs/internlm_chat_7b_qlora_oasst1_e3/hf \
+            train/internlm2_chat_7b_qlora_emo_e3.py \
+            work_dirs/internlm2_chat_7b_qlora_emo_e3/epoch_3.pth \
+            work_dirs/internlm2_chat_7b_qlora_emo_e3/hf \
             --max-shard-size 2GB
 
 merge adapter:
@@ -22,8 +22,8 @@ merge adapter:
     ex:
         xtuner convert merge \
             models/internlm2-chat-1_8b \
-            work_dirs/internlm_chat_7b_qlora_oasst1_e3/hf \
-            work_dirs/internlm_chat_7b_qlora_oasst1_e3/merged \
+            work_dirs/internlm2_chat_7b_qlora_emo_e3/hf \
+            work_dirs/internlm2_chat_7b_qlora_emo_e3/merged \
             --max-shard-size 2GB
 
 chat:
@@ -32,13 +32,12 @@ chat:
     ex:
         xtuner chat \
             models/internlm2-chat-1_8b \
-            --adapter work_dirs/internlm_chat_7b_qlora_oasst1_e3/hf \
-            --bits 8 --temperature 0.7 --top-k 50 --top-p 0.9
-
+            --adapter work_dirs/internlm2_chat_7b_qlora_emo_e3/hf \
+            --bits 8 --temperature 0.7 --top-k 50 --top-p 0.9 \
+            --system 现在你是一个心理专家，我有一些心理问题，请你用专业的知识帮我解决。
 """
 
 
-# Copyright (c) OpenMMLab. All rights reserved.
 import torch
 from datasets import load_dataset
 from mmengine.dataset import DefaultSampler
@@ -53,23 +52,23 @@ from transformers import (AutoModelForCausalLM, AutoTokenizer,
 
 from xtuner.dataset import process_hf_dataset
 from xtuner.dataset.collate_fns import default_collate_fn
-from xtuner.dataset.map_fns import oasst1_map_fn, template_map_fn_factory
+from xtuner.dataset.map_fns import template_map_fn_factory
 from xtuner.engine.hooks import (DatasetInfoHook, EvaluateChatHook,
                                  VarlenAttnArgsToMessageHubHook, ThroughputHook)
 from xtuner.engine.runner import TrainLoop
 from xtuner.model import SupervisedFinetune
-from xtuner.utils import PROMPT_TEMPLATE
+from xtuner.utils import PROMPT_TEMPLATE, SYSTEM_TEMPLATE
 
 #######################################################################
 #                          PART 1  Settings                           #
 #######################################################################
 # Model
-pretrained_model_name_or_path = './internlm-chat-7b'
+pretrained_model_name_or_path = './models/internlm2-chat-7b'
 use_varlen_attn = False
 
 # Data
-data_path = './openassistant-guanaco'
-prompt_template = PROMPT_TEMPLATE.internlm_chat
+data_path = './data/emo_1234_xtuner.json'
+prompt_template = PROMPT_TEMPLATE.internlm2_chat
 max_length = 2048
 pack_to_max_length = True
 
@@ -79,7 +78,7 @@ accumulative_counts = 16
 dataloader_num_workers = 0
 max_epochs = 3
 optim_type = AdamW
-lr = 2e-4
+lr = 2e-5
 betas = (0.9, 0.999)
 weight_decay = 0
 max_norm = 1  # grad clip
@@ -92,9 +91,10 @@ save_total_limit = 2  # Maximum checkpoints to keep (-1 means unlimited)
 
 # Evaluate the generation performance during the training
 evaluation_freq = 500
-SYSTEM = ''
+SYSTEM = '现在你是一个心理专家，我有一些心理问题，请你用专业的知识帮我解决。'
 evaluation_inputs = [
-    '请给我介绍五个上海的景点', 'Please tell me five scenic spots in Shanghai'
+    '医生，我最近对学习完全提不起兴趣，尤其是数学课，一想到要上课或者做作业我就感到无比厌恶和烦躁。',
+    '医生，我最近总觉得自己对喜欢的事物失去了兴趣，比如以前我热爱画画，现在拿起画笔就感到焦虑和压力。'
 ]
 
 #######################################################################
@@ -140,10 +140,11 @@ model = dict(
 #######################################################################
 train_dataset = dict(
     type=process_hf_dataset,
-    dataset=dict(type=load_dataset, path=data_path),
+    dataset=dict(
+        type=load_dataset, path='json', data_files=dict(train=data_path)),
     tokenizer=tokenizer,
     max_length=max_length,
-    dataset_map_fn=oasst1_map_fn,
+    dataset_map_fn=None,
     template_map_fn=dict(
         type=template_map_fn_factory, template=prompt_template),
     remove_unused_columns=True,
@@ -159,7 +160,7 @@ train_dataloader = dict(
     collate_fn=dict(type=default_collate_fn, use_varlen_attn=use_varlen_attn))
 
 #######################################################################
-#                    PART 4  Scheduler & Optimizer                    #
+#                    PART 4  Optimizer & Scheduler                    #
 #######################################################################
 # optimizer
 optim_wrapper = dict(
