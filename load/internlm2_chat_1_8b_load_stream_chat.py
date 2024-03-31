@@ -71,6 +71,6 @@ while True:
             meta_instruction = system_prompt,
         ):
         if response is not None:
-            print(response[length:], flush=True, end="")
+            print("回答:", response[length:], flush=True, end="")
             length = len(response)
     print("\n")
