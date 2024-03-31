@@ -57,6 +57,7 @@ while True:
     if query.lower() == "exit":
         break
 
+    print("回答: ", end="")
     # https://huggingface.co/internlm/internlm2-chat-1_8b/blob/main/modeling_internlm2.py#L1185
     # stream_chat 返回的句子长度是逐渐边长的,length的作用是记录之前的输出长度,用来截断之前的输出
     length = 0
@@ -71,6 +72,6 @@ while True:
             meta_instruction = system_prompt,
         ):
         if response is not None:
-            print("回答:", response[length:], flush=True, end="")
+            print(response[length:], flush=True, end="")
             length = len(response)
     print("\n")
