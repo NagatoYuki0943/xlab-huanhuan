@@ -47,6 +47,7 @@ system_prompt = """You are an AI assistant whose name is InternLM (书生·浦�
 # system_prompt = "你是一个农业专家，请准确回答农业相关的问题"
 print("system_prompt: ", system_prompt)
 
+
 history = []
 while True:
     query = input("请输入提示:")
@@ -56,18 +57,20 @@ while True:
     if query.lower() == "exit":
         break
 
-    # https://huggingface.co/internlm/internlm2-chat-1_8b/blob/main/modeling_internlm2.py#L1149
-    # chat 调用的 generate
-    response, history = model.chat(
-        tokenizer = tokenizer,
-        query = query,
-        history = history,
-        streamer = None,
-        max_new_tokens = 1024,
-        do_sample = True,
-        temperature = 0.8,
-        top_p = 0.8,
-        meta_instruction = system_prompt,
-    )
-    # print("history:", history)
-    print("回答:", response)
+    # https://huggingface.co/internlm/internlm2-chat-1_8b/blob/main/modeling_internlm2.py#L1185
+    # stream_chat 返回的句子长度是逐渐边长的,length的作用是记录之前的输出长度,用来截断之前的输出
+    length = 0
+    for response, history in model.stream_chat(
+            tokenizer = tokenizer,
+            query = query,
+            history = history,
+            max_new_tokens = 1024,
+            do_sample = True,
+            temperature = 0.8,
+            top_p = 0.8,
+            meta_instruction = system_prompt,
+        ):
+        if response is not None:
+            print(response[length:], flush=True, end="")
+            length = len(response)
+    print("\n")
