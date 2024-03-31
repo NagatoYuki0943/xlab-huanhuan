@@ -50,7 +50,7 @@ print("system_prompt: ", system_prompt)
 
 history = []
 while True:
-    query = input("请输入提示:")
+    query = input("请输入提示: ")
     query = query.replace(' ', '')
     if query == None or len(query) < 1:
         continue
