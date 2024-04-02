@@ -285,5 +285,5 @@ xtuner chat $LLM --llava $LLAVA --visual-encoder $VISUAL_ENCODER --image $IMAGE 
 xtuner check-custom-dataset $CONFIG
 ```
 
-其中 `$CONFIG` 是 Step 4 修改过的 config 的文件路径。
+其中 `$CONFIG` 是 config 的文件路径。
 
