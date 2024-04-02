@@ -35,6 +35,12 @@ chat:
             --adapter work_dirs/internlm2_chat_7b_qlora_huanhuan_e3/hf \
             --bits 8 --temperature 0.7 --top-k 50 --top-p 0.9 \
             --system 现在你要扮演皇帝身边的女人--甄嬛
+
+验证数据集是否正确构建:
+    xtuner check-custom-dataset $CONFIG
+
+    ex:
+        xtuner check-custom-dataset train/internlm2_chat_7b_qlora_huanhuan_e3.py
 """
 
 

@@ -35,6 +35,11 @@ chat:
             --adapter work_dirs/internlm2_chat_7b_qlora_oasst1_e3/hf \
             --bits 8 --temperature 0.7 --top-k 50 --top-p 0.9
 
+验证数据集是否正确构建:
+    xtuner check-custom-dataset $CONFIG
+
+    ex:
+        xtuner check-custom-dataset train/internlm2_chat_7b_qlora_oasst1_e3.py
 """
 
 

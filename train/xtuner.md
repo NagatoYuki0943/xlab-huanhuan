@@ -276,3 +276,14 @@ xtuner chat \
 # Chat with VLMs with HuggingFace's model and LLaVA:
 xtuner chat $LLM --llava $LLAVA --visual-encoder $VISUAL_ENCODER --image $IMAGE --prompt-template $PROMPT_TEMPLATE --system-template $SYSTEM_TEMPLATE
 ```
+
+# check-custom-dataset
+
+在修改配置文件后，可以运行`xtuner/tools/check_custom_dataset.py`脚本验证数据集是否正确构建。
+
+```sh
+xtuner check-custom-dataset $CONFIG
+```
+
+其中 `$CONFIG` 是 Step 4 修改过的 config 的文件路径。
+

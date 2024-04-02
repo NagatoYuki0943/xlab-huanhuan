@@ -35,6 +35,12 @@ chat:
             --adapter work_dirs/internlm2_chat_1_8b_qlora_emo_e3/hf \
             --bits 8 --temperature 0.7 --top-k 50 --top-p 0.9 \
             --system 现在你是一个心理专家，我有一些心理问题，请你用专业的知识帮我解决。
+
+验证数据集是否正确构建:
+    xtuner check-custom-dataset $CONFIG
+
+    ex:
+        xtuner check-custom-dataset train/internlm2_chat_1_8b_qlora_emo_e3.py
 """
 
 
