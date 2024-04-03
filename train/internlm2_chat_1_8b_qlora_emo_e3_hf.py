@@ -92,7 +92,7 @@ def process_func(example):
         "labels": labels
     }
 
-# remove_columns: map 后悔移除这一列
+# remove_columns: map 后会移除这一列
 tokenized_id = ds.map(process_func, remove_columns=ds.column_names)
 
 print(f"{'⬇️' * 20} tokenized_id example {'⬇️' * 20}")
