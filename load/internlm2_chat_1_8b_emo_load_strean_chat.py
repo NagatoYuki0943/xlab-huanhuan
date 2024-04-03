@@ -9,6 +9,8 @@ print("transformers version: ", transformers.__version__)
 
 
 model_dir = "./models/internlm2-chat-1_8b"
+adapter_dir = "./work_dirs/internlm2_chat_1_8b_qlora_emo_e3_hf/checkpoint-3000"
+# adapter_dir = "./work_dirs/internlm2_chat_1_8b_qlora_emo_e3/hf"
 quantization = False
 
 # tokenizer
@@ -36,16 +38,19 @@ model = AutoModelForCausalLM.from_pretrained(
 )
 model.eval()
 
+# 2种加载adapter的方式
+# 1. load adapter https://huggingface.co/docs/transformers/main/zh/peft
+# model.load_adapter(adapter_dir)
+
+# 2. https://huggingface.co/docs/peft/v0.9.0/en/package_reference/peft_model#peft.PeftModel.from_pretrained
+model = PeftModel.from_pretrained(model, adapter_dir)
+
 # print(model.__class__.__name__) # InternLM2ForCausalLM
 
 print(f"model.device: {model.device}, model.dtype: {model.dtype}")
 
-system_prompt = """You are an AI assistant whose name is InternLM (书生·浦语).
-- InternLM (书生·浦语) is a conversational language model that is developed by Shanghai AI Laboratory (上海人工智能实验室). It is designed to be helpful, honest, and harmless.
-- InternLM (书生·浦语) can understand and communicate fluently in the language chosen by the user such as English and 中文.
-"""
-# system_prompt = "你是一个农业专家，请准确回答农业相关的问题"
-print("system_prompt: ", system_prompt)
+system_prompt = "现在你是一个心理专家，我有一些心理问题，请你用专业的知识帮我解决。"
+print(system_prompt)
 
 history = []
 while True:
@@ -57,18 +62,20 @@ while True:
         break
 
     print("回答: ", end="")
-    # https://huggingface.co/internlm/internlm2-chat-1_8b/blob/main/modeling_internlm2.py#L1149
-    # chat 调用的 generate
-    response, history = model.chat(
-        tokenizer = tokenizer,
-        query = query,
-        history = history,
-        streamer = None,
-        max_new_tokens = 1024,
-        do_sample = True,
-        temperature = 0.8,
-        top_p = 0.8,
-        meta_instruction = system_prompt,
-    )
-    # print("history:", history)
-    print(response)
+    # https://huggingface.co/internlm/internlm2-chat-1_8b/blob/main/modeling_internlm2.py#L1185
+    # stream_chat 返回的句子长度是逐渐边长的,length的作用是记录之前的输出长度,用来截断之前的输出
+    length = 0
+    for response, history in model.stream_chat(
+            tokenizer = tokenizer,
+            query = query,
+            history = history,
+            max_new_tokens = 1024,
+            do_sample = True,
+            temperature = 0.8,
+            top_p = 0.8,
+            meta_instruction = system_prompt,
+        ):
+        if response is not None:
+            print(response[length:], flush=True, end="")
+            length = len(response)
+    print("\n")

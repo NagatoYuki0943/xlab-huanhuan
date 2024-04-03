@@ -8,10 +8,10 @@ print("torch version: ", torch.__version__)
 print("transformers version: ", transformers.__version__)
 
 
-model_dir = "./models/internlm2-chat-1_8b"
-adapter_dir = "./work_dirs/internlm2_chat_1_8b_qlora_emo_e3_hf/checkpoint-3000"
-# adapter_dir = "./work_dirs/internlm2_chat_1_8b_qlora_emo_e3/hf"
-quantization = False
+model_dir = "./models/internlm2-chat-7b"
+# adapter_dir = "./work_dirs/internlm2_chat_7b_qlora_emo_e3_hf/checkpoint-3000"
+adapter_dir = "./work_dirs/internlm2_chat_7b_qlora_emo_e3/hf"
+quantization = True
 
 # tokenizer
 tokenizer = AutoTokenizer.from_pretrained(model_dir, use_fast=False, trust_remote_code=True)
@@ -61,18 +61,22 @@ while True:
     if query.lower() == "exit":
         break
 
-    # https://huggingface.co/internlm/internlm2-chat-1_8b/blob/main/modeling_internlm2.py#L1149
-    # chat 调用的 generate
-    response, history = model.chat(
-        tokenizer = tokenizer,
-        query = query,
-        history = history,
-        streamer = None,
-        max_new_tokens = 1024,
-        do_sample = True,
-        temperature = 0.8,
-        top_p = 0.8,
-        meta_instruction = system_prompt,
-    )
-    # print("history:", history)
-    print("回答: ", response)
+    print("回答: ", end="")
+    # https://huggingface.co/internlm/internlm2-chat-1_8b/blob/main/modeling_internlm2.py#L1185
+    # stream_chat 返回的句子长度是逐渐边长的,length的作用是记录之前的输出长度,用来截断之前的输出
+    length = 0
+    for response, history in model.stream_chat(
+            tokenizer = tokenizer,
+            query = query,
+            history = history,
+            max_new_tokens = 1024,
+            do_sample = True,
+            temperature = 0.8,
+            top_p = 0.8,
+            meta_instruction = system_prompt,
+        ):
+        if response is not None:
+            print(response[length:], flush=True, end="")
+            length = len(response)
+    print("\n")
+
