@@ -142,6 +142,8 @@ args = TrainingArguments(
     save_on_each_node=True,
     warmup_ratio=0.03,
     lr_scheduler_type="cosine",
+    bf16 = False,   # 指定训练时的类型
+    fp16 = True,
 )
 
 trainer = Trainer(
