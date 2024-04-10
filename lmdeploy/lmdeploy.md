@@ -1,874 +1,873 @@
-https://github.com/InternLM/Tutorial
+<div align="center">
 
-![](cover.jpg)
+![9c02c855a0d2dbc0e61bc0cf033e94a](https://github.com/InternLM/Tutorial/assets/25839884/48108bed-1bbd-4781-9edc-ecdf7d1bca02)
 
-# LMDeploy 的量化和部署
+</div>
 
-<!-- START doctoc generated TOC please keep comment here to allow auto update -->
-<!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
-
-- [1 环境配置](#1-%E7%8E%AF%E5%A2%83%E9%85%8D%E7%BD%AE)
-- [2 服务部署](#2-%E6%9C%8D%E5%8A%A1%E9%83%A8%E7%BD%B2)
-  - [2.1 模型转换](#21-%E6%A8%A1%E5%9E%8B%E8%BD%AC%E6%8D%A2)
-    - [2.1.1 在线转换](#211-%E5%9C%A8%E7%BA%BF%E8%BD%AC%E6%8D%A2)
-    - [2.1.2 离线转换](#212-%E7%A6%BB%E7%BA%BF%E8%BD%AC%E6%8D%A2)
-  - [2.2  TurboMind 推理+命令行本地对话](#22--turbomind-%E6%8E%A8%E7%90%86%E5%91%BD%E4%BB%A4%E8%A1%8C%E6%9C%AC%E5%9C%B0%E5%AF%B9%E8%AF%9D)
-  - [2.3 TurboMind推理+API服务](#23-turbomind%E6%8E%A8%E7%90%86api%E6%9C%8D%E5%8A%A1)
-  - [2.4 网页 Demo 演示](#24-%E7%BD%91%E9%A1%B5-demo-%E6%BC%94%E7%A4%BA)
-    - [2.4.1 TurboMind 服务作为后端](#241-turbomind-%E6%9C%8D%E5%8A%A1%E4%BD%9C%E4%B8%BA%E5%90%8E%E7%AB%AF)
-    - [2.4.2 TurboMind 推理作为后端](#242-turbomind-%E6%8E%A8%E7%90%86%E4%BD%9C%E4%B8%BA%E5%90%8E%E7%AB%AF)
-  - [2.5 TurboMind 推理 + Python 代码集成](#25-turbomind-%E6%8E%A8%E7%90%86--python-%E4%BB%A3%E7%A0%81%E9%9B%86%E6%88%90)
-  - [2.6 这么多，头秃，有没有最佳实践](#26-%E8%BF%99%E4%B9%88%E5%A4%9A%E5%A4%B4%E7%A7%83%E6%9C%89%E6%B2%A1%E6%9C%89%E6%9C%80%E4%BD%B3%E5%AE%9E%E8%B7%B5)
-    - [2.6.1 方案实践](#261-%E6%96%B9%E6%A1%88%E5%AE%9E%E8%B7%B5)
-    - [2.6.2 模型配置实践](#262-%E6%A8%A1%E5%9E%8B%E9%85%8D%E7%BD%AE%E5%AE%9E%E8%B7%B5)
-- [3 模型量化](#3-%E6%A8%A1%E5%9E%8B%E9%87%8F%E5%8C%96)
-  - [3.1 KV Cache 量化](#31-kv-cache-%E9%87%8F%E5%8C%96)
-    - [3.1.1 量化步骤](#311-%E9%87%8F%E5%8C%96%E6%AD%A5%E9%AA%A4)
-    - [3.1.2 量化效果](#312-%E9%87%8F%E5%8C%96%E6%95%88%E6%9E%9C)
-  - [3.2 W4A16 量化](#32-w4a16-%E9%87%8F%E5%8C%96)
-    - [3.2.1 量化步骤](#321-%E9%87%8F%E5%8C%96%E6%AD%A5%E9%AA%A4)
-    - [3.2.2 量化效果](#322-%E9%87%8F%E5%8C%96%E6%95%88%E6%9E%9C)
-  - [3.3 最佳实践](#33-%E6%9C%80%E4%BD%B3%E5%AE%9E%E8%B7%B5)
-- [参考资料](#%E5%8F%82%E8%80%83%E8%B5%84%E6%96%99)
-- [附录1：TritonServer 作为推理引擎](#%E9%99%84%E5%BD%951tritonserver-%E4%BD%9C%E4%B8%BA%E6%8E%A8%E7%90%86%E5%BC%95%E6%93%8E)
-  - [TritonServer环境配置](#tritonserver%E7%8E%AF%E5%A2%83%E9%85%8D%E7%BD%AE)
-  - [TritonServer推理+API服务](#tritonserver%E6%8E%A8%E7%90%86api%E6%9C%8D%E5%8A%A1)
-  - [TritonServer 服务作为后端](#tritonserver-%E6%9C%8D%E5%8A%A1%E4%BD%9C%E4%B8%BA%E5%90%8E%E7%AB%AF)
-
-<!-- END doctoc generated TOC please keep comment here to allow auto update -->
+- [1.LMDeploy环境部署](#1lmdeploy环境部署)
+  - [1.1 创建开发机](#11-创建开发机)
+  - [1.2 创建conda环境](#12-创建conda环境)
+    - [InternStudio开发机创建conda环境（推荐）](#internstudio开发机创建conda环境推荐)
+    - [本地环境创建conda环境](#本地环境创建conda环境)
+  - [1.3 安装LMDeploy](#13-安装lmdeploy)
+- [2.LMDeploy模型对话(chat)](#2lmdeploy模型对话chat)
+  - [2.1 Huggingface与TurboMind](#21-huggingface与turbomind)
+    - [HuggingFace](#huggingface)
+    - [TurboMind](#turbomind)
+  - [2.2 下载模型](#22-下载模型)
+    - [InternStudio开发机上下载模型（推荐）](#internstudio开发机上下载模型推荐)
+    - [由OpenXLab平台下载模型](#由openxlab平台下载模型)
+  - [2.3 使用Transformer库运行模型](#23-使用transformer库运行模型)
+  - [2.4 使用LMDeploy与模型对话](#24-使用lmdeploy与模型对话)
+- [3.LMDeploy模型量化(lite)](#3lmdeploy模型量化lite)
+  - [3.1 设置最大KV Cache缓存大小](#31-设置最大kv-cache缓存大小)
+  - [3.2 使用W4A16量化](#32-使用w4a16量化)
+- [4.LMDeploy服务(serve)](#4lmdeploy服务serve)
+  - [4.1 启动API服务器](#41-启动api服务器)
+  - [4.2 命令行客户端连接API服务器](#42-命令行客户端连接api服务器)
+  - [4.3 网页客户端连接API服务器](#43-网页客户端连接api服务器)
+- [5.Python代码集成](#5python代码集成)
+  - [5.1 Python代码集成运行1.8B模型](#51-python代码集成运行18b模型)
+  - [5.2 向TurboMind后端传递参数](#52-向turbomind后端传递参数)
+- [6.拓展部分](#6拓展部分)
+  - [6.1 使用LMDeploy运行视觉多模态大模型llava](#61-使用lmdeploy运行视觉多模态大模型llava)
+  - [6.2 使用LMDeploy运行第三方大模型](#62-使用lmdeploy运行第三方大模型)
+  - [6.3 定量比较LMDeploy与Transformer库的推理速度差异](#63-定量比较lmdeploy与transformer库的推理速度差异)
+- [课后作业](#课后作业)
 
 
-## 1 环境配置
+# 1.LMDeploy环境部署
 
-首先我们可以使用 `vgpu-smi ` 查看显卡资源使用情况。
+## 1.1 创建开发机
 
-![](img/0.png)
+打开InternStudio平台，创建开发机。
 
-大家可以使用系统给的 vscode 进行后面的开发。分别点击下图「1」和「2」的位置，就会在下方显示终端。
+![](./imgs/1.1_1.jpg)
 
-![](img/add0.png)
+填写开发机名称；选择镜像`Cuda12.2-conda`；选择`10% A100*1`GPU；点击“立即创建”。**注意请不要选择`Cuda11.7-conda`的镜像，新版本的lmdeploy会出现兼容性问题。**
 
-可以点击终端（TERMINAL）窗口右侧的「+」号创建新的终端窗口。大家可以新开一个窗口，执行下面的命令实时观察 GPU 资源的使用情况。
+![](./imgs/1.1_2.jpg)
 
-```bash
-$ watch vgpu-smi
+排队等待一小段时间，点击“进入开发机”。
+
+![](./imgs/1.1_3.jpg)
+
+点击左上角图标，切换为终端(Terminal)模式。
+
+![](./imgs/1.1_4.jpg)
+
+## 1.2 创建conda环境
+
+### InternStudio开发机创建conda环境（推荐）
+
+由于环境依赖项存在torch，下载过程可能比较缓慢。InternStudio上提供了快速创建conda环境的方法。打开命令行终端，创建一个名为`lmdeploy`的环境：
+
+```sh
+studio-conda -t lmdeploy -o pytorch-2.1.2
 ```
 
-结果如下图所示，该窗口会实时检测 GPU 卡的使用情况。
+环境创建成功后，提示如下：
 
-![](img/add1.png)
+![](./imgs/1.2_2.jpg)
 
-接下来我们切换到刚刚的终端（就是上图右边的那个「bash」，下面的「watch」就是监控的终端），创建部署和量化需要的环境。建议大家使用官方提供的环境，使用 conda 直接复制。
+### 本地环境创建conda环境
 
-这里 `/share/conda_envs` 目录下的环境是官方未大家准备好的基础环境，因为该目录是共享只读的，而我们后面需要在此基础上安装新的软件包，所以需要复制到我们自己的 conda 环境（该环境下我们是可写的）。
+注意，如果你在上一步已经在InternStudio开发机上创建了conda环境，这一步就没必要执行了。
 
-```bash
-$ conda create -n CONDA_ENV_NAME --clone /share/conda_envs/internlm-base
+<details>
+
+打开命令行终端，让我们来创建一个名为`lmdeploy`的conda环境，python版本为3.10。
+
+```sh
+conda create -n lmdeploy -y python=3.10
 ```
 
-- 如果clone操作过慢，可采用如下操作:
+环境创建成功后，提示如下：
 
-```bash
-$ /root/share/install_conda_env_internlm_base.sh lmdeploy
+![](./imgs/1.2_1.jpg)
+
+</details>
+
+## 1.3 安装LMDeploy
+
+接下来，激活刚刚创建的虚拟环境。
+
+```sh
+conda activate lmdeploy
 ```
 
-我们取 `CONDA_ENV_NAME` 为 `lmdeploy`，复制完成后，可以在本地查看环境。
+安装0.3.0版本的lmdeploy。
 
-```bash
-$ conda env list
+```sh
+pip install lmdeploy[all]==0.3.0
 ```
 
-结果如下所示。
+等待安装结束就OK了！
 
-```bash
-# conda environments:
-#
-base                  *  /root/.conda
-lmdeploy                 /root/.conda/envs/lmdeploy
+# 2.LMDeploy模型对话(chat)
+
+## 2.1 Huggingface与TurboMind 
+
+### HuggingFace
+
+[HuggingFace](https://huggingface.co/)是一个高速发展的社区，包括Meta、Google、Microsoft、Amazon在内的超过5000家组织机构在为HuggingFace开源社区贡献代码、数据集和模型。可以认为是一个针对深度学习模型和数据集的在线托管社区，如果你有数据集或者模型想对外分享，网盘又不太方便，就不妨托管在HuggingFace。
+
+托管在HuggingFace社区的模型通常采用HuggingFace格式存储，简写为**HF格式**。
+
+但是HuggingFace社区的服务器在国外，国内访问不太方便。国内可以使用阿里巴巴的[MindScope](https://www.modelscope.cn/home)社区，或者上海AI Lab搭建的[OpenXLab](https://openxlab.org.cn/home)社区，上面托管的模型也通常采用**HF格式**。
+
+### TurboMind 
+
+TurboMind是LMDeploy团队开发的一款关于LLM推理的高效推理引擎，它的主要功能包括：LLaMa 结构模型的支持，continuous batch 推理模式和可扩展的 KV 缓存管理器。
+
+TurboMind推理引擎仅支持推理TurboMind格式的模型。因此，TurboMind在推理HF格式的模型时，会首先自动将HF格式模型转换为TurboMind格式的模型。**该过程在新版本的LMDeploy中是自动进行的，无需用户操作。**
+
+几个容易迷惑的点：
+* TurboMind与LMDeploy的关系：LMDeploy是涵盖了LLM 任务全套轻量化、部署和服务解决方案的集成功能包，TurboMind是LMDeploy的一个推理引擎，是一个子模块。LMDeploy也可以使用pytorch作为推理引擎。
+* TurboMind与TurboMind模型的关系：TurboMind是推理引擎的名字，TurboMind模型是一种模型存储格式，TurboMind引擎只能推理TurboMind格式的模型。
+
+## 2.2 下载模型
+
+本次实战营已经在开发机的共享目录中准备好了常用的预训练模型，可以运行如下命令查看： 
+
+```sh
+ls /root/share/new_models/Shanghai_AI_Laboratory/
 ```
 
-然后激活环境。
+显示如下，每一个文件夹都对应一个预训练模型。 
 
-```bash
-$ conda activate lmdeploy
+![](./imgs/2.2_1.jpg)
+
+以InternLM2-Chat-1.8B模型为例，从官方仓库下载模型。
+
+### InternStudio开发机上下载模型（推荐）
+
+如果你是在InternStudio开发机上，可以按照如下步骤快速下载模型。
+
+首先进入一个你想要存放模型的目录，本教程统一放置在Home目录。执行如下指令：
+
+```sh
+cd ~
 ```
 
-注意，环境激活后，左边会显示当前（也就是 `lmdeploy`）的环境名称，如下图所示。
+然后执行如下指令由开发机的共享目录**软链接**或**拷贝**模型： 
 
-![](img/1.png)
-
-可以进入Python检查一下 PyTorch 和 lmdeploy 的版本。由于 PyTorch 在官方提供的环境里，我们应该可以看到版本显示，而 lmdeploy 需要我们自己安装，此处应该会提示“没有这个包”，如下图所示。
-
-![](img/2.png)
-
-lmdeploy 没有安装，我们接下来手动安装一下，建议安装最新的稳定版。
-如果是在 InternStudio 开发环境，需要先运行下面的命令，否则会报错。
-
-
-```bash
-# 解决 ModuleNotFoundError: No module named 'packaging' 问题
-pip install packaging
-# 使用 flash_attn 的预编译包解决安装过慢问题
-pip install /root/share/wheels/flash_attn-2.4.2+cu118torch2.0cxx11abiTRUE-cp310-cp310-linux_x86_64.whl
+```sh
+ln -s /root/share/new_models/Shanghai_AI_Laboratory/internlm2-chat-1_8b /root/
+# cp -r /root/share/new_models/Shanghai_AI_Laboratory/internlm2-chat-1_8b /root/
 ```
 
-```bash
-pip install 'lmdeploy[all]==v0.1.0'
+执行完如上指令后，可以运行“ls”命令。可以看到，当前目录下已经多了一个`internlm2-chat-1_8b`文件夹，即下载好的预训练模型。
+
+```sh
+ls
 ```
 
-由于默认安装的是 runtime 依赖包，但是我们这里还需要部署和量化，所以，这里选择 `[all]`。然后可以再检查一下 lmdeploy 包，如下图所示。
+![](./imgs/2.2_2.jpg)
 
-![](img/add3.png)
+### 由OpenXLab平台下载模型
 
+注意，如果你在上一步已经从InternStudio开发机上下载了模型，这一步就没必要执行了。
 
-基础环境到这里就配置好了。
+<details>
 
-- 如果遇到`lmdeploy: command not found` 或其他问题，移步 [QA 文档](https://cguue83gpz.feishu.cn/docx/Noi7d5lllo6DMGxkuXwclxXMn5f#H2w9drpHiogeOHxhK7PcdJCmn8c)
+上一步介绍的方法只适用于在InternStudio开发机上下载模型，如果是在自己电脑的开发环境上，也可以由[OpenXLab](https://openxlab.org.cn/usercenter/OpenLMLab?vtab=create&module=datasets)下载。*在开发机上还是建议通过拷贝的方式，因为从OpenXLab平台下载会占用大量带宽~*
 
-## 2 服务部署
+首先进入一个你想要存放模型的目录，本教程统一放置在Home目录。执行如下指令：
 
-这一部分主要涉及本地推理和部署。我们先看一张图。
-
-![](img/lmdeploy.drawio.png)
-
-我们把从架构上把整个服务流程分成下面几个模块。
-
-- 模型推理/服务。主要提供模型本身的推理，一般来说可以和具体业务解耦，专注模型推理本身性能的优化。可以以模块、API等多种方式提供。
-- Client。可以理解为前端，与用户交互的地方。
-- API Server。一般作为前端的后端，提供与产品和服务相关的数据和功能支持。
-
-值得说明的是，以上的划分是一个相对完整的模型，但在实际中这并不是绝对的。比如可以把“模型推理”和“API Server”合并，有的甚至是三个流程打包在一起提供服务。
-
-接下来，我们看一下lmdeploy提供的部署功能。
-
-### 2.1 模型转换
-
-使用 TurboMind 推理模型需要先将模型转化为 TurboMind 的格式，目前支持在线转换和离线转换两种形式。在线转换可以直接加载 Huggingface 模型，离线转换需需要先保存模型再加载。
-
-TurboMind 是一款关于 LLM 推理的高效推理引擎，基于英伟达的 [FasterTransformer](https://github.com/NVIDIA/FasterTransformer) 研发而成。它的主要功能包括：LLaMa 结构模型的支持，persistent batch 推理模式和可扩展的 KV 缓存管理器。
-
-#### 2.1.1 在线转换
-
-lmdeploy 支持直接读取 Huggingface 模型权重，目前共支持三种类型：
-
-- 在 huggingface.co 上面通过 lmdeploy 量化的模型，如 [llama2-70b-4bit](https://huggingface.co/lmdeploy/llama2-chat-70b-4bit), [internlm-chat-20b-4bit](https://huggingface.co/internlm/internlm-chat-20b-4bit)
-- huggingface.co 上面其他 LM 模型，如 Qwen/Qwen-7B-Chat
-
-示例如下：
-
-```bash
-# 需要能访问 Huggingface 的网络环境
-lmdeploy chat turbomind internlm/internlm-chat-20b-4bit --model-name internlm-chat-20b
-lmdeploy chat turbomind Qwen/Qwen-7B-Chat --model-name qwen-7b
+```sh
+cd ~
 ```
 
-上面两行命令分别展示了如何直接加载 Huggingface 的模型，第一条命令是加载使用 lmdeploy 量化的版本，第二条命令是加载其他 LLM 模型。
+OpenXLab平台支持通过Git协议下载模型。首先安装git-lfs组件。
 
-我们也可以直接启动本地的 Huggingface 模型，如下所示。
+* 对于root用于请执行如下指令：
 
-```bash
-lmdeploy chat turbomind /share/temp/model_repos/internlm-chat-7b/  --model-name internlm-chat-7b
+```sh
+curl -s https://packagecloud.io/install/repositories/github/git-lfs/script.deb.sh | bash
+apt update
+apt install git-lfs   
+git lfs install  --system
 ```
 
-以上命令都会启动一个本地对话界面，通过 Bash 可以与 LLM 进行对话。
+* 对于非root用户需要加sudo，请执行如下指令：
 
-#### 2.1.2 离线转换
-
-离线转换需要在启动服务之前，将模型转为 lmdeploy TurboMind  的格式，如下所示。
-
-```bash
-# 转换模型（FastTransformer格式） TurboMind
-lmdeploy convert internlm-chat-7b /path/to/internlm-chat-7b
+```sh
+curl -s https://packagecloud.io/install/repositories/github/git-lfs/script.deb.sh | sudo bash
+sudo apt update
+sudo apt install git-lfs   
+sudo git lfs install  --system
 ```
 
-这里我们使用官方提供的模型文件，就在用户根目录执行，如下所示。
+安装好git-lfs组件后，由OpenXLab平台下载InternLM2-Chat-1.8B模型：
 
-```bash
-lmdeploy convert internlm-chat-7b  /root/share/temp/model_repos/internlm-chat-7b/
+```sh
+git clone https://code.openxlab.org.cn/OpenLMLab/internlm2-chat-1.8b.git
 ```
 
-执行完成后将会在当前目录生成一个 `workspace` 的文件夹。这里面包含的就是 TurboMind 和 Triton “模型推理”需要到的文件。
+这一步骤可能耗时较长，主要取决于网速，耐心等待即可。
 
-目录如下图所示。
+![](./imgs/2.2_3.jpg)
 
-![](img/4.png)
+下载完成后，运行`ls`指令，可以看到当前目录下多了一个`internlm2-chat-1.8b`文件夹，即下载好的预训练模型。
 
-`weights` 和 `tokenizer` 目录分别放的是拆分后的参数和 Tokenizer。如果我们进一步查看 `weights` 的目录，就会发现参数是按层和模块拆开的，如下图所示。
-
-![](img/5.png)
-
-每一份参数第一个 0 表示“层”的索引，后面的那个0表示 Tensor 并行的索引，因为我们只有一张卡，所以被拆分成 1 份。如果有两张卡可以用来推理，则会生成0和1两份，也就是说，会把同一个参数拆成两份。比如 `layers.0.attention.w_qkv.0.weight` 会变成 `layers.0.attention.w_qkv.0.weight` 和 `layers.0.attention.w_qkv.1.weight`。执行 `lmdeploy convert` 命令时，可以通过 `--tp` 指定（tp 表示 tensor parallel），该参数默认值为1（也就是一张卡）。
-
-**关于Tensor并行**
-
-Tensor并行一般分为行并行或列并行，原理如下图所示。
-
-![](img/6.png)
-
-<p align="center">列并行<p>
-
-![](img/7.png)
-
-<p align="center">行并行<p>
-
-简单来说，就是把一个大的张量（参数）分到多张卡上，分别计算各部分的结果，然后再同步汇总。
-
-### 2.2  TurboMind 推理+命令行本地对话
-
-模型转换完成后，我们就具备了使用模型推理的条件，接下来就可以进行真正的模型推理环节。
-
-我们先尝试本地对话（`Bash Local Chat`），下面用（Local Chat 表示）在这里其实是跳过 API Server 直接调用 TurboMind。简单来说，就是命令行代码直接执行 TurboMind。所以说，实际和前面的架构图是有区别的。
-
-这里支持多种方式运行，比如Turbomind、PyTorch、DeepSpeed。但 PyTorch 和 DeepSpeed 调用的其实都是 Huggingface 的 Transformers 包，PyTorch表示原生的 Transformer 包，DeepSpeed 表示使用了 DeepSpeed 作为推理框架。Pytorch/DeepSpeed 目前功能都比较弱，不具备生产能力，不推荐使用。
-
-执行命令如下。
-
-```bash
-# Turbomind + Bash Local Chat
-lmdeploy chat turbomind ./workspace
+```sh
+ls
 ```
 
-启动后就可以和它进行对话了，如下图所示。
+![](./imgs/2.2_4.jpg)
 
-![](img/8.png)
+注意！从OpenXLab平台下载的模型文件夹命名为`1.8b`，而从InternStudio开发机直接拷贝的模型文件夹名称是`1_8b`，为了后续文档统一，这里统一命名为`1_8b`。
 
-输入后两次回车，退出时输入`exit` 回车两次即可。此时，Server 就是本地跑起来的模型（TurboMind），命令行可以看作是前端。
-
-### 2.3 TurboMind推理+API服务
-
-在上面的部分我们尝试了直接用命令行启动 Client，接下来我们尝试如何运用 lmdepoy 进行服务化。
-
-”模型推理/服务“目前提供了 Turbomind 和 TritonServer 两种服务化方式。此时，Server 是 TurboMind 或 TritonServer，API Server 可以提供对外的 API 服务。我们推荐使用 TurboMind，TritonServer 使用方式详见《附录1》。
-
-首先，通过下面命令启动服务。
-
-
-```bash
-# ApiServer+Turbomind   api_server => AsyncEngine => TurboMind
-lmdeploy serve api_server ./workspace \
-	--server_name 0.0.0.0 \
-	--server_port 23333 \
-	--instance_num 64 \
-	--tp 1
+```sh
+mv /root/internlm2-chat-1.8b /root/internlm2-chat-1_8b
 ```
 
-上面的参数中 `server_name` 和 `server_port` 分别表示服务地址和端口，`tp` 参数我们之前已经提到过了，表示 Tensor 并行。还剩下一个 `instance_num` 参数，表示实例数，可以理解成 Batch 的大小。执行后如下图所示。
+</details>
 
-![](img/11.png)
+## 2.3 使用Transformer库运行模型
 
-然后，我们可以新开一个窗口，执行下面的 Client 命令。如果使用官方机器，可以打开 vscode 的 Terminal，执行下面的命令。
+Transformer库是Huggingface社区推出的用于运行HF模型的官方库。
 
-```bash
-# ChatApiClient+ApiServer（注意是http协议，需要加http）
-lmdeploy serve api_client http://localhost:23333
+在2.2中，我们已经下载好了InternLM2-Chat-1.8B的HF模型。下面我们先用Transformer来直接运行InternLM2-Chat-1.8B模型，后面对比一下LMDeploy的使用感受。
+
+现在，让我们点击左上角的图标，打开VSCode。
+
+![](./imgs/2.3_2.jpg)
+
+在左边栏**空白区域**单击鼠标右键，点击`Open in Intergrated Terminal`。
+
+![](./imgs/2.3_3.jpg)
+
+等待片刻，打开终端。
+
+![](./imgs/2.3_4.jpg)
+
+在终端中输入如下指令，新建`pipeline_transformer.py`。
+
+```sh
+touch /root/pipeline_transformer.py
 ```
 
-如下图所示。
+回车执行指令，可以看到侧边栏多出了`pipeline_transformer.py`文件，点击打开。后文中如果要创建其他新文件，也是采取类似的操作。
 
-![](img/12.png)
+![](./imgs/2.3_5.jpg)
 
-当然，刚刚我们启动的是 API Server，自然也有相应的接口。可以直接打开 `http://{host}:23333` 查看，如下图所示。
+将以下内容复制粘贴进入`pipeline_transformer.py`。
 
-![](img/13.png)
+```py
+import torch
+from transformers import AutoTokenizer, AutoModelForCausalLM
 
-> 注意，这一步由于 Server 在远程服务器上，所以本地需要做一下 ssh 转发才能直接访问（与第一部分操作一样），命令如下：
->
-> ssh -CNg -L 23333:127.0.0.1:23333 root@ssh.intern-ai.org.cn -p <你的ssh端口号>
->
-> 而执行本命令需要添加本机公钥，公钥添加后等待几分钟即可生效。ssh 端口号就是下面图片里的 33087。
->
-> ![](img/20.png)
+tokenizer = AutoTokenizer.from_pretrained("/root/internlm2-chat-1_8b", trust_remote_code=True)
 
-这里一共提供了 4 个 HTTP 的接口，任何语言都可以对其进行调用，我们以 `v1/chat/completions` 接口为例，简单试一下。
+# Set `torch_dtype=torch.float16` to load model in float16, otherwise it will be loaded as float32 and cause OOM Error.
+model = AutoModelForCausalLM.from_pretrained("/root/internlm2-chat-1_8b", torch_dtype=torch.float16, trust_remote_code=True).cuda()
+model = model.eval()
 
-接口请求参数如下：
+inp = "hello"
+print("[INPUT]", inp)
+response, history = model.chat(tokenizer, inp, history=[])
+print("[OUTPUT]", response)
 
-```json
-{
-  "model": "internlm-chat-7b",
-  "messages": "写一首春天的诗",
-  "temperature": 0.7,
-  "top_p": 1,
-  "n": 1,
-  "max_tokens": 512,
-  "stop": false,
-  "stream": false,
-  "presence_penalty": 0,
-  "frequency_penalty": 0,
-  "user": "string",
-  "repetition_penalty": 1,
-  "renew_session": false,
-  "ignore_eos": false
-}
+inp = "please provide three suggestions about time management"
+print("[INPUT]", inp)
+response, history = model.chat(tokenizer, inp, history=history)
+print("[OUTPUT]", response)
+
 ```
 
-请求结果如下。
+![](./imgs/2.3_6.jpg)
 
-![](img/16.png)
+按`Ctrl+S`键保存（Mac用户按`Command+S`）。
 
-### 2.4 网页 Demo 演示
+回到终端，激活conda环境。
 
-这一部分主要是将 Gradio 作为前端 Demo 演示。在上一节的基础上，我们不执行后面的 `api_client` 或 `triton_client`，而是执行 `gradio`。
-
-> 由于 Gradio 需要本地访问展示界面，因此也需要通过 ssh 将数据转发到本地。命令如下：
->
-> ssh -CNg -L 6006:127.0.0.1:6006 root@ssh.intern-ai.org.cn -p <你的 ssh 端口号>
-
-#### 2.4.1 TurboMind 服务作为后端
-
-API Server 的启动和上一节一样，这里直接启动作为前端的 Gradio。
-
-```bash
-# Gradio+ApiServer。必须先开启 Server，此时 Gradio 为 Client
-lmdeploy serve gradio http://0.0.0.0:23333 \
-	--server_name 0.0.0.0 \
-	--server_port 6006 \
-	--restful_api True
+```sh
+conda activate lmdeploy
 ```
 
-结果如下图所示。
+运行python代码：
 
-![](img/17.png)
-
-
-#### 2.4.2 TurboMind 推理作为后端
-
-当然，Gradio 也可以直接和 TurboMind 连接，如下所示。
-
-```bash
-# Gradio+Turbomind(local)
-lmdeploy serve gradio ./workspace
+```sh
+python /root/pipeline_transformer.py
 ```
 
-可以直接启动 Gradio，此时没有 API Server，TurboMind 直接与 Gradio 通信。如下图所示。
+得到输出：
 
-![](img/19.png)
+![](./imgs/2.3_7.jpg)
 
-### 2.5 TurboMind 推理 + Python 代码集成
+记住这种感觉，一会儿体验一下LMDeploy的推理速度，感受一下对比~（手动狗头）
 
-前面介绍的都是通过 API 或某种前端与”模型推理/服务“进行交互，lmdeploy 还支持 Python 直接与 TurboMind 进行交互，如下所示。
+## 2.4 使用LMDeploy与模型对话
 
-```python
-from lmdeploy import turbomind as tm
+这一小节我们来介绍如何应用LMDeploy直接与模型进行对话。
 
-# load model
-model_path = "/root/share/temp/model_repos/internlm-chat-7b/"
-tm_model = tm.TurboMind.from_pretrained(model_path, model_name='internlm-chat-20b')
-generator = tm_model.create_instance()
+首先激活创建好的conda环境：
 
-# process query
-query = "你好啊兄嘚"
-prompt = tm_model.model.get_prompt(query)
-input_ids = tm_model.tokenizer.encode(prompt)
-
-# inference
-for outputs in generator.stream_infer(
-        session_id=0,
-        input_ids=[input_ids]):
-    res, tokens = outputs[0]
-
-response = tm_model.tokenizer.decode(res.tolist())
-print(response)
+```sh
+conda activate lmdeploy
 ```
 
-在上面的代码中，我们首先加载模型，然后构造输入，最后执行推理。
+使用LMDeploy与模型进行对话的通用命令格式为：
 
-加载模型可以显式指定模型路径，也可以直接指定 Huggingface 的 repo_id，还可以使用上面生成过的 `workspace`。这里的 `tm.TurboMind` 其实是对 C++ TurboMind 的封装。
-
-构造输入这里主要是把用户的 query 构造成 InternLLM 支持的输入格式，比如上面的例子中， `query` 是“你好啊兄嘚”，构造好的 Prompt 如下所示。
-
-```python
-"""
-<|System|>:You are an AI assistant whose name is InternLM (书生·浦语).
-- InternLM (书生·浦语) is a conversational language model that is developed by Shanghai AI Laboratory (上海人工智能实验室). It is designed to be helpful, honest, and harmless.
-- InternLM (书生·浦语) can understand and communicate fluently in the language chosen by the user such as English and 中文.
-
-<|User|>:你好啊兄嘚
-<|Bot|>:
-"""
+```sh
+lmdeploy chat [HF格式模型路径/TurboMind格式模型路径]
 ```
 
-Prompt 其实就是增加了 `<|System|>` 消息和 `<|User|>` 消息（即用户的 `query`），以及一个 `<|Bot|>` 的标记，表示接下来该模型输出响应了。最终输出的响应内容如下所示。
+例如，您可以执行如下命令运行下载的1.8B模型：
 
-```python
-"你好啊，有什么我可以帮助你的吗？"
+```sh
+lmdeploy chat /root/internlm2-chat-1_8b
 ```
 
-### 2.6 这么多，头秃，有没有最佳实践
+![](./imgs/2.4_1.jpg)
 
-#### 2.6.1 方案实践
+下面我们就可以与InternLM2-Chat-1.8B大模型对话了。比如输入“请给我讲一个小故事吧”，然后按两下回车键。
 
-必——须——有！
+![](./imgs/2.4_2.jpg)
 
-首先说 “模型推理/服务”，推荐使用 TurboMind，使用简单，性能良好，相关的 Benchmark 对比如下。
+速度是不是明显比原生Transformer快呢~当然，这种感受可能不太直观，感兴趣的佬可以查看拓展部分“6.3 定量比较LMDeploy与Transformer库的推理速度”。
 
-![](img/add4.png)
+输入“exit”并按两下回车，可以退出对话。
 
-上面的性能对比包括两个场景：
+![](./imgs/2.4_3.jpg)
 
-- 场景一（前4张图）：固定的输入、输出 token 数（分别1和2048），测试Token输出吞吐量（output token throughput）。
-- 场景二（第5张图）：使用真实数据，测试吞吐量（request throughput）。
+**拓展内容**：有关LMDeploy的chat功能的更多参数可通过-h命令查看。
 
-场景一中，BatchSize=64时，TurboMind 的吞吐量超过 2000 token/s，整体比 DeepSpeed 提升约 5% - 15%；BatchSize=32时，比 Huggingface 的Transformers 提升约 3 倍；其他BatchSize时 TurboMind 也表现出优异的性能。
-
-场景二中，对比了 TurboMind 和 vLLM 在真实数据上的吞吐量（request throughput）指标，TurboMind 的效率比 vLLM 高 30%。
-
-大家不妨亲自使用本地对话（Local Chat）感受一下性能差别（2.2 节），也可以执行我们提供的 `infer_compare.py` 脚本，示例如下。
-
-```bash
-# 执行 Huggingface 的 Transformer
-python infer_compare.py hf
-# 执行LMDeploy
-python infer_compare.py lmdeploy
+```sh
+lmdeploy chat -h
 ```
 
-LMDeploy应该是Transformers的3-5倍左右。
+# 3.LMDeploy模型量化(lite)
 
-后面的 API 服务和 Client 就得分场景了。
-
-- 我想对外提供类似 OpenAI 那样的 HTTP 接口服务。推荐使用 TurboMind推理 + API 服务（2.3）。
-- 我想做一个演示 Demo，Gradio 无疑是比 Local Chat 更友好的。推荐使用 TurboMind 推理作为后端的Gradio进行演示（2.4.2）。
-- 我想直接在自己的 Python 项目中使用大模型功能。推荐使用 TurboMind推理 + Python（2.5）。
-- 我想在自己的其他非 Python 项目中使用大模型功能。推荐直接通过 HTTP 接口调用服务。也就是用本列表第一条先启动一个 HTTP API 服务，然后在项目中直接调用接口。
-- 我的项目是 C++ 写的，为什么不能直接用 TurboMind 的 C++ 接口？！必须可以！大佬可以右上角叉掉这个窗口啦。
-
-#### 2.6.2 模型配置实践
-
-不知道大家还有没有印象，在离线转换（2.1.2）一节，我们查看了 `weights` 的目录，里面存放的是模型按层、按并行卡拆分的参数，不过还有一个文件 `config.ini` 并不是模型参数，它里面存的主要是模型相关的配置信息。下面是一个示例。
-
-```ini
-[llama]
-model_name = internlm-chat-7b
-tensor_para_size = 1
-head_num = 32
-kv_head_num = 32
-vocab_size = 103168
-num_layer = 32
-inter_size = 11008
-norm_eps = 1e-06
-attn_bias = 0
-start_id = 1
-end_id = 2
-session_len = 2056
-weight_type = fp16
-rotary_embedding = 128
-rope_theta = 10000.0
-size_per_head = 128
-group_size = 0
-max_batch_size = 64
-max_context_token_num = 1
-step_length = 1
-cache_max_entry_count = 0.5
-cache_block_seq_len = 128
-cache_chunk_size = 1
-use_context_fmha = 1
-quant_policy = 0
-max_position_embeddings = 2048
-rope_scaling_factor = 0.0
-use_logn_attn = 0
-```
-
-其中，模型属性相关的参数不可更改，主要包括下面这些。
-
-```ini
-model_name = llama2
-head_num = 32
-kv_head_num = 32
-vocab_size = 103168
-num_layer = 32
-inter_size = 11008
-norm_eps = 1e-06
-attn_bias = 0
-start_id = 1
-end_id = 2
-rotary_embedding = 128
-rope_theta = 10000.0
-size_per_head = 128
-```
-
-和数据类型相关的参数也不可更改，主要包括两个。
-
-```ini
-weight_type = fp16
-group_size = 0
-```
-
-`weight_type` 表示权重的数据类型。目前支持 fp16 和 int4。int4 表示 4bit 权重。当 `weight_type` 为 4bit 权重时，`group_size` 表示 `awq` 量化权重时使用的 group 大小。
-
-剩余参数包括下面几个。
-
-```ini
-tensor_para_size = 1
-session_len = 2056
-max_batch_size = 64
-max_context_token_num = 1
-step_length = 1
-cache_max_entry_count = 0.5
-cache_block_seq_len = 128
-cache_chunk_size = 1
-use_context_fmha = 1
-quant_policy = 0
-max_position_embeddings = 2048
-rope_scaling_factor = 0.0
-use_logn_attn = 0
-```
-
-一般情况下，我们并不需要对这些参数进行修改，但有时候为了满足特定需要，可能需要调整其中一部分配置值。这里主要介绍三个可能需要调整的参数。
-
-- KV int8 开关：
-    - 对应参数为 `quant_policy`，默认值为 0，表示不使用 KV Cache，如果需要开启，则将该参数设置为 4。
-    - KV Cache 是对序列生成过程中的 K 和 V 进行量化，用以节省显存。我们下一部分会介绍具体的量化过程。
-    - 当显存不足，或序列比较长时，建议打开此开关。
-- 外推能力开关：
-    - 对应参数为 `rope_scaling_factor`，默认值为 0.0，表示不具备外推能力，设置为 1.0，可以开启 RoPE 的 Dynamic NTK 功能，支持长文本推理。另外，`use_logn_attn` 参数表示 Attention 缩放，默认值为 0，如果要开启，可以将其改为 1。
-    - 外推能力是指推理时上下文的长度超过训练时的最大长度时模型生成的能力。如果没有外推能力，当推理时上下文长度超过训练时的最大长度，效果会急剧下降。相反，则下降不那么明显，当然如果超出太多，效果也会下降的厉害。
-    - 当推理文本非常长（明显超过了训练时的最大长度）时，建议开启外推能力。
-- 批处理大小：
-    - 对应参数为 `max_batch_size`，默认为 64，也就是我们在 API Server 启动时的 `instance_num` 参数。
-    - 该参数值越大，吞度量越大（同时接受的请求数），但也会占用更多显存。
-    - 建议根据请求量和最大的上下文长度，按实际情况调整。
-
-## 3 模型量化
-
-本部分内容主要介绍如何对模型进行量化。主要包括 KV Cache 量化和模型参数量化。总的来说，量化是一种以参数或计算中间结果精度下降换空间节省（以及同时带来的性能提升）的策略。
+本部分内容主要介绍如何对模型进行量化。主要包括 KV8量化和W4A16量化。总的来说，量化是一种以参数或计算中间结果精度下降换空间节省（以及同时带来的性能提升）的策略。
 
 正式介绍 LMDeploy 量化方案前，需要先介绍两个概念：
 
-- 计算密集（compute-bound）: 指推理过程中，绝大部分时间消耗在数值计算上；针对计算密集型场景，可以通过使用更快的硬件计算单元来提升计算速度。
-- 访存密集（memory-bound）: 指推理过程中，绝大部分时间消耗在数据读取上；针对访存密集型场景，一般通过减少访存次数、提高计算访存比或降低访存量来优化。
+* 计算密集（compute-bound）: 指推理过程中，绝大部分时间消耗在数值计算上；针对计算密集型场景，可以通过使用更快的硬件计算单元来提升计算速。
+* 访存密集（memory-bound）: 指推理过程中，绝大部分时间消耗在数据读取上；针对访存密集型场景，一般通过减少访存次数、提高计算访存比或降低访存量来优化。
 
 常见的 LLM 模型由于 Decoder Only 架构的特性，实际推理时大多数的时间都消耗在了逐 Token 生成阶段（Decoding 阶段），是典型的访存密集型场景。
 
-那么，如何优化 LLM 模型推理中的访存密集问题呢？ 我们可以使用 **KV Cache 量化** 和 **4bit Weight Only 量化（W4A16）**。KV Cache 量化是指将逐 Token（Decoding）生成过程中的上下文 K 和 V 中间结果进行 INT8 量化（计算时再反量化），以降低生成过程中的显存占用。4bit Weight 量化，将 FP16 的模型权重量化为 INT4，Kernel 计算时，访存量直接降为 FP16 模型的 1/4，大幅降低了访存成本。Weight Only 是指仅量化权重，数值计算依然采用 FP16（需要将 INT4 权重反量化）。
+那么，如何优化 LLM 模型推理中的访存密集问题呢？ 我们可以使用**KV8量化**和**W4A16**量化。KV8量化是指将逐 Token（Decoding）生成过程中的上下文 K 和 V 中间结果进行 INT8 量化（计算时再反量化），以降低生成过程中的显存占用。W4A16 量化，将 FP16 的模型权重量化为 INT4，Kernel 计算时，访存量直接降为 FP16 模型的 1/4，大幅降低了访存成本。Weight Only 是指仅量化权重，数值计算依然采用 FP16（需要将 INT4 权重反量化）。
 
-### 3.1 KV Cache 量化
+## 3.1 设置最大KV Cache缓存大小
 
-#### 3.1.1 量化步骤
+KV Cache是一种缓存技术，通过存储键值对的形式来复用计算结果，以达到提高性能和降低内存消耗的目的。在大规模训练和推理中，KV Cache可以显著减少重复计算量，从而提升模型的推理速度。理想情况下，KV Cache全部存储于显存，以加快访存速度。当显存空间不足时，也可以将KV Cache放在内存，通过缓存管理器控制将当前需要使用的数据放入显存。
 
-KV Cache 量化是将已经生成序列的 KV 变成 Int8，使用过程一共包括三步：
+模型在运行时，占用的显存可大致分为三部分：模型参数本身占用的显存、KV Cache占用的显存，以及中间运算结果占用的显存。LMDeploy的KV Cache管理器可以通过设置`--cache-max-entry-count`参数，控制KV缓存**占用剩余显存**的最大比例。默认的比例为0.8。
 
-第一步：计算 minmax。主要思路是通过计算给定输入样本在每一层不同位置处计算结果的统计情况。
+下面通过几个例子，来看一下调整`--cache-max-entry-count`参数的效果。首先保持不加该参数（默认0.8），运行1.8B模型。
 
-- 对于 Attention 的 K 和 V：取每个 Head 各自维度在所有Token的最大、最小和绝对值最大值。对每一层来说，上面三组值都是 `(num_heads, head_dim)` 的矩阵。这里的统计结果将用于本小节的 KV Cache。
-- 对于模型每层的输入：取对应维度的最大、最小、均值、绝对值最大和绝对值均值。每一层每个位置的输入都有对应的统计值，它们大多是 `(hidden_dim, )` 的一维向量，当然在 FFN 层由于结构是先变宽后恢复，因此恢复的位置维度并不相同。这里的统计结果用于下个小节的模型参数量化，主要用在缩放环节（回顾PPT内容）。
-
-第一步执行命令如下：
-
-```bash
-# 计算 minmax
-lmdeploy lite calibrate \
-  --model  /root/share/temp/model_repos/internlm-chat-7b/ \
-  --calib_dataset "c4" \
-  --calib_samples 128 \
-  --calib_seqlen 2048 \
-  --work_dir ./quant_output
+```sh
+lmdeploy chat /root/internlm2-chat-1_8b
 ```
 
-在这个命令行中，会选择 128 条输入样本，每条样本长度为 2048，数据集选择 C4，输入模型后就会得到上面的各种统计值。值得说明的是，如果显存不足，可以适当调小 samples 的数量或 sample 的长度。
+与模型对话，查看右上角资源监视器中的显存占用情况。
 
-> 这一步由于默认需要从 Huggingface 下载数据集，国内经常不成功。所以我们导出了需要的数据，大家需要对读取数据集的代码文件做一下替换。共包括两步：
->
-> - 第一步：复制 `calib_dataloader.py` 到安装目录替换该文件：`cp /root/share/temp/datasets/c4/calib_dataloader.py  /root/.conda/envs/lmdeploy/lib/python3.10/site-packages/lmdeploy/lite/utils/`
-> - 第二步：将用到的数据集（c4）复制到下面的目录：`cp -r /root/share/temp/datasets/c4 /root/.cache/huggingface/datasets/` 
+![](./imgs/3.1_2.jpg)
 
-第二步：通过 minmax 获取量化参数。主要就是利用下面这个公式，获取每一层的 K V 中心值（zp）和缩放值（scale）。
+此时显存占用为7856MB。下面，改变`--cache-max-entry-count`参数，设为0.5。
 
-```bash
-zp = (min+max) / 2
-scale = (max-min) / 255
-quant: q = round( (f-zp) / scale)
-dequant: f = q * scale + zp
+```sh
+lmdeploy chat /root/internlm2-chat-1_8b --cache-max-entry-count 0.5
 ```
 
-有这两个值就可以进行量化和解量化操作了。具体来说，就是对历史的 K 和 V 存储 quant 后的值，使用时在 dequant。
+与模型对话，再次查看右上角资源监视器中的显存占用情况。
 
-第二步的执行命令如下：
+![](./imgs/3.1_3.jpg)
 
-```bash
-# 通过 minmax 获取量化参数
-lmdeploy lite kv_qparams \
-  --work_dir ./quant_output  \
-  --turbomind_dir workspace/triton_models/weights/ \
-  --kv_sym False \
-  --num_tp 1
+看到显存占用明显降低，变为6608M。
+
+下面来一波“极限”，把`--cache-max-entry-count`参数设置为0.01，约等于禁止KV Cache占用显存。
+
+```sh
+lmdeploy chat /root/internlm2-chat-1_8b --cache-max-entry-count 0.01
 ```
 
-在这个命令中，`num_tp` 的含义前面介绍过，表示 Tensor 的并行数。每一层的中心值和缩放值会存储到 `workspace` 的参数目录中以便后续使用。`kv_sym` 为 `True` 时会使用另一种（对称）量化方法，它用到了第一步存储的绝对值最大值，而不是最大值和最小值。
+然后与模型对话，可以看到，此时显存占用仅为4560MB，代价是会降低模型推理速度。
 
-第三步：修改配置。也就是修改 `weights/config.ini` 文件，这个我们在《2.6.2 模型配置实践》中已经提到过了（KV int8 开关），只需要把 `quant_policy` 改为 4 即可。
+![](./imgs/3.1_4.jpg)
 
-这一步需要额外说明的是，如果用的是 TurboMind1.0，还需要修改参数 `use_context_fmha`，将其改为 0。
 
-接下来就可以正常运行前面的各种服务了，只不过咱们现在可是用上了 KV Cache 量化，能更省（运行时）显存了。
+## 3.2 使用W4A16量化
 
-#### 3.1.2 量化效果
+LMDeploy使用AWQ算法，实现模型4bit权重量化。推理引擎TurboMind提供了非常高效的4bit推理cuda kernel，性能是FP16的2.4倍以上。它支持以下NVIDIA显卡：
 
-官方给出了 [internlm-chat-7b](https://huggingface.co/internlm/internlm-chat-7b) 模型在 KV Cache 量化前后的显存对比情况，如下表所示。
+* 图灵架构（sm75）：20系列、T4
+* 安培架构（sm80,sm86）：30系列、A10、A16、A30、A100
+* Ada Lovelace架构（sm90）：40 系列
 
-| batch_size | fp16 memory(MiB) | int8 memory(MiB) | diff(MiB) |
-| ---------- | ---------------- | ---------------- | --------- |
-| 8          | 22337            | 18241            | -4096     |
-| 16         | 30593            | 22369            | -8224     |
-| 32         | 47073            | 30625            | -16448    |
-| 48         | 63553            | 38881            | -24672    |
+运行前，首先安装一个依赖库。
 
-可以看出，KV Cache 可以节约大约 20% 的显存。
+```sh
+pip install einops==0.7.0
+```
 
-同时，还在 [opencompass](https://github.com/open-compass/opencompass) 平台上测试了量化前后的精准度（Accuracy）对比情况，如下表所示。
+仅需执行一条命令，就可以完成模型量化工作。
 
-| task          | dataset         | metric        | int8  | fp16  | diff  |
-| ------------- | --------------- | ------------- | ----- | ----- | ----- |
-| Language      | winogrande      | accuracy      | 60.77 | 61.48 | -0.71 |
-| Knowledge     | nq              | score         | 2.69  | 2.60  | +0.09 |
-| Reasoning     | gsm8k           | accuracy      | 33.28 | 34.72 | -1.44 |
-| Reasoning     | bbh             | naive_average | 20.12 | 20.51 | -0.39 |
-| Understanding | openbookqa_fact | accuracy      | 82.40 | 82.20 | +0.20 |
-| Understanding | eprstmt-dev     | accuracy      | 90.62 | 88.75 | +1.87 |
-| Safety        | crows_pairs     | accuracy      | 32.56 | 31.43 | +1.13 |
-
-可以看出，精度不仅没有明显下降，相反在不少任务上还有一定的提升。可能得原因是，量化会导致一定的误差，有时候这种误差可能会减少模型对训练数据的拟合，从而提高泛化性能。量化可以被视为引入轻微噪声的正则化方法。或者，也有可能量化后的模型正好对某些数据集具有更好的性能。
-
-总结一下，KV Cache 量化既能明显降低显存占用，还有可能同时带来精准度（Accuracy）的提升。
-
-### 3.2 W4A16 量化
-
-#### 3.2.1 量化步骤
-
-W4A16中的A是指Activation，保持FP16，只对参数进行 4bit 量化。使用过程也可以看作是三步。
-
-第一步：同 1.3.1，不再赘述。
-
-第二步：量化权重模型。利用第一步得到的统计值对参数进行量化，具体又包括两小步：
-
-- 缩放参数。主要是性能上的考虑（回顾 PPT）。
-- 整体量化。
-
-第二步的执行命令如下：
-
-```bash
-# 量化权重模型
+```sh
 lmdeploy lite auto_awq \
-  --model  /root/share/temp/model_repos/internlm-chat-7b/ \
-  --w_bits 4 \
-  --w_group_size 128 \
-  --work_dir ./quant_output 
+   /root/internlm2-chat-1_8b \
+  --calib-dataset 'ptb' \
+  --calib-samples 128 \
+  --calib-seqlen 1024 \
+  --w-bits 4 \
+  --w-group-size 128 \
+  --work-dir /root/internlm2-chat-1_8b-4bit
 ```
 
-命令中 `w_bits` 表示量化的位数，`w_group_size` 表示量化分组统计的尺寸，`work_dir` 是量化后模型输出的位置。这里需要特别说明的是，因为没有 `torch.int4`，所以实际存储时，8个 4bit 权重会被打包到一个 int32 值中。所以，如果你把这部分量化后的参数加载进来就会发现它们是 int32 类型的。
+运行时间较长，请耐心等待。量化工作结束后，新的HF模型被保存到`internlm2-chat-1_8b-4bit`目录。下面使用Chat功能运行W4A16量化后的模型。
 
-最后一步：转换成 TurboMind 格式。
-
-```bash
-# 转换模型的layout，存放在默认路径 ./workspace 下
-lmdeploy convert  internlm-chat-7b ./quant_output \
-    --model-format awq \
-    --group-size 128
+```sh
+lmdeploy chat /root/internlm2-chat-1_8b-4bit --model-format awq
 ```
 
-这个 `group-size` 就是上一步的那个 `w_group_size`。如果不想和之前的 `workspace` 重复，可以指定输出目录：`--dst_path`，比如：
+为了更加明显体会到W4A16的作用，我们将KV Cache比例再次调为0.01，查看显存占用情况。
 
-```bash
-lmdeploy convert  internlm-chat-7b ./quant_output \
-    --model-format awq \
-    --group-size 128 \
-    --dst_path ./workspace_quant
+```sh
+lmdeploy chat /root/internlm2-chat-1_8b-4bit --model-format awq --cache-max-entry-count 0.01
 ```
 
-接下来和上一节一样，可以正常运行前面的各种服务了，不过咱们现在用的是量化后的模型。
+可以看到，显存占用变为2472MB，明显降低。
 
-最后再补充一点，量化模型和 KV Cache 量化也可以一起使用，以达到最大限度节省显存。
+![](./imgs/3.3_1.jpg)
 
-#### 3.2.2 量化效果
+**拓展内容**：有关LMDeploy的lite功能的更多参数可通过-h命令查看。
 
-官方在 NVIDIA GeForce RTX 4090 上测试了 4-bit 的 Llama-2-7B-chat 和 Llama-2-13B-chat 模型的 token 生成速度。测试配置为 BatchSize = 1，prompt_tokens=1，completion_tokens=512，结果如下表所示。
-
-| model            | llm-awq | mlc-llm | turbomind |
-| ---------------- | ------- | ------- | --------- |
-| Llama-2-7B-chat  | 112.9   | 159.4   | 206.4     |
-| Llama-2-13B-chat | N/A     | 90.7    | 115.8     |
-
-可以看出，TurboMind 相比其他框架速度优势非常显著，比 mlc-llm 快了将近 30%。
-
-另外，也测试了 TurboMind 在不同精度和上下文长度下的显存占用情况，如下表所示。
-
-| model(context length) | 16bit(2048) | 4bit(2048) | 16bit(4096) | 4bit(4096) |
-| --------------------- | ----------- | ---------- | ----------- | ---------- |
-| Llama-2-7B-chat       | 15.1        | 6.3        | 16.2        | 7.5        |
-| Llama-2-13B-chat      | OOM         | 10.3       | OOM         | 12.0       |
-
-可以看出，4bit 模型可以降低 50-60% 的显存占用，效果非常明显。
-
-总而言之，W4A16 参数量化后能极大地降低显存，同时相比其他框架推理速度具有明显优势。
-
-### 3.3 最佳实践
-
-本节是针对《模型量化》部分的最佳实践。
-
-首先我们需要明白一点，服务部署和量化是没有直接关联的，量化的最主要目的是降低显存占用，主要包括两方面的显存：模型参数和中间过程计算结果。前者对应《3.2 W4A16 量化》，后者对应《3.1 KV Cache 量化》。
-
-量化在降低显存的同时，一般还能带来性能的提升，因为更小精度的浮点数要比高精度的浮点数计算效率高，而整型要比浮点数高很多。
-
-所以我们的建议是：在各种配置下尝试，看效果能否满足需要。这一般需要在自己的数据集上进行测试。具体步骤如下。
-
-- Step1：优先尝试正常（非量化）版本，评估效果。
-    - 如果效果不行，需要尝试更大参数模型或者微调。
-    - 如果效果可以，跳到下一步。
-- Step2：尝试正常版本+KV Cache 量化，评估效果。
-    - 如果效果不行，回到上一步。
-    - 如果效果可以，跳到下一步。
-- Step3：尝试量化版本，评估效果。
-    - 如果效果不行，回到上一步。
-    - 如果效果可以，跳到下一步。
-- Step4：尝试量化版本+ KV Cache 量化，评估效果。
-    - 如果效果不行，回到上一步。
-    - 如果效果可以，使用方案。
-
-简单流程如下图所示。
-
-![](img/quant.drawio.png)
-
-另外需要补充说明的是，使用哪种量化版本、开启哪些功能，除了上述流程外，**还需要考虑框架、显卡的支持情况**，比如有些框架可能不支持 W4A16 的推理，那即便转换好了也用不了。
-
-根据实践经验，一般情况下：
-
-- 精度越高，显存占用越多，推理效率越低，但一般效果较好。
-- Server 端推理一般用非量化版本或半精度、BF16、Int8 等精度的量化版本，比较少使用更低精度的量化版本。
-- 端侧推理一般都使用量化版本，且大多是低精度的量化版本。这主要是因为计算资源所限。
-
-以上是针对项目开发情况，如果是自己尝试（玩儿）的话：
-
-- 如果资源足够（有GPU卡很重要），那就用非量化的正常版本。
-- 如果没有 GPU 卡，只有 CPU（不管什么芯片），那还是尝试量化版本。
-- 如果生成文本长度很长，显存不够，就开启 KV Cache。
-
-建议大家根据实际情况灵活选择方案。
-
-## 参考资料
-
-- [InternLM/lmdeploy: LMDeploy is a toolkit for compressing, deploying, and serving LLMs.](https://github.com/InternLM/lmdeploy/)
-- [仅需一块 3090 显卡，高效部署 InternLM-20B 模型 - 知乎](https://zhuanlan.zhihu.com/p/665725861)
-
-## 附录1：TritonServer 作为推理引擎
-
-
-### TritonServer环境配置
-
-> 注意：本部分内容仅支持物理机上执行，不支持虚拟主机。
-
-使用 Triton Server 需要安装一下 Docker 及其他依赖。
-
-先装一些基本的依赖。
-
-```bash
-apt-get update
-apt-get install cmake sudo -y
+```sh
+lmdeploy lite -h
 ```
 
-然后是 Docker 安装。
+# 4.LMDeploy服务(serve)
 
-```bash
-# Add Docker's official GPG key:
-sudo apt-get install ca-certificates curl gnupg
-sudo install -m 0755 -d /etc/apt/keyrings
-curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /etc/apt/keyrings/docker.gpg
-sudo chmod a+r /etc/apt/keyrings/docker.gpg
+在第二章和第三章，我们都是在本地直接推理大模型，这种方式成为本地部署。在生产环境下，我们有时会将大模型封装为API接口服务，供客户端访问。
 
-# Add the repository to Apt sources:
-echo \
-  "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/ubuntu \
-  $(. /etc/os-release && echo "$VERSION_CODENAME") stable" | \
-  sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
-sudo apt-get update
+我们来看下面一张架构图：
 
-# install
-sudo apt-get install docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
+![](./imgs/4_1.jpg)
+
+我们把从架构上把整个服务流程分成下面几个模块。
+
+* 模型推理/服务。主要提供模型本身的推理，一般来说可以和具体业务解耦，专注模型推理本身性能的优化。可以以模块、API等多种方式提供。
+* API Server。中间协议层，把后端推理/服务通过HTTP，gRPC或其他形式的接口，供前端调用。
+* Client。可以理解为前端，与用户交互的地方。通过通过网页端/命令行去调用API接口，获取模型推理/服务。
+
+值得说明的是，以上的划分是一个相对完整的模型，但在实际中这并不是绝对的。比如可以把“模型推理”和“API Server”合并，有的甚至是三个流程打包在一起提供服务。
+
+## 4.1 启动API服务器
+
+通过以下命令启动API服务器，推理`internlm2-chat-1_8b`模型：
+
+```sh
+lmdeploy serve api_server \
+    /root/internlm2-chat-1_8b \
+    --model-format hf \
+    --quant-policy 0 \
+    --server-name 0.0.0.0 \
+    --server-port 23333 \
+    --tp 1
 ```
 
-安装后我们跑一个 HelloWorld。
+其中，model-format、quant-policy这些参数是与第三章中量化推理模型一致的；server-name和server-port表示API服务器的服务IP与服务端口；tp参数表示并行数量（GPU数量）。
 
-```bash
-# helloworld
-sudo docker run hello-world
+通过运行以上指令，我们成功启动了API服务器，请勿关闭该窗口，后面我们要新建客户端连接该服务。
+
+可以通过运行一下指令，查看更多参数及使用方法：
+
+```sh
+lmdeploy serve api_server -h
 ```
 
-可以看到类似下面的画面，表示运行成功。
+你也可以直接打开`http://{host}:23333`查看接口的具体使用说明，如下图所示。
 
-![](img/3.png)
+![](./imgs/4.1_1.jpg)
 
+注意，这一步由于Server在远程服务器上，所以本地需要做一下ssh转发才能直接访问。**在你本地打开一个cmd窗口**，输入命令如下：
 
-### TritonServer推理+API服务
-
-> 注意：这部分需要 Docker 服务。
-
-这里我们把提供模型推理服务的引擎从 TurboMind 换成了 TritonServer，启动命令就一行。
-
-```bash
-# ApiServer+Triton
-bash workspace/service_docker_up.sh
+```sh
+ssh -CNg -L 23333:127.0.0.1:23333 root@ssh.intern-ai.org.cn -p <你的ssh端口号>
 ```
 
-这里会启动一个 TritonServer 的容器，如下图所示。
+ssh 端口号就是下面图片里的 39864，请替换为你自己的。
 
-![](img/14.png)
+![](./imgs/4.1_2.jpg)
 
-可以再开一个窗口执行 Client 命令。
+然后打开浏览器，访问`http://127.0.0.1:23333`。
 
-```bash
-# ChatTritonClient + TritonServer（注意是gRPC协议，不要用http）
-lmdeploy serve triton_client  localhost:33337
+## 4.2 命令行客户端连接API服务器
+
+在“4.1”中，我们在终端里新开了一个API服务器。
+
+本节中，我们要新建一个命令行客户端去连接API服务器。首先通过VS Code新建一个终端：
+
+![](./imgs/4.2_1.jpg)
+
+激活conda环境。
+
+```sh
+conda activate lmdeploy
 ```
 
-结果如下图所示。
+![](./imgs/4.2_2.jpg)
 
-![](img/15.png)
+运行命令行客户端：
 
-
-### TritonServer 服务作为后端
-
-使用过程同 2.4.1 小节。
-
-```bash
-# Gradio+TritonServer（注意是gRPC协议，不要用http）
-lmdeploy serve gradio localhost:33337 \
-	--server_name 0.0.0.0 \
-	--server_port 6006
+```sh
+lmdeploy serve api_client http://localhost:23333
 ```
 
-结果如下图所示。
+运行后，可以通过命令行窗口直接与模型对话：
 
-![](img/18.png)
+![](./imgs/4.2_3.jpg)
 
-## 作业
+现在你使用的架构是这样的：
 
-提交方式：在各个班级对应的 GitHub Discussion 帖子中进行提交。 
+![](./imgs/4.2_4.jpg)
 
-**基础作业：**
+## 4.3 网页客户端连接API服务器
 
-- 使用 LMDeploy 以本地对话、网页Gradio、API服务中的一种方式部署 InternLM-Chat-7B 模型，生成 300 字的小故事（需截图）
+关闭刚刚的VSCode终端，但服务器端的终端不要关闭。
 
-**进阶作业（可选做）**
+新建一个VSCode终端，激活conda环境。
 
-- 将第四节课训练自我认知小助手模型使用 LMDeploy 量化部署到 OpenXLab 平台。
-- 对internlm-chat-7b模型进行量化，并同时使用KV Cache量化，使用量化后的模型完成API服务的部署，分别对比模型量化前后（将 bs设置为 1 和 max len 设置为512）和 KV Cache 量化前后（将 bs设置为 8 和 max len 设置为2048）的显存大小。  
-- 在自己的任务数据集上任取若干条进行Benchmark测试，测试方向包括：  
-（1）TurboMind推理+Python代码集成  
-（2）在（1）的基础上采用W4A16量化  
-（3）在（1）的基础上开启KV Cache量化  
-（4）在（2）的基础上开启KV Cache量化  
-（5）使用Huggingface推理
+```sh
+conda activate lmdeploy
+```
 
-备注：**由于进阶作业较难，完成基础作业之后就可以先提交作业了，在后续的大作业项目中使用这些技术将作为重要的加分点！**
+使用Gradio作为前端，启动网页客户端。
 
-**整体实训营项目：**
+```sh
+lmdeploy serve gradio http://localhost:23333 \
+    --server-name 0.0.0.0 \
+    --server-port 6006
+```
 
-时间周期：即日起致课程结束
+![](./imgs/4.3_1.jpg)
 
-即日开始可以在班级群中随机组队完成一个大作业项目，一些可提供的选题如下：
+运行命令后，网页客户端启动。在电脑本地新建一个cmd终端，新开一个转发端口：
 
-- 人情世故大模型：一个帮助用户撰写新年祝福文案的人情事故大模型
-- 中小学数学大模型：一个拥有一定数学解题能力的大模型
-- 心理大模型：一个治愈的心理大模型
-- 工具调用类项目：结合 Lagent 构建数据集训练 InternLM 模型，支持对 MMYOLO 等工具的调用
+```sh
+ssh -CNg -L 6006:127.0.0.1:6006 root@ssh.intern-ai.org.cn -p <你的ssh端口号>
+```
 
-其他基于书生·浦语工具链的小项目都在范围内，欢迎大家充分发挥想象力。
+打开浏览器，访问地址`http://127.0.0.1:6006`
 
+然后就可以与模型进行对话了！
+
+![](./imgs/4.3_2.jpg)
+
+现在你使用的架构是这样的：
+
+![](./imgs/4.3_3.jpg)
+
+# 5.Python代码集成
+
+在开发项目时，有时我们需要将大模型推理集成到Python代码里面。
+
+## 5.1 Python代码集成运行1.8B模型
+
+首先激活conda环境。
+
+```sh
+conda activate lmdeploy
+```
+
+新建Python源代码文件`pipeline.py`。
+
+```sh
+touch /root/pipeline.py
+```
+
+打开`pipeline.py`，填入以下内容。
+
+```py
+from lmdeploy import pipeline
+
+pipe = pipeline('/root/internlm2-chat-1_8b')
+response = pipe(['Hi, pls intro yourself', '上海是'])
+print(response)
+```
+
+> **代码解读**：\
+> * 第1行，引入lmdeploy的pipeline模块 \
+> * 第3行，从目录“./internlm2-chat-1_8b”加载HF模型 \
+> * 第4行，运行pipeline，这里采用了批处理的方式，用一个列表包含两个输入，lmdeploy同时推理两个输入，产生两个输出结果，结果返回给response \
+> * 第5行，输出response
+
+保存后运行代码文件：
+
+```sh
+python /root/pipeline.py
+```
+
+![](./imgs/5.1_1.jpg)
+
+## 5.2 向TurboMind后端传递参数
+
+在第3章，我们通过向lmdeploy传递附加参数，实现模型的量化推理，及设置KV Cache最大占用比例。在Python代码中，可以通过创建TurbomindEngineConfig，向lmdeploy传递参数。
+
+以设置KV Cache占用比例为例，新建python文件`pipeline_kv.py`。
+
+```sh
+touch /root/pipeline_kv.py
+```
+
+打开`pipeline_kv.py`，填入如下内容：
+
+```py
+from lmdeploy import pipeline, TurbomindEngineConfig
+
+# 调低 k/v cache内存占比调整为总显存的 20%
+backend_config = TurbomindEngineConfig(cache_max_entry_count=0.2)
+
+pipe = pipeline('/root/internlm2-chat-1_8b',
+                backend_config=backend_config)
+response = pipe(['Hi, pls intro yourself', '上海是'])
+print(response)
+```
+
+保存后运行python代码：
+
+```sh
+python /root/pipeline_kv.py
+```
+
+得到输出结果：
+
+![](./imgs/5.2_1.jpg)
+
+# 6.拓展部分
+
+## 6.1 使用LMDeploy运行视觉多模态大模型llava
+
+最新版本的LMDeploy支持了llava多模态模型，下面演示使用pipeline推理`llava-v1.6-7b`。**注意，运行本pipeline最低需要30%的InternStudio开发机，请完成基础作业后向助教申请权限。**
+
+首先激活conda环境。
+
+```sh
+conda activate lmdeploy
+```
+
+安装llava依赖库。
+
+```sh
+pip install git+https://github.com/haotian-liu/LLaVA.git@4e2277a060da264c4f21b364c867cc622c945874
+```
+
+新建一个python文件，比如`pipeline_llava.py`。
+
+```sh
+touch /root/pipeline_llava.py
+```
+
+打开`pipeline_llava.py`，填入内容如下：
+
+```py
+from lmdeploy import pipeline
+from lmdeploy.vl import load_image
+
+# pipe = pipeline('liuhaotian/llava-v1.6-vicuna-7b') 非开发机运行此命令
+pipe = pipeline('/share/new_models/liuhaotian/llava-v1.6-vicuna-7b')
+
+image = load_image('https://raw.githubusercontent.com/open-mmlab/mmdeploy/main/tests/data/tiger.jpeg')
+response = pipe(('describe this image', image))
+print(response)
+```
+
+> **代码解读**： \
+> * 第1行引入了lmdeploy的pipeline模块，第2行引入用于载入图片的load_image函数 \
+> * 第5行创建了pipeline实例 \
+> * 第7行从github下载了一张关于老虎的图片，如下： \
+> ![](./imgs/6.1_1.jpg) \
+> * 第8行运行pipeline，输入提示词“describe this image”，和图片，结果返回至response \
+> * 第9行输出response
+
+保存后运行pipeline。
+
+```sh
+python /root/pipeline_llava.py
+```
+
+得到输出结果：
+
+![](./imgs/6.1_2.jpg)
+
+> **大意（来自百度翻译）**：一只老虎躺在草地上。老虎面对镜头，头微微向一侧倾斜，给人一种好奇或专注的表情。老虎在较浅的背景上有一种独特的深色条纹图案，这是该物种的特征。皮毛是橙色和黑色的混合，深色的条纹垂直向下延伸，浅色的皮毛出现在胸部和腹部。老虎的眼睛睁开，警觉，耳朵竖起，这表明它对周围环境很关注。背景是模糊的绿色区域，表明照片是在户外拍摄的，可能是在自然栖息地或野生动物保护区。这张图片是特写，聚焦于老虎的头部和上身，突出了老虎的特征和皮毛的纹理。照片中没有可见的文字或其他物体，照片的风格是自然的野生动物拍摄，旨在捕捉环境中的动物。
+
+由于官方的Llava模型没有使用中文语料训练，因此如果使用中文提示词，可能会得到出乎意料的结果，比如将提示词改为“请描述一下这张图片”，你可能会得到类似《印度鳄鱼》的回复。
+
+![](./imgs/6.1_3.jpg)
+
+我们也可以通过Gradio来运行llava模型。新建python文件`gradio_llava.py`。
+
+```sh
+touch /root/gradio_llava.py
+```
+
+打开文件，填入以下内容：
+
+```py
+import gradio as gr
+from lmdeploy import pipeline
+
+
+# pipe = pipeline('liuhaotian/llava-v1.6-vicuna-7b') 非开发机运行此命令
+pipe = pipeline('/share/new_models/liuhaotian/llava-v1.6-vicuna-7b')
+
+def model(image, text):
+    if image is None:
+        return [(text, "请上传一张图片。")]
+    else:
+        response = pipe((text, image)).text
+        return [(text, response)]
+
+demo = gr.Interface(fn=model, inputs=[gr.Image(type="pil"), gr.Textbox()], outputs=gr.Chatbot())
+demo.launch()   
+```
+
+运行python程序。
+
+```sh
+python /root/gradio_llava.py
+```
+
+通过ssh转发一下7860端口。
+
+```sh
+ssh -CNg -L 7860:127.0.0.1:7860 root@ssh.intern-ai.org.cn -p <你的ssh端口>
+```
+
+通过浏览器访问`http://127.0.0.1:7860`。
+
+然后就可以使用啦~
+
+![](./imgs/6.1_4.jpg)
+
+## 6.2 使用LMDeploy运行第三方大模型
+
+LMDeploy不仅支持运行InternLM系列大模型，还支持其他第三方大模型。支持的模型列表如下：
+
+|       Model        |    Size    |
+| :----------------: | :--------: |
+|       Llama        |  7B - 65B  |
+|       Llama2       |  7B - 70B  |
+|      InternLM      |  7B - 20B  |
+|     InternLM2      |  7B - 20B  |
+| InternLM-XComposer |     7B     |
+|        QWen        |  7B - 72B  |
+|      QWen-VL       |     7B     |
+|      QWen1.5       | 0.5B - 72B |
+|    QWen1.5-MoE     |   A2.7B    |
+|      Baichuan      |  7B - 13B  |
+|     Baichuan2      |  7B - 13B  |
+|     Code Llama     |  7B - 34B  |
+|      ChatGLM2      |     6B     |
+|       Falcon       | 7B - 180B  |
+|         YI         |  6B - 34B  |
+|      Mistral       |     7B     |
+|    DeepSeek-MoE    |    16B     |
+|    DeepSeek-VL     |     7B     |
+|      Mixtral       |    8x7B    |
+|       Gemma        |   2B-7B    |
+|        Dbrx        |    132B    |
+
+可以从Modelscope，OpenXLab下载相应的HF模型，下载好HF模型，下面的步骤就和使用LMDeploy运行InternLM2一样啦~
+
+## 6.3 定量比较LMDeploy与Transformer库的推理速度差异
+
+为了直观感受LMDeploy与Transformer库推理速度的差异，让我们来编写一个速度测试脚本。测试环境是30%的InternStudio开发机。
+
+先来测试一波Transformer库推理Internlm2-chat-1.8b的速度，新建python文件，命名为`benchmark_transformer.py`，填入以下内容：
+
+```py
+import torch
+import datetime
+from transformers import AutoTokenizer, AutoModelForCausalLM
+
+tokenizer = AutoTokenizer.from_pretrained("/root/internlm2-chat-1_8b", trust_remote_code=True)
+
+# Set `torch_dtype=torch.float16` to load model in float16, otherwise it will be loaded as float32 and cause OOM Error.
+model = AutoModelForCausalLM.from_pretrained("/root/internlm2-chat-1_8b", torch_dtype=torch.float16, trust_remote_code=True).cuda()
+model = model.eval()
+
+# warmup
+inp = "hello"
+for i in range(5):
+    print("Warm up...[{}/5]".format(i+1))
+    response, history = model.chat(tokenizer, inp, history=[])
+
+# test speed
+inp = "请介绍一下你自己。"
+times = 10
+total_words = 0
+start_time = datetime.datetime.now()
+for i in range(times):
+    response, history = model.chat(tokenizer, inp, history=history)
+    total_words += len(response)
+end_time = datetime.datetime.now()
+
+delta_time = end_time - start_time
+delta_time = delta_time.seconds + delta_time.microseconds / 1000000.0
+speed = total_words / delta_time
+print("Speed: {:.3f} words/s".format(speed))
+```
+
+运行python脚本：
+
+```sh
+python benchmark_transformer.py
+```
+
+得到运行结果：
+
+![](./imgs/6.3_1.jpg)
+
+可以看到，Transformer库的推理速度约为78.675 words/s，注意单位是words/s，不是token/s，word和token在数量上可以近似认为成线性关系。
+
+下面来测试一下LMDeploy的推理速度，新建python文件`benchmark_lmdeploy.py`，填入以下内容：
+
+```py
+import datetime
+from lmdeploy import pipeline
+
+pipe = pipeline('/root/internlm2-chat-1_8b')
+
+# warmup
+inp = "hello"
+for i in range(5):
+    print("Warm up...[{}/5]".format(i+1))
+    response = pipe([inp])
+
+# test speed
+inp = "请介绍一下你自己。"
+times = 10
+total_words = 0
+start_time = datetime.datetime.now()
+for i in range(times):
+    response = pipe([inp])
+    total_words += len(response[0].text)
+end_time = datetime.datetime.now()
+
+delta_time = end_time - start_time
+delta_time = delta_time.seconds + delta_time.microseconds / 1000000.0
+speed = total_words / delta_time
+print("Speed: {:.3f} words/s".format(speed))
+```
+
+运行脚本：
+
+```sh
+python benchmark_lmdeploy.py
+```
+
+得到运行结果：
+
+![](./imgs/6.3_2.jpg)
+
+可以看到，LMDeploy的推理速度约为473.690 words/s，是Transformer库的6倍。
+
+# 课后作业
+
+作业请查看[homework.md](./homework.md)。
