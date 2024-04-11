@@ -6,13 +6,13 @@ if __name__ == '__main__':
     # https://lmdeploy.readthedocs.io/zh-cn/latest/api/pipeline.html#turbomindengineconfig
     backend_config = TurbomindEngineConfig(
         model_name = 'internlm2',
-        model_format = None, # The format of input model. `hf` meaning `hf_llama`, `llama` meaning `meta_llama`, `awq` meaning the quantized model by awq. Default: None. Type: str
+        model_format = 'hf', # The format of input model. `hf` meaning `hf_llama`, `llama` meaning `meta_llama`, `awq` meaning the quantized model by awq. Default: None. Type: str
         tp = 1,
         session_len = 2048,
         max_batch_size = 128,
-        cache_max_entry_count = 0.5,
+        cache_max_entry_count = 0.4, # 调整KV Cache的占用比例为0.4
         cache_block_seq_len = 64,
-        quant_policy = 4,   # 默认为0, 4为开启kvcache int8 量化
+        quant_policy = 0, # 默认为0, 4为开启kvcache int8 量化
         rope_scaling_factor = 0.0,
         use_logn_attn = False,
         download_dir = None,
@@ -73,28 +73,3 @@ if __name__ == '__main__':
         print('session_id:', response.session_id)
         print('finish_reason:', response.finish_reason)
         print()
-    # Response(text='你好，我是一款语言模型，我的名字是书生·浦语。我是由上海人工智能实验室开发的，我的设计理念是有用、诚实并且无害。我可以理解并回应英文 和中文的问题，但我不能看、听、尝、触摸、闻、移动、与物理世界交互，也无法感受情感或体验感官输入，但我可以用我自己的方式来帮助人类。', generate_token_len=77, input_token_len=108, session_id=0, finish_reason='stop')
-    # text: 你好，我是一款语言模型，我的名字是书生·浦语。我是由上海人工智能实验室开发的，我的设计理念是有用、诚实并且无害。我可以理解并回应英文和中文的问题，但我不能看、听、尝、触摸、闻、移动、与物理世界交互，也无法感受情感或体验感官输入，但我可以用我自己的方式来帮助人类。
-    # generate_token_len: 77
-    # input_token_len: 108
-    # session_id: 0
-    # finish_reason: stop
-
-    # Response(text='上海是中国的一座城市，位于中国东部沿海地区，是中国的经济、文化和交通中心之一。它是中国最大的城市之一，拥有许多重要的旅游景点、商业区和文化设施。', generate_token_len=35, input_token_len=105, session_id=1, finish_reason='stop')
-    # text: 上海是中国的一座城市，位于中国东部沿海地区，是中国的经济、文化和交通中心之一。它是中国最大的城市之一，拥有许多重要的旅游景点、商业区和文化设 施。
-    # generate_token_len: 35
-    # input_token_len: 105
-    # session_id: 1
-    # finish_reason: stop
-
-    # 流式返回处理结果
-    # for item in pipe.stream_infer(prompts, gen_config=gen_config):
-    #     print(item)
-        # Response(text=' assist', generate_token_len=32, input_token_len=108, session_id=0, finish_reason=None)
-        # Response(text='', generate_token_len=38, input_token_len=108, session_id=0, finish_reason='stop')
-        # Response(text=' heritage', generate_token_len=49, input_token_len=105, session_id=1, finish_reason=None)
-        # Response(text='', generate_token_len=54, input_token_len=105, session_id=1, finish_reason='stop')
-
-        # print(item.text, end='')
-        # if item.finish_reason == 'stop':
-        #     print()

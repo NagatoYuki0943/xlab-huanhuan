@@ -96,20 +96,31 @@ TurboMind engine arguments:
                         Rope scaling factor. Default: 0.0. Type: float
 ```
 
+> example
+
 ```sh
-lmdeploy chat ./models/internlm2-chat-1_8b
+export HF_MODEL=internlm/internlm2-chat-7b
 
 # 使用pytorch后端
 lmdeploy chat \
-    ./models/internlm2-chat-1_8b \
+    $HF_MODEL \
     --backend pytorch \
     --tp 1 \
     --cache-max-entry-count 0.8
 
 # 使用turbomind后端
 lmdeploy chat \
+    $HF_MODEL \
+    --backend turbomind \
+    --model-format hf \
+    --tp 1 \
+    --cache-max-entry-count 0.8 \
+    --quant-policy 0
+
+lmdeploy chat \
     ./models/internlm2-chat-1_8b \
     --backend turbomind \
+    --model-format hf \
     --tp 1 \
     --cache-max-entry-count 0.8 \
     --quant-policy 0
@@ -222,10 +233,20 @@ KV Cache是一种缓存技术，通过存储键值对的形式来复用计算结
 下面通过几个例子，来看一下调整`--cache-max-entry-count`参数的效果。首先保持不加该参数（默认0.8），运行1.8B模型。
 
 ```sh
-# 改变--cache-max-entry-count参数，设为0.5
+export HF_MODEL=internlm/internlm2-chat-7b
+
 lmdeploy chat \
-    ./models/internlm2-chat-1_8b-4bit \ 
+    $HF_MODEL \
     --backend turbomind \
+    --model-format hf \
+    --tp 1 \
+    --cache-max-entry-count 0.8 \
+    --quant-policy 0
+
+lmdeploy chat \
+    ./models/internlm2-chat-1_8b \
+    --backend turbomind \
+    --model-format hf \
     --tp 1 \
     --cache-max-entry-count 0.8 \
     --quant-policy 0
@@ -256,13 +277,41 @@ options:
   --device {cuda,cpu}   Device type of running. Default: cuda. Type: str
 ```
 
+> 第一步
+>
+> 通过以下命令，获取量化参数，并保存至原HF模型目录
+
 ```sh
+export HF_MODEL=internlm/internlm2-chat-7b
+
+lmdeploy lite calibrate \
+  $HF_MODEL \
+  --calib-dataset 'ptb' \
+  --calib-samples 128 \
+  --calib-seqlen 2048 \
+  --work-dir $HF_MODEL
+
+lmdeploy lite calibrate \
+  ./models/internlm2-chat-1_8b \
+  --calib-dataset 'ptb' \
+  --calib-samples 128 \
+  --calib-seqlen 2048 \
+  --work-dir ./models/internlm2-chat-1_8b
+```
+
+> 第二步
+>
+> 测试聊天效果。注意需要添加参数`--quant-policy 4`以开启KV Cache int8模式。
+
+```sh
+# 必须指明 --model-format hf 才能使用
 lmdeploy chat \
-    ./models/internlm2-chat-1_8b-4bit \ 
+    ./models/internlm2-chat-1_8b \
     --backend turbomind \
+    --model-format hf \
     --tp 1 \
     --cache-max-entry-count 0.8 \
-    --quant-policy 4 # 启用 kv int8 量化, W4A16量化的模型才能使用 kv int8 量化
+    --quant-policy 4 # 启用 kv int8 量化, 校准/W4A16量化的模型才能使用 kv int8 量化
 ```
 
 ### [W4A16](https://github.com/InternLM/lmdeploy/blob/main/docs/zh_cn/quantization/w4a16.md)
@@ -301,8 +350,8 @@ options:
 仅需执行一条命令，就可以完成模型量化工作。量化结束后，权重文件存放在 `$WORK_DIR` 下。
 
 ```sh
-export HF_MODEL=internlm/internlm-chat-7b
-export WORK_DIR=internlm/internlm-chat-7b-4bit
+export HF_MODEL=internlm/internlm2-chat-7b
+export WORK_DIR=internlm/internlm2-chat-7b-4bit
 
 lmdeploy lite auto_awq \
     $HF_MODEL \
@@ -334,7 +383,7 @@ lmdeploy chat \
     --model-format awq \
     --tp 1 \
     --cache-max-entry-count 0.8 \
-    --quant-policy 0
+    --quant-policy 0 # 0/4 校准/W4A16量化的模型可以使用 kv int8 量化
 
 # 不支持 torch
 ```
@@ -404,22 +453,38 @@ options:
 
 在开始推理前，需要确保已经正确安装了 lmdeploy 和 openai/triton。
 
-将原 16bit 权重量化为 8bit，并保存至 `internlm-chat-7b-w8` 目录下，操作命令如下：
+将原 16bit 权重量化为 8bit，并保存至 `internlm2-chat-7b-w8` 目录下，操作命令如下：
 
 ```sh
-lmdeploy lite smooth_quant ./models/internlm2-chat-1_8b --work-dir ./models/internlm2-chat-1_8b-w8
+export HF_MODEL=internlm/internlm2-chat-7b
+export WORK_DIR=internlm/internlm2-chat-7b-w8
+
+lmdeploy lite smooth_quant \
+    $HF_MODEL \
+    --calib-dataset 'ptb' \
+    --calib-samples 128 \
+    --calib-seqlen 2048 \
+    --work-dir $WORK_DIR
+
+lmdeploy lite smooth_quant \
+    ./models/internlm2-chat-1_8b \
+    --calib-dataset 'ptb' \
+    --calib-samples 128 \
+    --calib-seqlen 2048 \
+    --work-dir ./models/internlm2-chat-1_8b-w8
 ```
 
 然后，执行以下命令，即可在终端与模型对话：
 
 ```sh
 lmdeploy chat \
-    ./models/internlm2-chat-1_8b \
+    ./models/internlm2-chat-1_8b-w8 \
     --backend pytorch \
     --tp 1 \
-    --cache-max-entry-count 0.8 \
+    --cache-max-entry-count 0.8
 
 # 不支持 turbomind
+# 同样不支持转换为turbomind格式进行推理，可以转换格式，但是输出结果是乱的
 ```
 
 ## serve
@@ -540,9 +605,13 @@ TurboMind engine arguments:
                         Rope scaling factor. Default: 0.0. Type: float
 ```
 
+> example
+
 ```sh
+export HF_MODEL=internlm/internlm2-chat-7b
+
 lmdeploy serve api_server \
-    ./models/internlm2-chat-1_8b \
+    $HF_MODEL \
     --backend pytorch \
     --tp 1 \
     --cache-max-entry-count 0.8 \
@@ -551,8 +620,9 @@ lmdeploy serve api_server \
     --server-port {port}
 
 lmdeploy serve api_server \
-    ./models/internlm2-chat-1_8b \
+    $HF_MODEL \
     --backend turbomind \
+    --model-format hf \
     --tp 1 \
     --cache-max-entry-count 0.8 \
     --quant-policy 0 \
@@ -563,6 +633,7 @@ lmdeploy serve api_server \
 lmdeploy serve api_server \
     ./models/internlm2-chat-1_8b \
     --backend turbomind \
+    --model-format hf \
     --tp 1 \
     --cache-max-entry-count 0.8 \
     --quant-policy 0 \
@@ -673,8 +744,10 @@ TurboMind engine arguments:
 > 启动gradio
 
 ```sh
+export HF_MODEL=internlm/internlm2-chat-7b
+
 lmdeploy serve gradio \
-    ./models/internlm2-chat-1_8b \
+    $HF_MODEL \
     --backend pytorch \
     --tp 1 \
     --cache-max-entry-count 0.8 \
@@ -682,8 +755,9 @@ lmdeploy serve gradio \
     --server-port {port}
 
 lmdeploy serve gradio \
-    ./models/internlm2-chat-1_8b \
+    $HF_MODEL \
     --backend turbomind \
+    --model-format hf \
     --tp 1 \
     --cache-max-entry-count 0.8 \
     --quant-policy 0 \
@@ -693,6 +767,7 @@ lmdeploy serve gradio \
 lmdeploy serve gradio \
     ./models/internlm2-chat-1_8b \
     --backend turbomind \
+    --model-format hf \
     --tp 1 \
     --cache-max-entry-count 0.8 \
     --quant-policy 0 \
@@ -706,6 +781,7 @@ lmdeploy serve gradio \
 lmdeploy serve api_server \
     ./models/internlm2-chat-1_8b \
     --backend turbomind \
+    --model-format hf \
     --tp 1 \
     --cache-max-entry-count 0.8 \
     --quant-policy 0 \
@@ -752,20 +828,45 @@ options:
                         A parameter used in awq to quantize fp16 weights to 4 bits. Default: 0. Type: int
 ```
 
+> example
+
 ```sh
+export HF_MODEL=internlm/internlm2-chat-7b
+export DST_PATH=internlm/internlm2-chat-7b-turbomind
+
+lmdeploy convert internlm2 \
+    $HF_MODEL \
+    --model-format hf \
+    --tp 1\
+    --dst-path $DST_PATH
+
 lmdeploy convert internlm2 \
     ./models/internlm2-chat-1_8b \
+    --model-format hf \
+    --tp 1\
     --dst-path ./models/internlm2-chat-1_8b-turbomind
 
-# 转化量化后的W4A16默认,需要设置 group-size
+# 转化量化后的W4A16模型,需要设置 group-size
 lmdeploy convert internlm2 \
     ./models/internlm2-chat-1_8b-4bit \
     --model-format awq \
-    --group-size 128 \ # 需要这个
+    --group-size 128 \
+    --tp 1\
     --dst-path ./models/internlm2-chat-1_8b-4bit-turbomind
+```
 
+> 推理
+
+```sh
 lmdeploy chat \
     ./models/internlm2-chat-1_8b-turbomind \
+    --backend turbomind \
+    --tp 1 \
+    --cache-max-entry-count 0.8 \
+    --quant-policy 0 # 0/4 turbomind格式可以直接使用 kv int8 量化
+
+lmdeploy chat \
+    ./models/internlm2-chat-1_8b-4bit-turbomind \
     --backend turbomind \
     --tp 1 \
     --cache-max-entry-count 0.8 \
