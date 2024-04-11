@@ -257,7 +257,6 @@ options:
 ```
 
 ```sh
-# 改变--cache-max-entry-count参数，设为0.5
 lmdeploy chat \
     ./models/internlm2-chat-1_8b-4bit \ 
     --backend turbomind \
@@ -265,10 +264,6 @@ lmdeploy chat \
     --cache-max-entry-count 0.8 \
     --quant-policy 4 # 启用 kv int8 量化, W4A16量化的模型才能使用 kv int8 量化
 ```
-
-
-
-
 
 ### [W4A16](https://github.com/InternLM/lmdeploy/blob/main/docs/zh_cn/quantization/w4a16.md)
 
