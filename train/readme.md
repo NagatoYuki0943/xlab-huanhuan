@@ -442,11 +442,13 @@ options:
   --local_rank LOCAL_RANK, --local-rank LOCAL_RANK
 ```
 
+> example
+
 ```sh
 # Fine-tune LLMs by a single GPU:
 xtuner train $CONFIG [other_config]
 
-xtuner train train/internlm2_1_8b_qlora_huanhuan_e3.py --deepspeed deepspeed_zero2
+xtuner train train/internlm2_1_8b_qlora_emo_e3.py --deepspeed deepspeed_zero2
 
 # Fine-tune LLMs by multiple GPUs:
 NPROC_PER_NODE=$NGPUS NNODES=$NNODES NODE_RANK=$NODE_RANK PORT=$PORT ADDR=$ADDR xtuner dist_train $CONFIG $GPUS
@@ -484,6 +486,8 @@ xtuner train /root/ft/config/internlm2_1_8b_qlora_alpaca_e3_copy.py --work-dir /
 ```
 
 ## 使用 deepspeed 来加速训练
+
+https://github.com/InternLM/xtuner/tree/main/xtuner/configs/deepspeed
 
 除此之外，我们也可以结合 XTuner 内置的 `deepspeed` 来加速整体的训练过程，共有三种不同的 `deepspeed` 类型可进行选择，分别是 `deepspeed_zero1`, `deepspeed_zero2` 和 `deepspeed_zero3`（详细的介绍可看下拉框）。
 
@@ -538,11 +542,47 @@ xtuner train /root/ft/config/internlm2_1_8b_qlora_alpaca_e3_copy.py --work-dir /
         |-- mp_rank_00_model_states.pt
 ```
 
-> https://github.com/InternLM/xtuner/tree/main/xtuner/configs/deepspeed
+## 模型续训指南
+
+假如我们的模型训练过程中突然被中断了，我们也可以通过在原有指令的基础上加上 `--resume {checkpoint_path}` 来实现模型的继续训练。需要注意的是，这个继续训练得到的权重文件和中断前的完全一致，并不会有任何区别。下面我将用训练了500轮的例子来进行演示。
+
+
+
+```bash
+# 模型续训
+xtuner train /root/ft/config/internlm2_1_8b_qlora_alpaca_e3_copy.py --work-dir /root/ft/train --resume /root/ft/train/iter_600.pth
+```
+
+在实测过程中，虽然权重文件并没有发生改变，但是会多一个以时间戳为名的训练过程文件夹保存训练的过程数据。
+
+```
+|-- train/
+    |-- internlm2_1_8b_qlora_alpaca_e3_copy.py
+    |-- iter_600.pth
+    |-- last_checkpoint
+    |-- iter_768.pth
+    |-- iter_300.pth
+    |-- 20240406_203957/
+        |-- 20240406_203957.log
+        |-- vis_data/
+            |-- 20240406_203957.json
+            |-- eval_outputs_iter_599.txt
+            |-- eval_outputs_iter_767.txt
+            |-- scalars.json
+            |-- eval_outputs_iter_299.txt
+            |-- config.py
+    |-- 20240406_225723/
+        |-- 20240406_225723.log
+        |-- vis_data/
+            |-- 20240406_225723.json
+            |-- eval_outputs_iter_767.txt
+            |-- scalars.json
+            |-- config.py
+```
 
 # convert
 
-## pth_to_hf
+## 模型转换 pth_to_hf
 
 ```sh
 > xtuner convert pth_to_hf --help
@@ -571,13 +611,48 @@ options:
 xtuner convert pth_to_hf $CONFIG $PATH_TO_PTH_MODEL $SAVE_PATH_TO_HF_MODEL --max-shard-size 2GB
 
 xtuner convert pth_to_hf \
-    train/internlm2_1_8b_qlora_huanhuan_e3.py \
-    work_dirs/internlm2_1_8b_qlora_huanhuan_e3/epoch_3.pth \
-    work_dirs/internlm2_1_8b_qlora_huanhuan_e3/hf \
+    train/internlm2_1_8b_qlora_emo_e3.py \
+    work_dirs/internlm2_1_8b_qlora_emo_e3/epoch_3.pth \
+    work_dirs/internlm2_1_8b_qlora_emo_e3/hf \
     --max-shard-size 2GB
 ```
 
-## merge
+模型转换的本质其实就是将原本使用 Pytorch 训练出来的模型权重文件转换为目前通用的 Huggingface 格式文件，那么我们可以通过以下指令来实现一键转换。
+
+```sh
+# 模型转换
+# xtuner convert pth_to_hf ${配置文件地址} ${权重文件地址} ${转换后模型保存地址}
+xtuner convert pth_to_hf /root/ft/train/internlm2_1_8b_qlora_alpaca_e3_copy.py /root/ft/train/iter_768.pth /root/ft/huggingface
+```
+
+转换完成后，可以看到模型被转换为 Huggingface 中常用的 .bin 格式文件，这就代表着文件成功被转化为 Huggingface 格式了。
+
+```sh
+|-- huggingface/
+    |-- adapter_config.json
+    |-- xtuner_config.py
+    |-- adapter_model.bin
+    |-- README.md
+```
+
+<span style="color: red;">**此时，huggingface 文件夹即为我们平时所理解的所谓 “LoRA 模型文件”**</span>
+
+> 可以简单理解：LoRA 模型文件 = Adapter
+
+除此之外，我们其实还可以在转换的指令中添加几个额外的参数，包括以下两个：
+
+| 参数名                | 解释                                         |
+| --------------------- | -------------------------------------------- |
+| --fp32                | 代表以fp32的精度开启，假如不输入则默认为fp16 |
+| --max-shard-size {GB} | 代表每个权重文件最大的大小（默认为2GB）      |
+
+假如有特定的需要，我们可以在上面的转换指令后进行添加。由于本次测试的模型文件较小，并且已经验证过拟合，故没有添加。假如加上的话应该是这样的：
+
+```sh
+xtuner convert pth_to_hf /root/ft/train/internlm2_1_8b_qlora_alpaca_e3_copy.py /root/ft/train/iter_768.pth /root/ft/huggingface --fp32 --max-shard-size 2GB
+```
+
+## 模型整合 merge
 
 ```sh
 > xtuner convert merge --help
@@ -609,6 +684,53 @@ xtuner convert merge \
     work_dirs/internlm2_1_8b_qlora_emo_e3/hf \
     work_dirs/internlm2_1_8b_qlora_emo_e3/merged \
     --max-shard-size 2GB
+```
+
+对于 LoRA 或者 QLoRA 微调出来的模型其实并不是一个完整的模型，而是一个额外的层（adapter）。那么训练完的这个层最终还是要与原模型进行组合才能被正常的使用。
+
+而对于全量微调的模型（full）其实是不需要进行整合这一步的，因为全量微调修改的是原模型的权重而非微调一个新的 adapter ，因此是不需要进行模型整合的。
+
+<img src="https://github.com/InternLM/Tutorial/assets/108343727/dbb82ca8-e0ef-41db-a8a9-7d6958be6a96" width="300" height="300">
+
+在 XTuner 中也是提供了一键整合的指令，但是在使用前我们需要准备好三个地址，包括原模型的地址、训练好的 adapter 层的地址（转为 Huggingface 格式后保存的部分）以及最终保存的地址。
+
+```sh
+# 解决一下线程冲突的 Bug 
+export MKL_SERVICE_FORCE_INTEL=1
+
+# 进行模型整合
+# xtuner convert merge  ${NAME_OR_PATH_TO_LLM} ${NAME_OR_PATH_TO_ADAPTER} ${SAVE_PATH} 
+xtuner convert merge /root/ft/model /root/ft/huggingface /root/ft/final_model
+```
+
+那除了以上的三个基本参数以外，其实在模型整合这一步还是其他很多的可选参数，包括：
+
+| 参数名                 | 解释                                                         |
+| ---------------------- | ------------------------------------------------------------ |
+| --max-shard-size {GB}  | 代表每个权重文件最大的大小（默认为2GB）                      |
+| --device {device_name} | 这里指的就是device的名称，可选择的有cuda、cpu和auto，默认为cuda即使用gpu进行运算 |
+| --is-clip              | 这个参数主要用于确定模型是不是CLIP模型，假如是的话就要加上，不是就不需要添加 |
+
+> CLIP（Contrastive Language–Image Pre-training）模型是 OpenAI 开发的一种预训练模型，它能够理解图像和描述它们的文本之间的关系。CLIP 通过在大规模数据集上学习图像和对应文本之间的对应关系，从而实现了对图像内容的理解和分类，甚至能够根据文本提示生成图像。
+> 在模型整合完成后，我们就可以看到 final_model 文件夹里生成了和原模型文件夹非常近似的内容，包括了分词器、权重文件、配置信息等等。当我们整合完成后，我们就能够正常的调用这个模型进行对话测试了。
+
+整合完成后可以查看在 final_model 文件夹下的内容。
+
+```
+|-- final_model/
+    |-- tokenizer.model
+    |-- config.json
+    |-- pytorch_model.bin.index.json
+    |-- pytorch_model-00001-of-00002.bin
+    |-- tokenization_internlm2.py
+    |-- tokenizer_config.json
+    |-- special_tokens_map.json
+    |-- pytorch_model-00002-of-00002.bin
+    |-- modeling_internlm2.py
+    |-- configuration_internlm2.py
+    |-- tokenizer.json
+    |-- generation_config.json
+    |-- tokenization_internlm2_fast.py
 ```
 
 ## split
@@ -699,9 +821,10 @@ xtuner chat $LLM --adapter $ADAPTER --bits $BITS --temperature $TEMPERATURE --to
 
 xtuner chat \
     models/internlm2-chat-1_8b \
-    --adapter work_dirs/internlm2_1_8b_qlora_huanhuan_e3/hf \
+    --adapter work_dirs/internlm2_1_8b_qlora_emo_e3/hf \
     --bits 8 --temperature 0.7 --top-k 50 --top-p 0.9 \
-    --system 现在你要扮演皇帝身边的女人--甄嬛
+    --prompt-template internlm2_chat \
+    --system "现在你是一个心理专家，我有一些心理问题，请你用专业的知识帮我解决。"
 ```
 
 ```sh
@@ -709,7 +832,43 @@ xtuner chat \
 xtuner chat $LLM --llava $LLAVA --visual-encoder $VISUAL_ENCODER --image $IMAGE --prompt-template $PROMPT_TEMPLATE --system-template $SYSTEM_TEMPLATE
 ```
 
-# check-custom-dataset
+在 XTuner 中也直接的提供了一套基于 transformers 的对话代码，让我们可以直接在终端与 Huggingface 格式的模型进行对话操作。我们只需要准备我们刚刚转换好的模型路径并选择对应的提示词模版（prompt-template）即可进行对话。假如 prompt-template 选择有误，很有可能导致模型无法正确的进行回复。
+
+> 想要了解具体模型的 prompt-template 或者 XTuner 里支持的 prompt-tempolate，可以到 XTuner 源码中的 `xtuner/utils/templates.py` 这个文件中进行查找。
+
+```Bash
+# 与模型进行对话
+xtuner chat /root/ft/final_model --prompt-template internlm2_chat
+```
+
+那对于 `xtuner chat` 这个指令而言，还有很多其他的参数可以进行设置的，包括：
+
+| 启动参数            | 解释                                                         |
+| ------------------- | ------------------------------------------------------------ |
+| --system            | 指定SYSTEM文本，用于在对话中插入特定的系统级信息             |
+| --system-template   | 指定SYSTEM模板，用于自定义系统信息的模板                     |
+| **--bits**          | 指定LLM运行时使用的位数，决定了处理数据时的精度              |
+| --bot-name          | 设置bot的名称，用于在对话或其他交互中识别bot                 |
+| --with-plugins      | 指定在运行时要使用的插件列表，用于扩展或增强功能             |
+| **--no-streamer**   | 关闭流式传输模式，对于需要一次性处理全部数据的场景           |
+| **--lagent**        | 启用lagent，用于特定的运行时环境或优化                       |
+| --command-stop-word | 设置命令的停止词，当遇到这些词时停止解析命令                 |
+| --answer-stop-word  | 设置回答的停止词，当生成回答时遇到这些词则停止               |
+| --offload-folder    | 指定存放模型权重的文件夹，用于加载或卸载模型权重             |
+| --max-new-tokens    | 设置生成文本时允许的最大token数量，控制输出长度              |
+| **--temperature**   | 设置生成文本的温度值，较高的值会使生成的文本更多样，较低的值会使文本更确定 |
+| --top-k             | 设置保留用于顶k筛选的最高概率词汇标记数，影响生成文本的多样性 |
+| --top-p             | 设置累计概率阈值，仅保留概率累加高于top-p的最小标记集，影响生成文本的连贯性 |
+| --seed              | 设置随机种子，用于生成可重现的文本内容                       |
+
+除了这些参数以外其实还有一个非常重要的参数就是 `--adapter` ，这个参数主要的作用就是可以在转化后的 adapter 层与原模型整合之前来对该层进行测试。使用这个额外的参数对话的模型和整合后的模型几乎没有什么太多的区别，因此我们可以通过测试不同的权重文件生成的 adapter 来找到最优的 adapter 进行最终的模型整合工作。
+
+```bash
+# 使用 --adapter 参数与完整的模型进行对话
+xtuner chat /root/ft/model --adapter /root/ft/huggingface --prompt-template internlm2_chat
+```
+
+# chcek-custom-dataset
 
 在修改配置文件后，可以运行`xtuner/tools/check_custom_dataset.py`脚本验证数据集是否正确构建。
 

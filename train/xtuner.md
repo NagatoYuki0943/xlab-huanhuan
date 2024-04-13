@@ -1,4 +1,6 @@
- # XTuner 微调个人小助手认知
+![image](https://github.com/InternLM/Tutorial/assets/108343727/0c30b92f-39cf-47d4-b349-34b588a6d474)
+
+# XTuner 微调个人小助手认知
 在本节课中讲一步步带领大家体验如何利用 XTuner 完成个人小助手的微调！
 
 为了能够让大家更加快速的上手并看到微调前后对比的效果，那我这里选用的就是上一期的课后作业：用 `QLoRA` 的方式来微调一个自己的小助手！我们可以通过下面两张图片来清楚的看到两者的对比。
@@ -371,7 +373,7 @@ xtuner copy-cfg internlm2_1_8b_qlora_alpaca_e3 /root/ft/config
 
 <details>
 <summary><b>配置文件介绍</b></summary>
-
+ 
 假如我们真的打开配置文件后，我们可以看到整体的配置文件分为五部分：
 1. **PART 1 Settings**：涵盖了模型基本设置，如预训练模型的选择、数据集信息和训练过程中的一些基本参数（如批大小、学习率等）。
 
@@ -451,6 +453,7 @@ xtuner copy-cfg internlm2_1_8b_qlora_alpaca_e3 /root/ft/config
 
 <details>
 <summary><b>常用参数介绍</b></summary>
+
 **常用超参**
 
 | 参数名                  | 解释                                                     |
@@ -1086,11 +1089,11 @@ logger = logging.get_logger(__name__)
 @dataclass
 class GenerationConfig:
     # this config is used for chat to provide more diversity
-    max_length: int = 32768
-    top_p: float = 0.8
-    temperature: float = 0.8
+    max_length: int = 2048
+    top_p: float = 0.75
+    temperature: float = 0.1
     do_sample: bool = True
-    repetition_penalty: float = 1.005
+    repetition_penalty: float = 1.000
 
 
 @torch.inference_mode()
