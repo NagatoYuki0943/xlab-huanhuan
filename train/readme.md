@@ -608,7 +608,7 @@ options:
 > example
 
 ```sh
-xtuner convert pth_to_hf $CONFIG $PATH_TO_PTH_MODEL $SAVE_PATH_TO_HF_MODEL --max-shard-size 2GB
+xtuner convert pth_to_hf ${配置文件地址} ${权重文件地址} ${转换后模型保存地址} --max-shard-size 2GB
 
 xtuner convert pth_to_hf \
     train/internlm2_1_8b_qlora_emo_e3.py \
@@ -677,7 +677,7 @@ options:
 > example
 
 ```sh
-xtuner convert merge $LLM $ADAPTER $SAVE_PATH --max-shard-size 2GB
+xtuner convert merge ${NAME_OR_PATH_TO_LLM} ${NAME_OR_PATH_TO_ADAPTER} ${SAVE_PATH} --max-shard-size 2GB
 
 xtuner convert merge \
     models/internlm2-chat-1_8b \
