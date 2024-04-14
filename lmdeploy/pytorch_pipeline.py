@@ -1,4 +1,10 @@
+import os
 from lmdeploy import pipeline, GenerationConfig, PytorchEngineConfig, ChatTemplateConfig
+
+
+model_path = './models/internlm2-chat-1_8b'
+# os.system(f'git clone https://code.openxlab.org.cn/OpenLMLab/internlm2-chat-1.8b {model_path}')
+# os.system(f'cd {model_path} && git lfs pull')
 
 
 if __name__ == '__main__':
@@ -8,7 +14,7 @@ if __name__ == '__main__':
         tp = 1,
         session_len = 2048,
         max_batch_size = 128,
-        cache_max_entry_count = 0.5,
+        cache_max_entry_count = 0.5, # 调整KV Cache的占用比例为0.5
         eviction_type = 'recompute',
         prefill_interval = 16,
         block_size = 64,
@@ -20,12 +26,19 @@ if __name__ == '__main__':
         download_dir = None,
         revision = None,
     )
+
+    system_prompt = """You are an AI assistant whose name is InternLM (书生·浦语).
+    - InternLM (书生·浦语) is a conversational language model that is developed by Shanghai AI Laboratory (上海人工智能实验室). It is designed to be helpful, honest, and harmless.
+    - InternLM (书生·浦语) can understand and communicate fluently in the language chosen by the user such as English and 中文.
+    """
+
     # https://lmdeploy.readthedocs.io/zh-cn/latest/_modules/lmdeploy/model.html#ChatTemplateConfig
     chat_template_config = ChatTemplateConfig(
         model_name = 'internlm2',
         system = None,
-        meta_instruction = None,
+        meta_instruction = system_prompt,
     )
+
     # https://lmdeploy.readthedocs.io/zh-cn/latest/api/pipeline.html#generationconfig
     gen_config = GenerationConfig(
         n = 1,
@@ -45,7 +58,7 @@ if __name__ == '__main__':
     # https://lmdeploy.readthedocs.io/zh-cn/latest/api/pipeline.html
     # https://github.com/InternLM/lmdeploy/blob/main/lmdeploy/api.py
     pipe = pipeline(
-        model_path = './models/internlm2-chat-1_8b',
+        model_path = model_path,
         model_name = 'internlm2_chat_1_8b',
         backend_config = backend_config,
         chat_template_config = chat_template_config,
@@ -55,6 +68,28 @@ if __name__ == '__main__':
     # prompts (List[str] | str | List[Dict] | List[Dict]): a batch of
     #     prompts. It accepts: string prompt, a list of string prompts,
     #     a chat history in OpenAI format or a list of chat history.
+    # [
+    #     {
+    #         "role": "system",
+    #         "content": "You are a helpful assistant."
+    #     },
+    #     {
+    #         "role": "user",
+    #         "content": "What is the capital of France?"
+    #     },
+    #     {
+    #         "role": "assistant",
+    #         "content": "The capital of France is Paris."
+    #     },
+    #     {
+    #         "role": "user",
+    #         "content": "Thanks!"
+    #     },
+    #     {
+    #         "role": "assistant",
+    #         "content": "You are welcome."
+    #     }
+    # ]
     #----------------------------------------------------------------------#
     prompts = [[{
         'role': 'user',
@@ -66,6 +101,8 @@ if __name__ == '__main__':
 
     # https://github.com/InternLM/lmdeploy/blob/main/lmdeploy/serve/async_engine.py#L274
     responses = pipe(prompts, gen_config=gen_config)
+    # 放入 [{},{}] 格式返回一个response
+    # 放入 [] 或者 [[{},{}]] 格式返回一个response列表
     for response in responses:
         print(response)
         print('text:', response.text)

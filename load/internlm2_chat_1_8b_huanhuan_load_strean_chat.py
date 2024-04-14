@@ -8,13 +8,13 @@ print("torch version: ", torch.__version__)
 print("transformers version: ", transformers.__version__)
 
 
-model_dir = "./models/internlm2-chat-1_8b"
+model_path = "./models/internlm2-chat-1_8b"
 adapter_dir = "./work_dirs/internlm2_chat_1_8b_qlora_huanhuan_e3_hf/checkpoint-699"
 # adapter_dir = "./work_dirs/internlm2_chat_1_8b_qlora_huanhuan_e3/hf"
 quantization = False
 
 # tokenizer
-tokenizer = AutoTokenizer.from_pretrained(model_dir, use_fast=False, trust_remote_code=True)
+tokenizer = AutoTokenizer.from_pretrained(model_path, use_fast=False, trust_remote_code=True)
 
 # 量化
 quantization_config = BitsAndBytesConfig(
@@ -29,7 +29,7 @@ quantization_config = BitsAndBytesConfig(
 
 # 创建模型
 model = AutoModelForCausalLM.from_pretrained(
-    model_dir,
+    model_path,
     torch_dtype=torch.float16,
     trust_remote_code=True,
     device_map='auto',

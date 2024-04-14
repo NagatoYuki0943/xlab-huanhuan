@@ -3,6 +3,7 @@ from transformers import AutoTokenizer, AutoModelForCausalLM, BitsAndBytesConfig
 from peft import PeftModel
 import torch
 import os
+import gradio as gr
 
 
 print("torch version: ", torch.__version__)
@@ -49,17 +50,20 @@ system_prompt = """You are an AI assistant whose name is InternLM (书生·浦�
 """
 print("system_prompt: ", system_prompt)
 
-# history: [('What is the capital of France?', 'The capital of France is Paris.'), ('Thanks', 'You are Welcome')]
-history = []
-while True:
-    query = input("请输入提示: ")
+
+def chat(
+    query: str,
+    history: list,  # [['What is the capital of France?', 'The capital of France is Paris.'], ['Thanks', 'You are Welcome']]
+    max_new_tokens: int = 1024,
+    top_p: float = 0.8,
+    temperature: float = 0.8
+) -> tuple[str, list]:
     query = query.replace(' ', '')
     if query == None or len(query) < 1:
-        continue
-    if query.lower() == "exit":
-        break
+        return "", history
 
-    print("回答: ", end="")
+    print({"max_new_tokens":  max_new_tokens, "top_p": top_p, "temperature": temperature})
+
     # https://huggingface.co/internlm/internlm2-chat-1_8b/blob/main/modeling_internlm2.py#L1149
     # chat 调用的 generate
     response, history = model.chat(
@@ -67,11 +71,75 @@ while True:
         query = query,
         history = history,
         streamer = None,
-        max_new_tokens = 1024,
+        max_new_tokens = max_new_tokens,
         do_sample = True,
-        temperature = 0.8,
-        top_p = 0.8,
+        temperature = temperature,
+        top_p = top_p,
         meta_instruction = system_prompt,
     )
-    print(response)
-    # print("history:", history)
+    print("chat: ", query, response)
+
+    return "", history
+
+
+block = gr.Blocks()
+with block as demo:
+    with gr.Row(equal_height=True):
+        with gr.Column(scale=15):
+            gr.Markdown("""<h1><center>InternLM</center></h1>
+                <center>InternLM2</center>
+                """)
+        # gr.Image(value=LOGO_PATH, scale=1, min_width=10,show_label=False, show_download_button=False)
+
+    with gr.Row():
+        with gr.Column(scale=4):
+            # 创建聊天框
+            chatbot = gr.Chatbot(height=450, show_copy_button=True)
+            # 创建一个文本框组件，用于输入 prompt。
+            query = gr.Textbox(label="Prompt/问题")
+
+            with gr.Row():
+                max_new_tokens = gr.Slider(
+                    minimum=1,
+                    maximum=2048,
+                    value=1024,
+                    step=1,
+                    label='Maximum new tokens'
+                )
+                top_p = gr.Slider(
+                    minimum=0.01,
+                    maximum=1,
+                    value=0.8,
+                    step=0.01,
+                    label='Top_p'
+                )
+
+                temperature = gr.Slider(
+                    minimum=0.01,
+                    maximum=1.5,
+                    value=0.8,
+                    step=0.01,
+                    label='Temperature'
+                )
+
+            with gr.Row():
+                # 创建提交按钮。
+                btn = gr.Button("Chat")
+
+            with gr.Row():
+                # 创建一个清除按钮，用于清除聊天机器人组件的内容。
+                clear = gr.ClearButton(components=[chatbot], value="Clear console")
+
+        btn.click(
+            chat,
+            inputs=[query, chatbot, max_new_tokens, top_p, temperature],
+            outputs=[query, chatbot]
+        )
+
+# threads to consume the request
+gr.close_all()
+
+# 启动新的 Gradio 应用，设置分享功能为 True，并使用环境变量 PORT1 指定服务器端口。
+# demo.launch(share=True, server_port=int(os.environ['PORT1']))
+# 直接启动
+demo.launch()

@@ -2,17 +2,19 @@ import transformers
 from transformers import AutoTokenizer, AutoModelForCausalLM, BitsAndBytesConfig
 from peft import PeftModel
 import torch
-
+import os
 
 print("torch version: ", torch.__version__)
 print("transformers version: ", transformers.__version__)
 
 
-model_dir = "./models/internlm2-chat-1_8b"
+model_path = './models/internlm2-chat-1_8b'
+# os.system(f'git clone https://code.openxlab.org.cn/OpenLMLab/internlm2-chat-1.8b {model_path}')
+# os.system(f'cd {model_path} && git lfs pull')
 quantization = False
 
 # tokenizer
-tokenizer = AutoTokenizer.from_pretrained(model_dir, use_fast=False, trust_remote_code=True)
+tokenizer = AutoTokenizer.from_pretrained(model_path, use_fast=False, trust_remote_code=True)
 
 # 量化
 quantization_config = BitsAndBytesConfig(
@@ -27,7 +29,7 @@ quantization_config = BitsAndBytesConfig(
 
 # 创建模型
 model = AutoModelForCausalLM.from_pretrained(
-    model_dir,
+    model_path,
     torch_dtype=torch.float16,
     trust_remote_code=True,
     device_map='auto',
@@ -44,10 +46,10 @@ system_prompt = """You are an AI assistant whose name is InternLM (书生·浦�
 - InternLM (书生·浦语) is a conversational language model that is developed by Shanghai AI Laboratory (上海人工智能实验室). It is designed to be helpful, honest, and harmless.
 - InternLM (书生·浦语) can understand and communicate fluently in the language chosen by the user such as English and 中文.
 """
-# system_prompt = "你是一个农业专家，请准确回答农业相关的问题"
 print("system_prompt: ", system_prompt)
 
 
+# history: [('What is the capital of France?', 'The capital of France is Paris.'), ('Thanks', 'You are Welcome')]
 history = []
 while True:
     query = input("请输入提示: ")
