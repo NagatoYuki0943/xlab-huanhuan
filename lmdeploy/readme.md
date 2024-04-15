@@ -32,7 +32,7 @@ Commands:
     check_env           Check the environmental information.
 ```
 
-## chat 聊天
+## 聊天
 
 ```sh
 > lmdeploy chat --help
@@ -190,13 +190,39 @@ lmdeploy chat \
         ArgumentHelper.chat_template(parser)
 ```
 
-## lite 量化
+## KV Cache
 
-本部分内容主要介绍如何对模型进行量化。主要包括 KV8量化和W4A16量化。总的来说，量化是一种以参数或计算中间结果精度下降换空间节省（以及同时带来的性能提升）的策略。
+KV Cache是一种缓存技术，通过存储键值对的形式来复用计算结果，以达到提高性能和降低内存消耗的目的。在大规模训练和推理中，KV Cache可以显著减少重复计算量，从而提升模型的推理速度。理想情况下，KV Cache全部存储于显存，以加快访存速度。当显存空间不足时，也可以将KV Cache放在内存，通过缓存管理器控制将当前需要使用的数据放入显存。
+
+模型在运行时，占用的显存可大致分为三部分：模型参数本身占用的显存、KV Cache占用的显存，以及中间运算结果占用的显存。LMDeploy的KV Cache管理器可以通过设置`--cache-max-entry-count`参数，控制KV缓存**占用剩余显存**的最大比例。默认的比例为0.8。
+
+```sh
+export HF_MODEL=internlm/internlm2-chat-7b
+
+lmdeploy chat \
+    $HF_MODEL \
+    --backend turbomind \
+    --model-format hf \
+    --tp 1 \
+    --cache-max-entry-count 0.8 \
+    --quant-policy 0
+
+lmdeploy chat \
+    ./models/internlm2-chat-1_8b \
+    --backend turbomind \
+    --model-format hf \
+    --tp 1 \
+    --cache-max-entry-count 0.8 \
+    --quant-policy 0
+```
+
+## 量化
+
+量化是一种以参数或计算中间结果精度下降换空间节省（以及同时带来的性能提升）的策略。
 
 正式介绍 LMDeploy 量化方案前，需要先介绍两个概念：
 
-* 计算密集（compute-bound）: 指推理过程中，绝大部分时间消耗在数值计算上；针对计算密集型场景，可以通过使用更快的硬件计算单元来提升计算速。
+* 计算密集（compute-bound）: 指推理过程中，绝大部分时间消耗在数值计算上；针对计算密集型场景，可以通过使用更快的硬件计算单元来提升计算速度。
 * 访存密集（memory-bound）: 指推理过程中，绝大部分时间消耗在数据读取上；针对访存密集型场景，一般通过减少访存次数、提高计算访存比或降低访存量来优化。
 
 常见的 LLM 模型由于 Decoder Only 架构的特性，实际推理时大多数的时间都消耗在了逐 Token 生成阶段（Decoding 阶段），是典型的访存密集型场景。
@@ -224,35 +250,9 @@ Commands:
 
 https://github.com/InternLM/lmdeploy/tree/main/docs/zh_cn/quantization
 
-### KV Cache
+### [KV Cache int8](https://github.com/InternLM/lmdeploy/blob/main/docs/zh_cn/quantization/kv_int8.md)
 
-KV Cache是一种缓存技术，通过存储键值对的形式来复用计算结果，以达到提高性能和降低内存消耗的目的。在大规模训练和推理中，KV Cache可以显著减少重复计算量，从而提升模型的推理速度。理想情况下，KV Cache全部存储于显存，以加快访存速度。当显存空间不足时，也可以将KV Cache放在内存，通过缓存管理器控制将当前需要使用的数据放入显存。
-
-模型在运行时，占用的显存可大致分为三部分：模型参数本身占用的显存、KV Cache占用的显存，以及中间运算结果占用的显存。LMDeploy的KV Cache管理器可以通过设置`--cache-max-entry-count`参数，控制KV缓存**占用剩余显存**的最大比例。默认的比例为0.8。
-
-下面通过几个例子，来看一下调整`--cache-max-entry-count`参数的效果。首先保持不加该参数（默认0.8），运行1.8B模型。
-
-```sh
-export HF_MODEL=internlm/internlm2-chat-7b
-
-lmdeploy chat \
-    $HF_MODEL \
-    --backend turbomind \
-    --model-format hf \
-    --tp 1 \
-    --cache-max-entry-count 0.8 \
-    --quant-policy 0
-
-lmdeploy chat \
-    ./models/internlm2-chat-1_8b \
-    --backend turbomind \
-    --model-format hf \
-    --tp 1 \
-    --cache-max-entry-count 0.8 \
-    --quant-policy 0
-```
-
-#### [KV Cache int8](https://github.com/InternLM/lmdeploy/blob/main/docs/zh_cn/quantization/kv_int8.md)
+KV Cache int8 是将 KVCache 进一步量化为 int8 来减少显存的占用，值得注意的是，量化也分为量化和反量化2个步骤，推理时需要反量化为16bit进行运算。
 
 ```sh
 > lmdeploy lite calibrate --help
@@ -304,7 +304,18 @@ lmdeploy lite calibrate \
 > 测试聊天效果。注意需要添加参数`--quant-policy 4`以开启KV Cache int8模式。
 
 ```sh
+export HF_MODEL=internlm/internlm2-chat-7b
+
 # 必须指明 --model-format hf 才能使用
+lmdeploy chat \
+    $HF_MODEL \
+    --backend turbomind \
+    --model-format hf \
+    --tp 1 \
+    --cache-max-entry-count 0.8 \
+    --quant-policy 4 # 启用 kv int8 量化, 校准/W4A16量化的模型才能使用 kv int8 量化
+
+
 lmdeploy chat \
     ./models/internlm2-chat-1_8b \
     --backend turbomind \
@@ -377,6 +388,17 @@ lmdeploy lite auto_awq \
 比如，直接在控制台和模型对话，
 
 ```sh
+# 必须指明 --model-format awq 才能使用
+export WORK_DIR=internlm/internlm2-chat-7b-4bit
+
+lmdeploy chat \
+    $WORK_DIR \
+    --backend turbomind \
+    --model-format awq \
+    --tp 1 \
+    --cache-max-entry-count 0.8 \
+    --quant-policy 0 # 0/4 校准/W4A16量化的模型可以使用 kv int8 量化
+
 lmdeploy chat \
     ./models/internlm2-chat-1_8b-4bit \
     --backend turbomind \
@@ -477,6 +499,14 @@ lmdeploy lite smooth_quant \
 然后，执行以下命令，即可在终端与模型对话：
 
 ```sh
+export WORK_DIR=internlm/internlm2-chat-7b-w8
+
+lmdeploy chat \
+    $WORK_DIR \
+    --backend pytorch \
+    --tp 1 \
+    --cache-max-entry-count 0.8
+
 lmdeploy chat \
     ./models/internlm2-chat-1_8b-w8 \
     --backend pytorch \
@@ -487,7 +517,7 @@ lmdeploy chat \
 # 同样不支持转换为turbomind格式进行推理，可以转换格式，但是输出结果是乱的
 ```
 
-## serve
+## 服务推理
 
 ```sh
 > lmdeploy serve --help
@@ -610,6 +640,7 @@ TurboMind engine arguments:
 ```sh
 export HF_MODEL=internlm/internlm2-chat-7b
 
+# pytorch后端
 lmdeploy serve api_server \
     $HF_MODEL \
     --backend pytorch \
@@ -619,6 +650,7 @@ lmdeploy serve api_server \
     --server-name {ip_addr} \
     --server-port {port}
 
+# turbomind后端
 lmdeploy serve api_server \
     $HF_MODEL \
     --backend turbomind \
@@ -661,6 +693,8 @@ options:
 ```
 
 ```sh
+lmdeploy serve api_client {ip_addr}:{port}
+
 lmdeploy serve api_client http://localhost:23333
 ```
 
@@ -741,11 +775,12 @@ TurboMind engine arguments:
                         Rope scaling factor. Default: 0.0. Type: float
 ```
 
-> 启动gradio
+> 启动 gradio
 
 ```sh
 export HF_MODEL=internlm/internlm2-chat-7b
 
+# 使用pytorch后端
 lmdeploy serve gradio \
     $HF_MODEL \
     --backend pytorch \
@@ -754,6 +789,7 @@ lmdeploy serve gradio \
     --server-name {ip_addr} \
     --server-port {port}
 
+# 使用turbomind后端
 lmdeploy serve gradio \
     $HF_MODEL \
     --backend turbomind \
@@ -778,6 +814,36 @@ lmdeploy serve gradio \
 > 先启动server作为后端，再启动gradio作为前端
 
 ```sh
+export HF_MODEL=internlm/internlm2-chat-7b
+
+# pytorch后端
+lmdeploy serve api_server \
+    $HF_MODEL \
+    --backend pytorch \
+    --tp 1 \
+    --cache-max-entry-count 0.8 \
+    --model-name internlm2_1_8b_chat \
+    --server-name {ip_addr} \
+    --server-port {port}
+
+# turbomind后端
+lmdeploy serve api_server \
+    $HF_MODEL \
+    --backend turbomind \
+    --model-format hf \
+    --tp 1 \
+    --cache-max-entry-count 0.8 \
+    --quant-policy 0 \
+    --model-name internlm2_1_8b_chat \
+    --server-name {ip_addr} \
+    --server-port {port}
+
+##########
+
+lmdeploy serve gradio {ip_addr}:{port} \
+    --server-name 0.0.0.0 \
+    --server-port 6006
+
 lmdeploy serve api_server \
     ./models/internlm2-chat-1_8b \
     --backend turbomind \
@@ -798,7 +864,9 @@ lmdeploy serve gradio http://localhost:23333 \
 
 ![4.3_3](imgs/4.3_3.jpg)
 
-## convert
+## 转换模型格式
+
+将 hf/awq 格式的模型转换为 turbomind 格式的模型
 
 ```sh
 > lmdeploy convert --help
@@ -837,43 +905,61 @@ export DST_PATH=internlm/internlm2-chat-7b-turbomind
 lmdeploy convert internlm2 \
     $HF_MODEL \
     --model-format hf \
-    --tp 1\
+    --tp 1 \
     --dst-path $DST_PATH
 
 lmdeploy convert internlm2 \
     ./models/internlm2-chat-1_8b \
     --model-format hf \
-    --tp 1\
+    --tp 1 \
     --dst-path ./models/internlm2-chat-1_8b-turbomind
+```
 
+> 转化量化后的W4A16模型,需要设置 group-size
+
+```sh
 # 转化量化后的W4A16模型,需要设置 group-size
+export AWQ_MODEL=internlm/internlm2-chat-7b-4bit
+export DST_PATH=internlm/internlm2-chat-7b-4bit-turbomind
+
+lmdeploy convert internlm2 \
+    $AWQ_MODEL \
+    --model-format awq \
+    --group-size 128 \
+    --tp 1 \
+    --dst-path $DST_PATH
+
 lmdeploy convert internlm2 \
     ./models/internlm2-chat-1_8b-4bit \
     --model-format awq \
     --group-size 128 \
-    --tp 1\
+    --tp 1 \
     --dst-path ./models/internlm2-chat-1_8b-4bit-turbomind
 ```
 
 > 推理
 
 ```sh
+export DST_PATH=internlm/internlm2-chat-7b-turbomind
+
+lmdeploy chat \
+    $DST_PATH \
+    --backend turbomind \
+    --tp 1 \
+    --cache-max-entry-count 0.8 \
+    --quant-policy 0 # 0/4 turbomind格式可以直接使用 kv int8 量化
+
 lmdeploy chat \
     ./models/internlm2-chat-1_8b-turbomind \
     --backend turbomind \
     --tp 1 \
     --cache-max-entry-count 0.8 \
     --quant-policy 0 # 0/4 turbomind格式可以直接使用 kv int8 量化
-
-lmdeploy chat \
-    ./models/internlm2-chat-1_8b-4bit-turbomind \
-    --backend turbomind \
-    --tp 1 \
-    --cache-max-entry-count 0.8 \
-    --quant-policy 0 # 0/4 turbomind格式可以直接使用 kv int8 量化
 ```
 
-## list
+## 显示支持的模型
+
+显示支持的模型
 
 ```sh
 > lmdeploy list --help
@@ -916,6 +1002,8 @@ yi-vl
 
 ## check_env
 
+检查环境
+
 ```sh
 > lmdeploy check_env --help
 usage: lmdeploy check_env [-h] [--dump-file DUMP_FILE]
@@ -929,7 +1017,7 @@ options:
 ```
 
 ```sh
-> lmdeploy check_env                                                                                                     )
+> lmdeploy check_env
 sys.platform: linux
 Python: 3.10.13 (main, Sep 11 2023, 13:44:35) [GCC 11.2.0]
 CUDA available: True
