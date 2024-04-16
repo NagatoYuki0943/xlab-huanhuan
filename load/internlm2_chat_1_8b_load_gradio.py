@@ -59,7 +59,7 @@ def chat(
     max_new_tokens: int = 1024,
     top_p: float = 0.8,
     temperature: float = 0.8,
-    regenerate: bool = False
+    regenerate: str = "" # 是regen按钮的value,字符串,点击就传送,否则为空字符串
 ) -> list:
     history = [] if history is None else history
     # 重新生成时要把最后的query和response弹出,重用query
@@ -89,19 +89,9 @@ def chat(
         top_p = top_p,
         meta_instruction = system_prompt,
     )
-    print("chat: ", query, response)
+    print(f"query: {query}; response: {response}")
 
     return history
-
-
-def regenerate(
-    history: list | None,
-    max_new_tokens: int = 1024,
-    top_p: float = 0.8,
-    temperature: float = 0.8,
-) -> list:
-    """重新生成最后一次对话的内容"""
-    return chat("", history, max_new_tokens, top_p, temperature, regenerate=True)
 
 
 def revocery(history: list | None) -> list:
@@ -194,8 +184,8 @@ with block as demo:
 
         # 重新生成
         regen.click(
-            regenerate,
-            inputs=[chatbot, max_new_tokens, top_p, temperature],
+            chat,
+            inputs=[query, chatbot, max_new_tokens, top_p, temperature, regen],
             outputs=[chatbot]
         )
 

@@ -1,12 +1,14 @@
-# https://github.com/InternLM/lmdeploy/blob/main/lmdeploy/serve/gradio/turbomind_coupled.py
-# https://github.com/InternLM/lmdeploy/blob/main/lmdeploy/serve/gradio/vl.py
+import transformers
+from transformers import AutoTokenizer, AutoModelForCausalLM, BitsAndBytesConfig
+from peft import PeftModel
+import torch
 import os
 import gradio as gr
-import lmdeploy
-from lmdeploy import pipeline, GenerationConfig, TurbomindEngineConfig, ChatTemplateConfig
+from typing import Generator, Any
 
 
-print("lmdeploy version: ", lmdeploy.__version__)
+print("torch version: ", torch.__version__)
+print("transformers version: ", transformers.__version__)
 print("gradio version: ", gr.__version__)
 
 
@@ -14,89 +16,42 @@ print("gradio version: ", gr.__version__)
 model_path = './models/internlm2-chat-1_8b'
 # os.system(f'git clone https://code.openxlab.org.cn/OpenLMLab/internlm2-chat-1.8b {model_path}')
 # os.system(f'cd {model_path} && git lfs pull')
+quantization = False
 
-# 可以直接使用transformers的模型,会自动转换格式
-# https://lmdeploy.readthedocs.io/zh-cn/latest/api/pipeline.html#turbomindengineconfig
-backend_config = TurbomindEngineConfig(
-    model_name = 'internlm2',
-    model_format = 'hf', # The format of input model. `hf` meaning `hf_llama`, `llama` meaning `meta_llama`, `awq` meaning the quantized model by awq. Default: None. Type: str
-    tp = 1,
-    session_len = 2048,
-    max_batch_size = 128,
-    cache_max_entry_count = 0.4, # 调整KV Cache的占用比例为0.4
-    cache_block_seq_len = 64,
-    quant_policy = 0, # 默认为0, 4为开启kvcache int8 量化
-    rope_scaling_factor = 0.0,
-    use_logn_attn = False,
-    download_dir = None,
-    revision = None,
-    max_prefill_token_num = 8192,
+# tokenizer
+tokenizer = AutoTokenizer.from_pretrained(model_path, use_fast=False, trust_remote_code=True)
+
+# 量化
+quantization_config = BitsAndBytesConfig(
+    load_in_4bit=True,                      # 是否在4位精度下加载模型。如果设置为True，则在4位精度下加载模型。
+    load_in_8bit=False,
+    llm_int8_threshold=6.0,
+    llm_int8_has_fp16_weight=False,
+    bnb_4bit_compute_dtype=torch.float16,   # 4位精度计算的数据类型。这里设置为torch.float16，表示使用半精度浮点数。
+    bnb_4bit_quant_type='nf4',              # 4位精度量化的类型。这里设置为"nf4"，表示使用nf4量化类型。 nf4: 4bit-NormalFloat
+    bnb_4bit_use_double_quant=True,         # 是否使用双精度量化。如果设置为True，则使用双精度量化。
 )
+
+# 创建模型
+model = AutoModelForCausalLM.from_pretrained(
+    model_path,
+    torch_dtype=torch.float16,
+    trust_remote_code=True,
+    device_map='auto',
+    low_cpu_mem_usage=True, # 是否使用低CPU内存,使用 device_map 参数必须为 True
+    quantization_config=quantization_config if quantization else None,
+)
+model.eval()
+
+# print(model.__class__.__name__) # InternLM2ForCausalLM
+
+print(f"model.device: {model.device}, model.dtype: {model.dtype}")
 
 system_prompt = """You are an AI assistant whose name is InternLM (书生·浦语).
 - InternLM (书生·浦语) is a conversational language model that is developed by Shanghai AI Laboratory (上海人工智能实验室). It is designed to be helpful, honest, and harmless.
 - InternLM (书生·浦语) can understand and communicate fluently in the language chosen by the user such as English and 中文.
 """
-
-# https://lmdeploy.readthedocs.io/zh-cn/latest/_modules/lmdeploy/model.html#ChatTemplateConfig
-chat_template_config = ChatTemplateConfig(
-    model_name = 'internlm2',
-    system = None,
-    meta_instruction = system_prompt,
-)
-
-# https://lmdeploy.readthedocs.io/zh-cn/latest/api/pipeline.html#generationconfig
-gen_config = GenerationConfig(
-    n = 1,
-    max_new_tokens = 1024,
-    top_p = 0.8,
-    top_k = 40,
-    temperature = 0.8,
-    repetition_penalty = 1.0,
-    ignore_eos = False,
-    random_seed = None,
-    stop_words = None,
-    bad_words = None,
-    min_new_tokens = None,
-    skip_special_tokens = True,
-)
-
-# https://lmdeploy.readthedocs.io/zh-cn/latest/api/pipeline.html
-# https://github.com/InternLM/lmdeploy/blob/main/lmdeploy/api.py
-pipe = pipeline(
-    model_path = model_path,
-    model_name = 'internlm2_chat_1_8b',
-    backend_config = backend_config,
-    chat_template_config = chat_template_config,
-)
-
-#----------------------------------------------------------------------#
-# prompts (List[str] | str | List[Dict] | List[Dict]): a batch of
-#     prompts. It accepts: string prompt, a list of string prompts,
-#     a chat history in OpenAI format or a list of chat history.
-# [
-#     {
-#         "role": "system",
-#         "content": "You are a helpful assistant."
-#     },
-#     {
-#         "role": "user",
-#         "content": "What is the capital of France?"
-#     },
-#     {
-#         "role": "assistant",
-#         "content": "The capital of France is Paris."
-#     },
-#     {
-#         "role": "user",
-#         "content": "Thanks!"
-#     },
-#     {
-#         "role": "assistant",
-#         "content": "You are welcome."
-#     }
-# ]
-#----------------------------------------------------------------------#
+print("system_prompt: ", system_prompt)
 
 
 def chat(
@@ -104,13 +59,9 @@ def chat(
     history: list | None,  # [['What is the capital of France?', 'The capital of France is Paris.'], ['Thanks', 'You are Welcome']]
     max_new_tokens: int = 1024,
     top_p: float = 0.8,
-    top_k: int = 40,
     temperature: float = 0.8,
-    regenerate: str = "" # 是regen按钮的value,字符串,点击就传送,否则为空字符串
-) -> list:
-    """聊天"""
-    global gen_config
-
+    regenerate: bool = False
+) -> list | Generator[Any, Any, Any]:
     history = [] if history is None else history
     # 重新生成时要把最后的query和response弹出,重用query
     if regenerate:
@@ -118,49 +69,35 @@ def chat(
         if len(history) > 0:
             query, _ = history.pop(-1)
         else:
-            return history
+            yield history
+            return # 这样写管用,但不理解
     else:
         query = query.replace(' ', '')
         if query == None or len(query) < 1:
-            return history
+            yield history
+            return
 
-    # 将历史记录转换为openai格式
-    history_t = []
-    for user, assistant in history:
-        history_t.append(
-            {
-                "role": "user",
-                "content": user
-            }
-        )
-        history_t.append(
-            {
-                "role": "assistant",
-                "content": assistant
-            })
-    # 需要添加当前的query
-    history_t.append(
-        {
-            "role": "user",
-            "content": query
-        }
-    )
+    print({"max_new_tokens":  max_new_tokens, "top_p": top_p, "temperature": temperature})
 
-    # 修改生成参数
-    gen_config.max_new_tokens = max_new_tokens
-    gen_config.top_p = top_p
-    gen_config.top_k = top_k
-    gen_config.temperature = temperature
-    print("gen_config: ", gen_config)
-
-    # 放入 [{},{}] 格式返回一个response
-    # 放入 [] 或者 [[{},{}]] 格式返回一个response列表
-    response = pipe(history_t, gen_config=gen_config).text
-
-    print(f"query: {query}; response: {response}")
-
-    history.append([query, response])
-    return history
+    # https://huggingface.co/internlm/internlm2-chat-1_8b/blob/main/modeling_internlm2.py#L1185
+    # stream_chat 返回的句子长度是逐渐边长的,length的作用是记录之前的输出长度,用来截断之前的输出
+    print(f"query: {query}; response: ", end="", flush=True)
+    length = 0
+    for response, history in model.stream_chat(
+            tokenizer = tokenizer,
+            query = query,
+            history = history,
+            max_new_tokens = 1024,
+            do_sample = True,
+            temperature = 0.8,
+            top_p = 0.8,
+            meta_instruction = system_prompt,
+        ):
+        if response is not None:
+            print(response[length:], flush=True, end="")
+            length = len(response)
+            yield history
+    print("\n")
 
 
 def revocery(history: list | None) -> list:
@@ -200,13 +137,6 @@ with block as demo:
                     step=0.01,
                     label='Top_p'
                 )
-                top_k = gr.Slider(
-                    minimum=1,
-                    maximum=100,
-                    value=40,
-                    step=1,
-                    label='Top_k'
-                )
                 temperature = gr.Slider(
                     minimum=0.01,
                     maximum=1.5,
@@ -233,7 +163,7 @@ with block as demo:
         # 回车提交
         query.submit(
             chat,
-            inputs=[query, chatbot, max_new_tokens, top_p, top_k, temperature],
+            inputs=[query, chatbot, max_new_tokens, top_p, temperature],
             outputs=[chatbot]
         )
 
@@ -247,7 +177,7 @@ with block as demo:
         # 按钮提交
         submit.click(
             chat,
-            inputs=[query, chatbot, max_new_tokens, top_p, top_k, temperature],
+            inputs=[query, chatbot, max_new_tokens, top_p, temperature],
             outputs=[chatbot]
         )
 
@@ -261,7 +191,7 @@ with block as demo:
         # 重新生成
         regen.click(
             chat,
-            inputs=[query, chatbot, max_new_tokens, top_p, top_k, temperature, regen],
+            inputs=[query, chatbot, max_new_tokens, top_p, temperature, regen],
             outputs=[chatbot]
         )
 
