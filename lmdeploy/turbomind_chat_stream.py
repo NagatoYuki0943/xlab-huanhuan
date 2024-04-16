@@ -21,7 +21,7 @@ if __name__ == '__main__':
         tp = 1,
         session_len = 2048,
         max_batch_size = 128,
-        cache_max_entry_count = 0.8, # 调整KV Cache的占用比例为0.8
+        cache_max_entry_count = 0.5, # 调整KV Cache的占用比例为0.5
         cache_block_seq_len = 64,
         quant_policy = 0, # 默认为0, 4为开启kvcache int8 量化
         rope_scaling_factor = 0.0,
@@ -96,48 +96,45 @@ if __name__ == '__main__':
     #     }
     # ]
     #----------------------------------------------------------------------#
-    prompts = [[{
-        'role': 'user',
-        'content': 'Hi, pls intro yourself'
-    }], [{
-        'role': 'user',
-        'content': 'Shanghai is'
-    }]]
+    prompts = []
 
-    # https://github.com/InternLM/lmdeploy/blob/main/lmdeploy/serve/async_engine.py#L274
-    responses = pipe(prompts=prompts, gen_config=gen_config)
-    # 放入 [{},{}] 格式返回一个response
-    # 放入 [] 或者 [[{},{}]] 格式返回一个response列表
-    for response in responses:
-        print(response)
-        print('text:', response.text)
-        print('generate_token_len:', response.generate_token_len)
-        print('input_token_len:', response.input_token_len)
-        print('session_id:', response.session_id)
-        print('finish_reason:', response.finish_reason)
-        print()
-    # Response(text='你好，我是一款语言模型，我的名字是书生·浦语。我是由上海人工智能实验室开发的，我的设计理念是有用、诚实并且无害。我可以理解并回应英文 和中文的问题，但我不能看、听、尝、触摸、闻、移动、与物理世界交互，也无法感受情感或体验感官输入，但我可以用我自己的方式来帮助人类。', generate_token_len=77, input_token_len=108, session_id=0, finish_reason='stop')
-    # text: 你好，我是一款语言模型，我的名字是书生·浦语。我是由上海人工智能实验室开发的，我的设计理念是有用、诚实并且无害。我可以理解并回应英文和中文的问题，但我不能看、听、尝、触摸、闻、移动、与物理世界交互，也无法感受情感或体验感官输入，但我可以用我自己的方式来帮助人类。
-    # generate_token_len: 77
-    # input_token_len: 108
-    # session_id: 0
-    # finish_reason: stop
+    while True:
+        query = input("请输入提示: ")
+        query = query.replace(' ', '')
+        if query == None or len(query) < 1:
+            continue
+        if query.lower() == "exit":
+            break
 
-    # Response(text='上海是中国的一座城市，位于中国东部沿海地区，是中国的经济、文化和交通中心之一。它是中国最大的城市之一，拥有许多重要的旅游景点、商业区和文化设施。', generate_token_len=35, input_token_len=105, session_id=1, finish_reason='stop')
-    # text: 上海是中国的一座城市，位于中国东部沿海地区，是中国的经济、文化和交通中心之一。它是中国最大的城市之一，拥有许多重要的旅游景点、商业区和文化设 施。
-    # generate_token_len: 35
-    # input_token_len: 105
-    # session_id: 1
-    # finish_reason: stop
+        prompts.append(
+            {
+                'role': 'user',
+                'content': query
+            }
+        )
 
-    # 流式返回处理结果
-    # for item in pipe.stream_infer(prompts, gen_config=gen_config):
-    #     print(item)
-        # Response(text=' assist', generate_token_len=32, input_token_len=108, session_id=0, finish_reason=None)
-        # Response(text='', generate_token_len=38, input_token_len=108, session_id=0, finish_reason='stop')
-        # Response(text=' heritage', generate_token_len=49, input_token_len=105, session_id=1, finish_reason=None)
-        # Response(text='', generate_token_len=54, input_token_len=105, session_id=1, finish_reason='stop')
-
-        # print(item.text, end='')
-        # if item.finish_reason == 'stop':
-        #     print()
+        print(f"query: {query}; response: ", end="", flush=True)
+        response = ""
+        # 放入 [{},{}] 格式返回一个response
+        # 放入 [] 或者 [[{},{}]] 格式返回一个response列表
+        for response_ in pipe.stream_infer(
+            prompts = prompts,
+            gen_config = gen_config,
+            do_preprocess = True,
+            adapter_name = None
+        ):
+            # print(response)
+            # Response(text='很高兴', generate_token_len=10, input_token_len=111, session_id=0, finish_reason=None)
+            # Response(text='认识', generate_token_len=11, input_token_len=111, session_id=0, finish_reason=None)
+            # Response(text='你', generate_token_len=12, input_token_len=111, session_id=0, finish_reason=None)
+            print(response_.text, flush=True, end="")
+            response += response_.text
+        print("\n")
+        prompts.append(
+            {
+                'role': 'assistant',
+                'content': response
+            }
+        )
+        print(f"history: {prompts}")
+        print("\n")

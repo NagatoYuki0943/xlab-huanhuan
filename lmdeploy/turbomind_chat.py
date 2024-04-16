@@ -59,6 +59,7 @@ gen_config = GenerationConfig(
 
 # https://lmdeploy.readthedocs.io/zh-cn/latest/api/pipeline.html
 # https://github.com/InternLM/lmdeploy/blob/main/lmdeploy/api.py
+# https://github.com/InternLM/lmdeploy/blob/main/lmdeploy/serve/async_engine.py
 pipe = pipeline(
     model_path = model_path,
     model_name = 'internlm2_chat_1_8b',
@@ -94,7 +95,7 @@ pipe = pipeline(
 #     }
 # ]
 #----------------------------------------------------------------------#
-history = []
+prompts = []
 while True:
     query = input("请输入提示: ")
     query = query.replace(' ', '')
@@ -103,7 +104,7 @@ while True:
     if query.lower() == "exit":
         break
     # 需要添加当前的query
-    history.append(
+    prompts.append(
         {
             "role": "user",
             "content": query
@@ -113,9 +114,9 @@ while True:
     print("回答: ", end="")
     # 放入 [{},{}] 格式返回一个response
     # 放入 [] 或者 [[{},{}]] 格式返回一个response列表
-    response = pipe(history, gen_config=gen_config).text
+    response = pipe(prompts=prompts, gen_config=gen_config).text
     print(response)
-    history.append(
+    prompts.append(
         {
             "role": "assistant",
             "content": response

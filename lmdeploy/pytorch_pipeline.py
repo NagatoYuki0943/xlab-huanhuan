@@ -57,6 +57,7 @@ if __name__ == '__main__':
 
     # https://lmdeploy.readthedocs.io/zh-cn/latest/api/pipeline.html
     # https://github.com/InternLM/lmdeploy/blob/main/lmdeploy/api.py
+    # https://github.com/InternLM/lmdeploy/blob/main/lmdeploy/serve/async_engine.py
     pipe = pipeline(
         model_path = model_path,
         model_name = 'internlm2_chat_1_8b',
@@ -100,7 +101,7 @@ if __name__ == '__main__':
     }]]
 
     # https://github.com/InternLM/lmdeploy/blob/main/lmdeploy/serve/async_engine.py#L274
-    responses = pipe(prompts, gen_config=gen_config)
+    responses = pipe(prompts=prompts, gen_config=gen_config)
     # 放入 [{},{}] 格式返回一个response
     # 放入 [] 或者 [[{},{}]] 格式返回一个response列表
     for response in responses:

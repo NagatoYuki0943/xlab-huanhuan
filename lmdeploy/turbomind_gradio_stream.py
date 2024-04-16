@@ -1,9 +1,8 @@
-# https://github.com/InternLM/lmdeploy/blob/main/lmdeploy/serve/gradio/turbomind_coupled.py
-# https://github.com/InternLM/lmdeploy/blob/main/lmdeploy/serve/gradio/vl.py
 import os
 import gradio as gr
 import lmdeploy
 from lmdeploy import pipeline, GenerationConfig, TurbomindEngineConfig, ChatTemplateConfig
+from typing import Generator, Any
 
 
 print("lmdeploy version: ", lmdeploy.__version__)
@@ -108,7 +107,7 @@ def chat(
     top_k: int = 40,
     temperature: float = 0.8,
     regenerate: str = "" # 是regen按钮的value,字符串,点击就传送,否则为空字符串
-) -> list:
+) -> Generator[Any, Any, Any]:
     """聊天"""
     global gen_config
 
@@ -119,11 +118,13 @@ def chat(
         if len(history) > 0:
             query, _ = history.pop(-1)
         else:
-            return history
+            yield history
+            return # 这样写管用,但不理解
     else:
         query = query.replace(' ', '')
         if query == None or len(query) < 1:
-            return history
+            yield history
+            return
 
     # 将历史记录转换为openai格式
     prompts = []
@@ -156,12 +157,22 @@ def chat(
 
     # 放入 [{},{}] 格式返回一个response
     # 放入 [] 或者 [[{},{}]] 格式返回一个response列表
-    response = pipe(prompts=prompts, gen_config=gen_config).text
-
-    print(f"query: {query}; response: {response}")
-
-    history.append([query, response])
-    return history
+    print(f"query: {query}; response: ", end="", flush=True)
+    response = ""
+    for _response in pipe.stream_infer(
+        prompts = prompts,
+        gen_config = gen_config,
+        do_preprocess = True,
+        adapter_name = None
+    ):
+        # print(_response)
+        # Response(text='很高兴', generate_token_len=10, input_token_len=111, session_id=0, finish_reason=None)
+        # Response(text='认识', generate_token_len=11, input_token_len=111, session_id=0, finish_reason=None)
+        # Response(text='你', generate_token_len=12, input_token_len=111, session_id=0, finish_reason=None)
+        print(_response.text, flush=True, end="")
+        response += _response.text
+        yield history + [[query, response]]
+    print("\n")
 
 
 def revocery(history: list | None) -> list:
