@@ -14,7 +14,7 @@ if __name__ == '__main__':
         tp = 1,
         session_len = 2048,
         max_batch_size = 128,
-        cache_max_entry_count = 0.5, # 调整KV Cache的占用比例为0.5
+        cache_max_entry_count = 0.8, # 调整KV Cache的占用比例为0.8
         eviction_type = 'recompute',
         prefill_interval = 16,
         block_size = 64,

@@ -21,7 +21,7 @@ if __name__ == '__main__':
         tp = 1,
         session_len = 2048,
         max_batch_size = 128,
-        cache_max_entry_count = 0.5, # 调整KV Cache的占用比例为0.5
+        cache_max_entry_count = 0.8, # 调整KV Cache的占用比例为0.8
         cache_block_seq_len = 64,
         quant_policy = 0, # 默认为0, 4为开启kvcache int8 量化
         rope_scaling_factor = 0.0,
