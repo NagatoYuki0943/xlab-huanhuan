@@ -1,7 +1,12 @@
 import os
+import lmdeploy
 from lmdeploy import pipeline, GenerationConfig, TurbomindEngineConfig, ChatTemplateConfig
 
 
+print("lmdeploy version: ", lmdeploy.__version__)
+
+
+# clone 模型
 model_path = './models/internlm2-chat-1_8b'
 # os.system(f'git clone https://code.openxlab.org.cn/OpenLMLab/internlm2-chat-1.8b {model_path}')
 # os.system(f'cd {model_path} && git lfs pull')
