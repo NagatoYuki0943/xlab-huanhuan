@@ -61,7 +61,7 @@ def chat(
     top_p: float = 0.8,
     temperature: float = 0.8,
     regenerate: bool = False
-) -> list | Generator[Any, Any, Any]:
+) -> Generator[Any, Any, Any]:
     history = [] if history is None else history
     # 重新生成时要把最后的query和response弹出,重用query
     if regenerate:
