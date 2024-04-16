@@ -101,7 +101,7 @@ pipe = pipeline(
 
 def chat(
     query: str,
-    history: None | list,  # [['What is the capital of France?', 'The capital of France is Paris.'], ['Thanks', 'You are Welcome']]
+    history: list | None,  # [['What is the capital of France?', 'The capital of France is Paris.'], ['Thanks', 'You are Welcome']]
     max_new_tokens: int = 1024,
     top_p: float = 0.8,
     top_k: int = 40,
@@ -164,7 +164,7 @@ def chat(
 
 
 def regenerate(
-    history: None | list,
+    history: list | None,
     max_new_tokens: int = 1024,
     top_p: float = 0.8,
     top_k: int = 40,
@@ -174,7 +174,7 @@ def regenerate(
     return chat("", history, max_new_tokens, top_p, top_k, temperature, regenerate=True)
 
 
-def revocery(history: None | list) -> list:
+def revocery(history: list | None) -> list:
     """恢复到上一轮对话"""
     history = [] if history is None else history
     if len(history) > 0:
