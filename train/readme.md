@@ -238,7 +238,7 @@ warmup_ratio = 0.03
 # Save
 by_epoch = True    # save and log by epoch or by iteration
 save_steps = 1
-save_total_limit = 2  # Maximum checkpoints to keep (-1 means unlimited)
+save_total_limit = 3  # Maximum checkpoints to keep (-1 means unlimited)
 
 # Evaluate the generation performance during the training
 evaluation_freq = 500
