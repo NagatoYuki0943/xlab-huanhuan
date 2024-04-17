@@ -11,7 +11,9 @@ print("transformers version: ", transformers.__version__)
 model_path = "./models/internlm2-chat-7b"
 # adapter_dir = "./work_dirs/internlm2_chat_7b_qlora_emo_e3_hf/checkpoint-3000"
 adapter_dir = "./work_dirs/internlm2_chat_7b_qlora_emo_e3/hf"
-quantization = True
+
+# 量化
+quantization = False
 
 # tokenizer
 tokenizer = AutoTokenizer.from_pretrained(model_path, use_fast=False, trust_remote_code=True)

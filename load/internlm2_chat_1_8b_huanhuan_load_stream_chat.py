@@ -11,6 +11,8 @@ print("transformers version: ", transformers.__version__)
 model_path = "./models/internlm2-chat-1_8b"
 adapter_dir = "./work_dirs/internlm2_chat_1_8b_qlora_huanhuan_e3_hf/checkpoint-699"
 # adapter_dir = "./work_dirs/internlm2_chat_1_8b_qlora_huanhuan_e3/hf"
+
+# 量化
 quantization = False
 
 # tokenizer
