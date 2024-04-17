@@ -1,5 +1,7 @@
 emo/
 moss-003-sft-data/
+Huatuo26M-Lite/
+Huatuo26M-Lite-xtuner-data.json
 
 recipe_dataset-single_xtuner.json
 recipe_dataset-single.json
