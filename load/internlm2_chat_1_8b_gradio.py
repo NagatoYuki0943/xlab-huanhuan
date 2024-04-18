@@ -91,7 +91,7 @@ def chat(
         top_p = top_p,
         meta_instruction = system_prompt,
     )
-    print(f"query: {query}; response: {response}")
+    print(f"query: {query}; response: {response}\n")
 
     return history
 

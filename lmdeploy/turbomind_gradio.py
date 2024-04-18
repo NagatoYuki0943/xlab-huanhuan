@@ -158,7 +158,7 @@ def chat(
     # 放入 [] 或者 [[{},{}]] 格式返回一个response列表
     response = pipe(prompts=prompts, gen_config=gen_config).text
 
-    print(f"query: {query}; response: {response}")
+    print(f"query: {query}; response: {response}\n")
 
     history.append([query, response])
     return history
