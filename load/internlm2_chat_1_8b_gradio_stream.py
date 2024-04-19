@@ -68,6 +68,7 @@ def chat(
     history: list | None,  # [['What is the capital of France?', 'The capital of France is Paris.'], ['Thanks', 'You are Welcome']]
     max_new_tokens: int = 1024,
     top_p: float = 0.8,
+    top_k: int = 40,
     temperature: float = 0.8,
     regenerate: bool = False
 ) -> Generator[Any, Any, Any]:
@@ -96,10 +97,11 @@ def chat(
             tokenizer = tokenizer,
             query = query,
             history = history,
-            max_new_tokens = 1024,
+            max_new_tokens = max_new_tokens,
             do_sample = True,
-            temperature = 0.8,
-            top_p = 0.8,
+            temperature = temperature,
+            top_p = top_p,
+            top_k = top_k,
             meta_instruction = system_prompt,
         ):
         if response is not None:
@@ -147,6 +149,13 @@ def main():
                         step=0.01,
                         label='Top_p'
                     )
+                    top_k = gr.Slider(
+                        minimum=1,
+                        maximum=100,
+                        value=40,
+                        step=1,
+                        label='Top_k'
+                    )
                     temperature = gr.Slider(
                         minimum=0.01,
                         maximum=1.5,
@@ -173,7 +182,7 @@ def main():
             # 回车提交
             query.submit(
                 chat,
-                inputs=[query, chatbot, max_new_tokens, top_p, temperature],
+                inputs=[query, chatbot, max_new_tokens, top_p, top_k, temperature],
                 outputs=[chatbot]
             )
 
@@ -187,7 +196,7 @@ def main():
             # 按钮提交
             submit.click(
                 chat,
-                inputs=[query, chatbot, max_new_tokens, top_p, temperature],
+                inputs=[query, chatbot, max_new_tokens, top_p, top_k, temperature],
                 outputs=[chatbot]
             )
 
@@ -201,7 +210,7 @@ def main():
             # 重新生成
             regen.click(
                 chat,
-                inputs=[query, chatbot, max_new_tokens, top_p, temperature, regen],
+                inputs=[query, chatbot, max_new_tokens, top_p, top_k, temperature, regen],
                 outputs=[chatbot]
             )
 

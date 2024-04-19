@@ -73,6 +73,7 @@ while True:
         do_sample = True,
         temperature = 0.8,
         top_p = 0.8,
+        top_k = 40,
         meta_instruction = system_prompt,
     )
     print(response)

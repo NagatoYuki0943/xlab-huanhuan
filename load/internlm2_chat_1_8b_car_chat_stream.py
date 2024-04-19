@@ -55,7 +55,7 @@ system_prompt = "你现在是评论总结小助手，负责总结用户对汽车
     "2、然后输出这个车的好的评价，要求言简意赅。\n" + \
     "3、之后输出这个车的不好的评价，要求言简意赅。\n" + \
     "4、最后输出这个车的每个部分的评价，有多少提取多少。\n" + \
-    "注意，只总结用户的输入的信息，不要自己编造用户没说的信息，一下是用户的评论，请进行总结\n"
+    "注意，只总结用户的输入的信息，不要自己编造用户没说的信息，以下是用户的评论，请进行总结\n"
 print(system_prompt)
 
 
@@ -71,15 +71,16 @@ while True:
     # https://huggingface.co/internlm/internlm2-chat-1_8b/blob/main/modeling_internlm2.py#L1185
     # stream_chat 返回的句子长度是逐渐边长的,length的作用是记录之前的输出长度,用来截断之前的输出
     length = 0
-    
+    history = []
     for response, history in model.stream_chat(
             tokenizer = tokenizer,
             query = query,
             history = history,
             max_new_tokens = 1024,
             do_sample = True,
-            temperature = 0.8,
-            top_p = 0.8,
+            temperature = 0.1,
+            top_p = 0.75,
+            top_k = 40,
             meta_instruction = system_prompt,
         ):
         if response is not None:

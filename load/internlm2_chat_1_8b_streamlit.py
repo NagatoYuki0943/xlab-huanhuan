@@ -108,6 +108,7 @@ def chat(
     prompts: list,
     max_new_tokens: int = 1024,
     top_p: float = 0.8,
+    top_k: int = 40,
     temperature: float = 0.8,
     regenerate: bool = False
 ) -> str:
@@ -141,6 +142,7 @@ def chat(
         do_sample = True,
         temperature = temperature,
         top_p = top_p,
+        top_k = top_k,
         meta_instruction = system_prompt,
     )
     print(f"query: {query}; response: {response}\n")
@@ -177,6 +179,7 @@ def main():
 
         max_new_tokens = st.sidebar.slider(label='max_new_tokens', min_value=1, max_value=2048, value=1024, step=1)
         top_p = st.sidebar.slider(label='top_p', min_value=0.01, max_value=1.0, value=0.8, step=0.01)
+        top_k = st.sidebar.slider(label='top_k', min_value=1, max_value=100, value=40, step=1)
         temperature = st.sidebar.slider(label='temperature', min_value=0.01, max_value=1.5, value=0.8, step=0.01)
 
         st.subheader('Chat functions')
@@ -199,7 +202,7 @@ def main():
     if len(st.session_state.messages) > 0 and st.session_state.messages[-1]["role"] != "assistant":
         with st.chat_message("assistant"):
             # with st.spinner("Thinking..."):
-                response = chat(st.session_state.messages, max_new_tokens, top_p, temperature)
+                response = chat(st.session_state.messages, max_new_tokens, top_p, top_k, temperature)
                 placeholder = st.empty()
                 full_response = ''
                 for item in response:
