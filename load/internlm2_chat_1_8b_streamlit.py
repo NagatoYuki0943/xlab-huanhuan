@@ -1,16 +1,10 @@
 # https://github.com/dataprofessor/llama2/blob/master/streamlit_app_v2.py
 # cmd: streamlit run ./load/internlm2_chat_1_8b_streamlit.py
 
-import transformers
-from transformers import AutoTokenizer, AutoModelForCausalLM, BitsAndBytesConfig
-from peft import PeftModel
-import torch
+from load_model import load_model
 import streamlit as st
-import time
 
 
-print("torch version: ", torch.__version__)
-print("transformers version: ", transformers.__version__)
 print("streamlit version: ", st.__version__)
 
 
@@ -44,14 +38,16 @@ print("streamlit version: ", st.__version__)
 
 
 # clone 模型
-model_path = './models/internlm2-chat-1_8b'
-# os.system(f'git clone https://code.openxlab.org.cn/OpenLMLab/internlm2-chat-1.8b {model_path}')
-# os.system(f'cd {model_path} && git lfs pull')
-
+pretrained_model_name_or_path = '../models/internlm2-chat-1_8b'
+# os.system(f'git clone https://code.openxlab.org.cn/OpenLMLab/internlm2-chat-1.8b {pretrained_model_name_or_path}')
+# os.system(f'cd {pretrained_model_name_or_path} && git lfs pull')
+adapter_dir = None
 
 # 量化
-quantization = False
+load_in_8bit = False
+load_in_4bit = False
 
+tokenizer, model = load_model(pretrained_model_name_or_path, adapter_dir, load_in_8bit, load_in_4bit)
 
 system_prompt = """You are an AI assistant whose name is InternLM (书生·浦语).
 - InternLM (书生·浦语) is a conversational language model that is developed by Shanghai AI Laboratory (上海人工智能实验室). It is designed to be helpful, honest, and harmless.
@@ -59,41 +55,6 @@ system_prompt = """You are an AI assistant whose name is InternLM (书生·浦�
 """
 print("system_prompt: ", system_prompt)
 
-
-@st.cache_resource
-def get_model(model_path: str):
-    # tokenizer
-    tokenizer = AutoTokenizer.from_pretrained(model_path, use_fast=False, trust_remote_code=True)
-
-    # 量化
-    quantization_config = BitsAndBytesConfig(
-        load_in_4bit=True,                      # 是否在4位精度下加载模型。如果设置为True，则在4位精度下加载模型。
-        load_in_8bit=False,
-        llm_int8_threshold=6.0,
-        llm_int8_has_fp16_weight=False,
-        bnb_4bit_compute_dtype=torch.float16,   # 4位精度计算的数据类型。这里设置为torch.float16，表示使用半精度浮点数。
-        bnb_4bit_quant_type='nf4',              # 4位精度量化的类型。这里设置为"nf4"，表示使用nf4量化类型。 nf4: 4bit-NormalFloat
-        bnb_4bit_use_double_quant=True,         # 是否使用双精度量化。如果设置为True，则使用双精度量化。
-    )
-
-    # 创建模型
-    model = AutoModelForCausalLM.from_pretrained(
-        model_path,
-        torch_dtype=torch.float16,
-        trust_remote_code=True,
-        device_map='auto',
-        low_cpu_mem_usage=True, # 是否使用低CPU内存,使用 device_map 参数必须为 True
-        quantization_config=quantization_config if quantization else None,
-    )
-    model.eval()
-
-    # print(model.__class__.__name__) # InternLM2ForCausalLM
-
-    print(f"model.device: {model.device}, model.dtype: {model.dtype}")
-    return tokenizer, model
-
-
-tokenizer, model = get_model(model_path)
 
 # App title
 st.set_page_config(page_title="🦙💬 Llama 2 Chatbot")
