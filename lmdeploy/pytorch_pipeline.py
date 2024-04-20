@@ -1,5 +1,5 @@
-import os
-from lmdeploy import pipeline, GenerationConfig, PytorchEngineConfig, ChatTemplateConfig
+from lmdeploy import GenerationConfig
+from load_model import load_model
 
 
 # clone 模型
@@ -15,48 +15,8 @@ system_prompt = """You are an AI assistant whose name is InternLM (书生·浦�
 print("system_prompt: ", system_prompt)
 
 
-def get_model(model_path: str):
-    # https://lmdeploy.readthedocs.io/zh-cn/latest/api/pipeline.html#pytorchengineconfig
-    backend_config = PytorchEngineConfig(
-        model_name = 'internlm2',
-        tp = 1,
-        session_len = 2048,
-        max_batch_size = 128,
-        cache_max_entry_count = 0.8, # 调整KV Cache的占用比例为0.8
-        eviction_type = 'recompute',
-        prefill_interval = 16,
-        block_size = 64,
-        num_cpu_blocks = 0,
-        num_gpu_blocks = 0,
-        adapters = None,
-        max_prefill_token_num = 4096,
-        thread_safe = False,
-        download_dir = None,
-        revision = None,
-    )
+pipe = load_model(model_path, backend='pytorch', system_prompt=system_prompt)
 
-
-    # https://lmdeploy.readthedocs.io/zh-cn/latest/_modules/lmdeploy/model.html#ChatTemplateConfig
-    chat_template_config = ChatTemplateConfig(
-        model_name = 'internlm2',
-        system = None,
-        meta_instruction = system_prompt,
-    )
-
-    # https://lmdeploy.readthedocs.io/zh-cn/latest/api/pipeline.html
-    # https://github.com/InternLM/lmdeploy/blob/main/lmdeploy/api.py
-    # https://github.com/InternLM/lmdeploy/blob/main/lmdeploy/serve/async_engine.py
-    pipe = pipeline(
-        model_path = model_path,
-        model_name = 'internlm2_chat_1_8b',
-        backend_config = backend_config,
-        chat_template_config = chat_template_config,
-    )
-
-    return pipe
-
-
-pipe = get_model(model_path)
 
 # https://lmdeploy.readthedocs.io/zh-cn/latest/api/pipeline.html#generationconfig
 gen_config = GenerationConfig(
