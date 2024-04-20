@@ -54,7 +54,7 @@ pipe = load_model(model_path, backend='turbomind', system_prompt=system_prompt)
 
 def chat(
     query: str,
-    history: list | None,  # [['What is the capital of France?', 'The capital of France is Paris.'], ['Thanks', 'You are Welcome']]
+    history: list = [],  # [['What is the capital of France?', 'The capital of France is Paris.'], ['Thanks', 'You are Welcome']]
     max_new_tokens: int = 1024,
     top_p: float = 0.8,
     top_k: int = 40,
@@ -64,7 +64,6 @@ def chat(
     """聊天"""
     global gen_config
 
-    history = [] if history is None else history
     # 重新生成时要把最后的query和response弹出,重用query
     if regenerate:
         # 有历史就重新生成,没有历史就返回空
@@ -138,9 +137,8 @@ def chat(
     print("\n")
 
 
-def revocery(history: list | None) -> tuple[str, list]:
+def revocery(history: list = []) -> tuple[str, list]:
     """恢复到上一轮对话"""
-    history = [] if history is None else history
     query = ""
     if len(history) > 0:
         query, _ = history.pop(-1)
