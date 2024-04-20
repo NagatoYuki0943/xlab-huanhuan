@@ -43,7 +43,7 @@ model.eval()
 # 1. load adapter https://huggingface.co/docs/transformers/main/zh/peft
 # model.load_adapter(adapter_dir)
 
-# 2. https://huggingface.co/docs/peft/v0.9.0/en/package_reference/peft_model#peft.PeftModel.from_pretrained
+# 2. https://huggingface.co/docs/peft/main/en/package_reference/peft_model#peft.PeftModel.from_pretrained
 model = PeftModel.from_pretrained(model, adapter_dir)
 
 # print(model.__class__.__name__) # InternLM2ForCausalLM
