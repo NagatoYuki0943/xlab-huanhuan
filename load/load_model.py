@@ -4,16 +4,15 @@ from peft import PeftModel
 import torch
 
 
-print("torch version: ", torch.__version__)
-print("transformers version: ", transformers.__version__)
-
-
 def load_model(
     pretrained_model_name_or_path: str,
     adapter_dir: str = None,
     load_in_8bit: bool = False,
     load_in_4bit: bool = False,
 ) -> tuple[AutoTokenizer, AutoModelForCausalLM]:
+    print("torch version: ", torch.__version__)
+    print("transformers version: ", transformers.__version__)
+
     # tokenizer
     tokenizer = AutoTokenizer.from_pretrained(pretrained_model_name_or_path, trust_remote_code = True)
 
