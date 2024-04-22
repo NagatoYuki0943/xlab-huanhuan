@@ -5,19 +5,17 @@ from typing import List, Tuple
 
 
 # clone 模型
-pretrained_model_name_or_path = '../models/internlm2-chat-1_8b'
-# os.system(f'git clone https://code.openxlab.org.cn/OpenLMLab/internlm2-chat-1.8b {pretrained_model_name_or_path}')
-# os.system(f'cd {pretrained_model_name_or_path} && git lfs pull')
-adapter_dir = "../work_dirs/internlm2_chat_1_8b_qlora_huanhuan_e3_hf/checkpoint-699"
-
+PRETRAINED_MODEL_NAME_OR_PATH = '../models/internlm2-chat-1_8b'
+# os.system(f'git clone https://code.openxlab.org.cn/OpenLMLab/internlm2-chat-1.8b {PRETRAINED_MODEL_NAME_OR_PATH}')
+# os.system(f'cd {PRETRAINED_MODEL_NAME_OR_PATH} && git lfs pull')
+ADAPTER_DIR = "../work_dirs/internlm2_chat_1_8b_qlora_huanhuan_e3_hf/checkpoint-699"
 # 量化
-load_in_8bit = False
-load_in_4bit = False
+LOAD_IN_8BIT= False
+LOAD_IN_4BIT = False
+tokenizer, model = load_model(PRETRAINED_MODEL_NAME_OR_PATH, ADAPTER_DIR, LOAD_IN_8BIT, LOAD_IN_4BIT)
 
-tokenizer, model = load_model(pretrained_model_name_or_path, adapter_dir, load_in_8bit, load_in_4bit)
-
-system_prompt = "现在你要扮演皇帝身边的女人--甄嬛"
-print(system_prompt)
+SYSTEM_PROMPT = "现在你要扮演皇帝身边的女人--甄嬛"
+print(SYSTEM_PROMPT)
 
 
 def build_inputs(query: str, history: List[Tuple[str, str]] = [], meta_instruction="我是系统"):
@@ -33,7 +31,7 @@ def build_inputs(query: str, history: List[Tuple[str, str]] = [], meta_instructi
     return prompt
 
 
-inputs = build_inputs("小主，敬事房传来消息，说皇上晚上去华妃那儿", history=[], meta_instruction=system_prompt)
+inputs = build_inputs("小主，敬事房传来消息，说皇上晚上去华妃那儿", history=[], meta_instruction=SYSTEM_PROMPT)
 print(inputs)
 inputs = tokenizer(inputs, add_special_tokens=False, return_tensors="pt").to(model.device)
 print(inputs["input_ids"])

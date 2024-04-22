@@ -7,22 +7,20 @@ print("gradio version: ", gr.__version__)
 
 
 # clone 模型
-pretrained_model_name_or_path = '../models/internlm2-chat-1_8b'
-# os.system(f'git clone https://code.openxlab.org.cn/OpenLMLab/internlm2-chat-1.8b {pretrained_model_name_or_path}')
-# os.system(f'cd {pretrained_model_name_or_path} && git lfs pull')
-adapter_dir = None
-
+PRETRAINED_MODEL_NAME_OR_PATH = '../models/internlm2-chat-1_8b'
+# os.system(f'git clone https://code.openxlab.org.cn/OpenLMLab/internlm2-chat-1.8b {PRETRAINED_MODEL_NAME_OR_PATH}')
+# os.system(f'cd {PRETRAINED_MODEL_NAME_OR_PATH} && git lfs pull')
+ADAPTER_DIR = None
 # 量化
-load_in_8bit = False
-load_in_4bit = False
+LOAD_IN_8BIT= False
+LOAD_IN_4BIT = False
+tokenizer, model = load_model(PRETRAINED_MODEL_NAME_OR_PATH, ADAPTER_DIR, LOAD_IN_8BIT, LOAD_IN_4BIT)
 
-tokenizer, model = load_model(pretrained_model_name_or_path, adapter_dir, load_in_8bit, load_in_4bit)
-
-system_prompt = """You are an AI assistant whose name is InternLM (书生·浦语).
+SYSTEM_PROMPT = """You are an AI assistant whose name is InternLM (书生·浦语).
 - InternLM (书生·浦语) is a conversational language model that is developed by Shanghai AI Laboratory (上海人工智能实验室). It is designed to be helpful, honest, and harmless.
 - InternLM (书生·浦语) can understand and communicate fluently in the language chosen by the user such as English and 中文.
 """
-print("system_prompt: ", system_prompt)
+print("system_prompt: ", SYSTEM_PROMPT)
 
 
 def chat(
@@ -42,11 +40,16 @@ def chat(
         else:
             return history
     else:
-        query = query.replace(' ', '')
+        query = query.strip()
         if query == None or len(query) < 1:
             return history
 
-    print({"max_new_tokens":  max_new_tokens, "top_p": top_p, "temperature": temperature})
+    print({
+        "max_new_tokens": max_new_tokens,
+        "top_p": top_p,
+        "top_k": top_k,
+        "temperature": temperature
+    })
 
     # https://huggingface.co/internlm/internlm2-chat-1_8b/blob/main/modeling_internlm2.py#L1149
     # chat 调用的 generate
@@ -60,7 +63,7 @@ def chat(
         temperature = temperature,
         top_p = top_p,
         top_k = top_k,
-        meta_instruction = system_prompt,
+        meta_instruction = SYSTEM_PROMPT,
     )
     print(f"query: {query}; response: {response}\n")
 

@@ -2,25 +2,23 @@ from load_model import load_model
 
 
 # clone 模型
-pretrained_model_name_or_path = "./internlm2-chat-1_8b"
-# os.system(f'git clone https://code.openxlab.org.cn/OpenLMLab/internlm2-chat-1.8b {pretrained_model_name_or_path}')
-# os.system(f'cd {pretrained_model_name_or_path} && git lfs pull')
-adapter_dir = "./internlm2_chat_1_8b_qlora_huatuo_e3/epoch_3_hf"
-
+PRETRAINED_MODEL_NAME_OR_PATH = "./internlm2-chat-1_8b"
+# os.system(f'git clone https://code.openxlab.org.cn/OpenLMLab/internlm2-chat-1.8b {PRETRAINED_MODEL_NAME_OR_PATH}')
+# os.system(f'cd {PRETRAINED_MODEL_NAME_OR_PATH} && git lfs pull')
+ADAPTER_DIR = "./internlm2_chat_1_8b_qlora_huatuo_e3/epoch_3_hf"
 # 量化
-load_in_8bit = False
-load_in_4bit = False
+LOAD_IN_8BIT= False
+LOAD_IN_4BIT = False
+tokenizer, model = load_model(PRETRAINED_MODEL_NAME_OR_PATH, ADAPTER_DIR, LOAD_IN_8BIT, LOAD_IN_4BIT)
 
-tokenizer, model = load_model(pretrained_model_name_or_path, adapter_dir, load_in_8bit, load_in_4bit)
-
-system_prompt = "你现在是一名医生，具备丰富的医学知识和临床经验。你擅长诊断和治疗各种疾病，能为病人提供专业的医疗建议。你有良好的沟通技巧，能与病人和他们的家人建立信任关系。请在这个角色下为我解答以下问题。"
-print(system_prompt)
+SYSTEM_PROMPT = "你现在是一名医生，具备丰富的医学知识和临床经验。你擅长诊断和治疗各种疾病，能为病人提供专业的医疗建议。你有良好的沟通技巧，能与病人和他们的家人建立信任关系。请在这个角色下为我解答以下问题。"
+print(SYSTEM_PROMPT)
 
 
 history = []
 while True:
     query = input("请输入提示: ")   # ex: 膝盖位置在天冷的时候玩不下去怎么办
-    query = query.replace(' ', '')
+    query = query.strip()
     if query == None or len(query) < 1:
         continue
     if query.lower() == "exit":
@@ -39,7 +37,7 @@ while True:
             temperature = 0.8,  # 温度设置的很低，保证输出更准确
             top_p = 0.8,
             top_k = 40,
-            meta_instruction = system_prompt,
+            meta_instruction = SYSTEM_PROMPT,
         ):
         if response is not None:
             print(response[length:], flush=True, end="")

@@ -7,9 +7,9 @@ print("lmdeploy version: ", lmdeploy.__version__)
 
 
 # clone 模型
-model_path = '../models/internlm2-chat-1_8b'
-# os.system(f'git clone https://code.openxlab.org.cn/OpenLMLab/internlm2-chat-1.8b {model_path}')
-# os.system(f'cd {model_path} && git lfs pull')
+MODEL_PATH = '../models/internlm2-chat-1_8b'
+# os.system(f'git clone https://code.openxlab.org.cn/OpenLMLab/internlm2-chat-1.8b {MODEL_PATH}')
+# os.system(f'cd {MODEL_PATH} && git lfs pull')
 
 
 if __name__ == '__main__':
@@ -47,7 +47,7 @@ if __name__ == '__main__':
     # https://github.com/InternLM/lmdeploy/blob/main/lmdeploy/api.py
     # https://github.com/InternLM/lmdeploy/blob/main/lmdeploy/serve/openai/api_server.py
     client = serve(
-        model_path = model_path,
+        model_path = MODEL_PATH,
         model_name = 'internlm2_chat_1_8b',
         backend_config = backend_config,
         chat_template_config = chat_template_config,

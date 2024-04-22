@@ -2,25 +2,23 @@ from load_model import load_model
 
 
 # clone 模型
-pretrained_model_name_or_path = "./models/internlm2-chat-7b"
-# os.system(f'git clone https://code.openxlab.org.cn/OpenLMLab/internlm2-chat-7b {pretrained_model_name_or_path}')
-# os.system(f'cd {pretrained_model_name_or_path} && git lfs pull')
-adapter_dir = "../work_dirs/internlm2_chat_7b_qlora_emo_e3/hf"
-
+PRETRAINED_MODEL_NAME_OR_PATH = "./models/internlm2-chat-7b"
+# os.system(f'git clone https://code.openxlab.org.cn/OpenLMLab/internlm2-chat-7b {PRETRAINED_MODEL_NAME_OR_PATH}')
+# os.system(f'cd {PRETRAINED_MODEL_NAME_OR_PATH} && git lfs pull')
+ADAPTER_DIR = "../work_dirs/internlm2_chat_7b_qlora_emo_e3/hf"
 # 量化
-load_in_8bit = False
-load_in_4bit = False
+LOAD_IN_8BIT= False
+LOAD_IN_4BIT = False
+tokenizer, model = load_model(PRETRAINED_MODEL_NAME_OR_PATH, ADAPTER_DIR, LOAD_IN_8BIT, LOAD_IN_4BIT)
 
-tokenizer, model = load_model(pretrained_model_name_or_path, adapter_dir, load_in_8bit, load_in_4bit)
-
-system_prompt = "现在你是一个心理专家，我有一些心理问题，请你用专业的知识帮我解决。"
-print(system_prompt)
+SYSTEM_PROMPT = "现在你是一个心理专家，我有一些心理问题，请你用专业的知识帮我解决。"
+print(SYSTEM_PROMPT)
 
 
 history = []
 while True:
     query = input("请输入提示: ")
-    query = query.replace(' ', '')
+    query = query.strip()
     if query == None or len(query) < 1:
         continue
     if query.lower() == "exit":
@@ -39,7 +37,7 @@ while True:
             temperature = 0.8,
             top_p = 0.8,
             top_k = 40,
-            meta_instruction = system_prompt,
+            meta_instruction = SYSTEM_PROMPT,
         ):
         if response is not None:
             print(response[length:], flush=True, end="")
