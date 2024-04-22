@@ -1,6 +1,7 @@
 from load_model import load_model
 import gradio as gr
 from typing import Generator, Any
+import os
 
 
 print("gradio version: ", gr.__version__)

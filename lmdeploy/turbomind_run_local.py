@@ -1,8 +1,8 @@
 # run gradio in local
-import os
 import lmdeploy
 from lmdeploy import GenerationConfig, TurbomindEngineConfig, ChatTemplateConfig
 from lmdeploy.serve.gradio.turbomind_coupled import run_local
+import os
 
 
 print("lmdeploy version: ", lmdeploy.__version__)

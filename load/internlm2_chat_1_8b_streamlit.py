@@ -1,8 +1,8 @@
 # https://github.com/dataprofessor/llama2/blob/master/streamlit_app_v2.py
 # cmd: streamlit run ./load/internlm2_chat_1_8b_streamlit.py
-
 from load_model import load_model
 import streamlit as st
+import os
 
 
 print("streamlit version: ", st.__version__)

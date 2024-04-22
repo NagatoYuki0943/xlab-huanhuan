@@ -2,6 +2,7 @@ import torch
 from transformers import GenerationConfig
 from load_model import load_model
 from typing import List, Tuple
+import os
 
 
 # clone 模型

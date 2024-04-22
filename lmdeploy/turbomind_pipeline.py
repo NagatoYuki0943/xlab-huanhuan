@@ -1,7 +1,6 @@
-import os
 from load_model import load_model
 from lmdeploy import GenerationConfig
-
+import os
 
 # clone 模型
 MODEL_PATH = '../models/internlm2-chat-1_8b'

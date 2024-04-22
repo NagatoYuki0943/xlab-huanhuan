@@ -1,5 +1,6 @@
 from lmdeploy import GenerationConfig
 from load_model import load_model
+import os
 
 
 # clone 模型

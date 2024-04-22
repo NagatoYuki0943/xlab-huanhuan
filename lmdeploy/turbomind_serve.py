@@ -1,6 +1,6 @@
-import os
 import lmdeploy
 from lmdeploy import serve, GenerationConfig, TurbomindEngineConfig, ChatTemplateConfig
+import os
 
 
 print("lmdeploy version: ", lmdeploy.__version__)

@@ -2,6 +2,7 @@ import gradio as gr
 from load_model import load_model
 from lmdeploy import GenerationConfig
 from typing import Generator, Any
+import os
 
 
 print("gradio version: ", gr.__version__)
