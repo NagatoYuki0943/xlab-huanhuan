@@ -1,8 +1,7 @@
-import gradio as gr
-from load_model import load_model
-from lmdeploy import GenerationConfig
-from typing import Generator, Any
 import os
+import gradio as gr
+from infer_engine import InferEngine, LmdeployConfig
+from typing import Generator, Any
 
 
 print("gradio version: ", gr.__version__)
@@ -17,38 +16,21 @@ SYSTEM_PROMPT = """You are an AI assistant whose name is InternLM (书生·浦�
 - InternLM (书生·浦语) is a conversational language model that is developed by Shanghai AI Laboratory (上海人工智能实验室). It is designed to be helpful, honest, and harmless.
 - InternLM (书生·浦语) can understand and communicate fluently in the language chosen by the user such as English and 中文.
 """
-print("system_prompt: ", SYSTEM_PROMPT)
 
-pipe = load_model(MODEL_PATH, backend='turbomind', system_prompt=SYSTEM_PROMPT)
+LMDEPLOY_CONFIG = LmdeployConfig(
+    model_path=MODEL_PATH,
+    backend='turbomind',
+    model_format='hf',
+    model_name='internlm2',
+    custom_model_name='internlm2_chat_1_8b',
+    system_prompt=SYSTEM_PROMPT
+)
 
-
-#----------------------------------------------------------------------#
-# prompts (List[str] | str | List[Dict] | List[Dict]): a batch of
-#     prompts. It accepts: string prompt, a list of string prompts,
-#     a chat history in OpenAI format or a list of chat history.
-# [
-#     {
-#         "role": "system",
-#         "content": "You are a helpful assistant."
-#     },
-#     {
-#         "role": "user",
-#         "content": "What is the capital of France?"
-#     },
-#     {
-#         "role": "assistant",
-#         "content": "The capital of France is Paris."
-#     },
-#     {
-#         "role": "user",
-#         "content": "Thanks!"
-#     },
-#     {
-#         "role": "assistant",
-#         "content": "You are welcome."
-#     }
-# ]
-#----------------------------------------------------------------------#
+# 载入模型
+infer_engine = InferEngine(
+    backend='lmdeploy', # transformers, lmdeploy
+    lmdeploy_config=LMDEPLOY_CONFIG
+)
 
 
 def chat(
@@ -60,9 +42,6 @@ def chat(
     temperature: float = 0.8,
     regenerate: str = "" # 是regen按钮的value,字符串,点击就传送,否则为空字符串
 ) -> Generator[Any, Any, Any]:
-    """聊天"""
-    global gen_config
-
     # 重新生成时要把最后的query和response弹出,重用query
     if regenerate:
         # 有历史就重新生成,没有历史就返回空
@@ -77,62 +56,19 @@ def chat(
             yield history
             return
 
-    # 将历史记录转换为openai格式
-    prompts = []
-    for user, assistant in history:
-        prompts.append(
-            {
-                "role": "user",
-                "content": user
-            }
-        )
-        prompts.append(
-            {
-                "role": "assistant",
-                "content": assistant
-            })
-    # 需要添加当前的query
-    prompts.append(
-        {
-            "role": "user",
-            "content": query
-        }
-    )
-
-    # https://lmdeploy.readthedocs.io/zh-cn/latest/api/pipeline.html#generationconfig
-    gen_config = GenerationConfig(
-        n = 1,
+    print(f"query: {query}; response: ", end="", flush=True)
+    length = 0
+    for response, history in infer_engine.chat_stream(
+        query = query,
+        history = history,
         max_new_tokens = max_new_tokens,
         top_p = top_p,
         top_k = top_k,
         temperature = temperature,
-        repetition_penalty = 1.0,
-        ignore_eos = False,
-        random_seed = None,
-        stop_words = None,
-        bad_words = None,
-        min_new_tokens = None,
-        skip_special_tokens = True,
-    )
-    print("gen_config: ", gen_config)
-
-    # 放入 [{},{}] 格式返回一个response
-    # 放入 [] 或者 [[{},{}]] 格式返回一个response列表
-    print(f"query: {query}; response: ", end="", flush=True)
-    response = ""
-    for _response in pipe.stream_infer(
-        prompts = prompts,
-        gen_config = gen_config,
-        do_preprocess = True,
-        adapter_name = None
     ):
-        # print(_response)
-        # Response(text='很高兴', generate_token_len=10, input_token_len=111, session_id=0, finish_reason=None)
-        # Response(text='认识', generate_token_len=11, input_token_len=111, session_id=0, finish_reason=None)
-        # Response(text='你', generate_token_len=12, input_token_len=111, session_id=0, finish_reason=None)
-        print(_response.text, flush=True, end="")
-        response += _response.text
-        yield history + [[query, response]]
+        print(response[length:], flush=True, end="")
+        length = len(response)
+        yield history
     print("\n")
 
 

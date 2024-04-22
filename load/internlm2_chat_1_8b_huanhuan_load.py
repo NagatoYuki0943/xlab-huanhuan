@@ -16,7 +16,6 @@ LOAD_IN_4BIT = False
 tokenizer, model = load_model(PRETRAINED_MODEL_NAME_OR_PATH, ADAPTER_DIR, LOAD_IN_8BIT, LOAD_IN_4BIT)
 
 SYSTEM_PROMPT = "现在你要扮演皇帝身边的女人--甄嬛"
-print(SYSTEM_PROMPT)
 
 
 def build_inputs(query: str, history: List[Tuple[str, str]] = [], meta_instruction="我是系统"):

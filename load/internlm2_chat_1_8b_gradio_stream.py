@@ -1,7 +1,7 @@
-from load_model import load_model
-import gradio as gr
-from typing import Generator, Any
 import os
+import gradio as gr
+from infer_engine import InferEngine, TransformersConfig
+from typing import Generator, Any
 
 
 print("gradio version: ", gr.__version__)
@@ -15,13 +15,25 @@ ADAPTER_DIR = None
 # 量化
 LOAD_IN_8BIT= False
 LOAD_IN_4BIT = False
-tokenizer, model = load_model(PRETRAINED_MODEL_NAME_OR_PATH, ADAPTER_DIR, LOAD_IN_8BIT, LOAD_IN_4BIT)
 
 SYSTEM_PROMPT = """You are an AI assistant whose name is InternLM (书生·浦语).
 - InternLM (书生·浦语) is a conversational language model that is developed by Shanghai AI Laboratory (上海人工智能实验室). It is designed to be helpful, honest, and harmless.
 - InternLM (书生·浦语) can understand and communicate fluently in the language chosen by the user such as English and 中文.
 """
-print("system_prompt: ", SYSTEM_PROMPT)
+
+TRANSFORMERS_CONFIG = TransformersConfig(
+    pretrained_model_name_or_path=PRETRAINED_MODEL_NAME_OR_PATH,
+    adapter_dir=ADAPTER_DIR,
+    load_in_8bit=LOAD_IN_8BIT,
+    load_in_4bit=LOAD_IN_4BIT,
+    system_prompt=SYSTEM_PROMPT
+)
+
+# 载入模型
+infer_engine = InferEngine(
+    backend='transformers', # transformers, lmdeploy
+    transformers_config=TRANSFORMERS_CONFIG,
+)
 
 
 def chat(
@@ -31,7 +43,7 @@ def chat(
     top_p: float = 0.8,
     top_k: int = 40,
     temperature: float = 0.8,
-    regenerate: bool = False
+    regenerate: str = "" # 是regen按钮的value,字符串,点击就传送,否则为空字符串
 ) -> Generator[Any, Any, Any]:
     # 重新生成时要把最后的query和response弹出,重用query
     if regenerate:
@@ -47,32 +59,19 @@ def chat(
             yield history
             return
 
-    print({
-        "max_new_tokens": max_new_tokens,
-        "top_p": top_p,
-        "top_k": top_k,
-        "temperature": temperature
-    })
-
-    # https://huggingface.co/internlm/internlm2-chat-1_8b/blob/main/modeling_internlm2.py#L1185
-    # stream_chat 返回的句子长度是逐渐边长的,length的作用是记录之前的输出长度,用来截断之前的输出
     print(f"query: {query}; response: ", end="", flush=True)
     length = 0
-    for response, history in model.stream_chat(
-            tokenizer = tokenizer,
-            query = query,
-            history = history,
-            max_new_tokens = max_new_tokens,
-            do_sample = True,
-            temperature = temperature,
-            top_p = top_p,
-            top_k = top_k,
-            meta_instruction = SYSTEM_PROMPT,
-        ):
-        if response is not None:
-            print(response[length:], flush=True, end="")
-            length = len(response)
-            yield history
+    for response, history in infer_engine.chat_stream(
+        query = query,
+        history = history,
+        max_new_tokens = max_new_tokens,
+        top_p = top_p,
+        top_k = top_k,
+        temperature = temperature,
+    ):
+        print(response[length:], flush=True, end="")
+        length = len(response)
+        yield history
     print("\n")
 
 
