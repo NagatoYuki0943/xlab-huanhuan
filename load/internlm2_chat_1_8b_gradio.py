@@ -21,17 +21,17 @@ SYSTEM_PROMPT = """You are an AI assistant whose name is InternLM (书生·浦�
 """
 
 TRANSFORMERS_CONFIG = TransformersConfig(
-    pretrained_model_name_or_path=PRETRAINED_MODEL_NAME_OR_PATH,
-    adapter_dir=ADAPTER_DIR,
-    load_in_8bit=LOAD_IN_8BIT,
-    load_in_4bit=LOAD_IN_4BIT,
-    system_prompt=SYSTEM_PROMPT
+    pretrained_model_name_or_path = PRETRAINED_MODEL_NAME_OR_PATH,
+    adapter_dir = ADAPTER_DIR,
+    load_in_8bit = LOAD_IN_8BIT,
+    load_in_4bit = LOAD_IN_4BIT,
+    system_prompt = SYSTEM_PROMPT
 )
 
 # 载入模型
 infer_engine = InferEngine(
-    backend='transformers', # transformers, lmdeploy
-    transformers_config=TRANSFORMERS_CONFIG,
+    backend = 'transformers', # transformers, lmdeploy
+    transformers_config = TRANSFORMERS_CONFIG,
 )
 
 

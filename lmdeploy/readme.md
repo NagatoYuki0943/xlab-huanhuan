@@ -250,58 +250,32 @@ Commands:
 
 https://github.com/InternLM/lmdeploy/tree/main/docs/zh_cn/quantization
 
-### [KV Cache int8](https://github.com/InternLM/lmdeploy/blob/main/docs/zh_cn/quantization/kv_int8.md)
+### [KV Cache Quant](https://github.com/InternLM/lmdeploy/blob/main/docs/zh_cn/quantization/kv_quant.md)
 
-KV Cache int8 是将 KVCache 进一步量化为 int8 来减少显存的占用，值得注意的是，量化也分为量化和反量化2个步骤，推理时需要反量化为16bit进行运算。
+LMDeploy 最新 main 分支支持**在线** kv cache int4/int8 量化，量化方式为 per-head per-token 的非对称量化。原来的 kv 离线量化方式移除。
 
-```sh
-> lmdeploy lite calibrate --help
-usage: lmdeploy lite calibrate [-h] [--work-dir WORK_DIR] [--calib-dataset CALIB_DATASET] [--calib-samples CALIB_SAMPLES]
-                               [--calib-seqlen CALIB_SEQLEN] [--device {cuda,cpu}]
-                               model
+直观上看，量化 kv 利于降低内存占用量。和 fp16 相比，int4/int8 kv 的内存可以分别减到 1/4 和 1/2。这意味着，在相同的内存条件下，kv 量化后，系统能支撑的并发数可以大幅提升，从而最终提高吞吐量。
 
-Perform calibration on a given dataset.
+但是，通常，量化会伴随一定的模型精度损失。我们使用了 opencompass 评测了若干个模型在应用了 int4/int8 量化后的精度，int8 kv 精度几乎无损，int4 kv 略有损失。详细结果放在了[精度评测](https://github.com/InternLM/lmdeploy/blob/main/docs/zh_cn/quantization/kv_quant.md#精度评测)章节中。大家可以参考，根据实际需求酌情选择。
 
-positional arguments:
-  model                 The name or path of the model to be loaded. Type: str
+LMDeploy kv 4/8 bit 量化和推理支持如下 NVIDIA 显卡型号：
 
-options:
-  -h, --help            show this help message and exit
-  --work-dir WORK_DIR   The working directory to save results. Default: ./work_dir. Type: str
-  --calib-dataset CALIB_DATASET
-                        The calibration dataset name. Default: ptb. Type: str
-  --calib-samples CALIB_SAMPLES
-                        The number of samples for calibration. Default: 128. Type: int
-  --calib-seqlen CALIB_SEQLEN
-                        The sequence length for calibration. Default: 2048. Type: int
-  --device {cuda,cpu}   Device type of running. Default: cuda. Type: str
-```
+- volta 架构（sm70）： V100
+- 图灵架构（sm75）：20系列、T4
+- 安培架构（sm80,sm86）：30系列、A10、A16、A30、A100
+- Ada Lovelace架构（sm89）：40 系列
+- Hopper 架构（sm90）: H100, H200
 
-> 第一步
->
-> 通过以下命令，获取量化参数，并保存至原HF模型目录
+总结来说，LMDeploy kv 量化具备以下优势：
 
-```sh
-export HF_MODEL=internlm/internlm2-chat-7b
+1. 量化不需要校准数据集
+2. 支持 volta 架构（sm70）及以上的所有显卡型号
+3. kv int8 量化精度几乎无损，kv int4 量化精度在可接受范围之内
+4. 推理高效，在 llama2-7b 上加入 int8/int4 kv 量化，RPS 相较于 fp16 分别提升近 30% 和 40%
 
-lmdeploy lite calibrate \
-  $HF_MODEL \
-  --calib-dataset 'ptb' \
-  --calib-samples 128 \
-  --calib-seqlen 2048 \
-  --work-dir $HF_MODEL
+通过 LMDeploy 应用 kv 量化非常简单，只需要设定 `quant_policy` 参数。
 
-lmdeploy lite calibrate \
-  ../models/internlm2-chat-1_8b \
-  --calib-dataset 'ptb' \
-  --calib-samples 128 \
-  --calib-seqlen 2048 \
-  --work-dir ../models/internlm2-chat-1_8b
-```
-
-> 第二步
->
-> 测试聊天效果。注意需要添加参数`--quant-policy 4`以开启KV Cache int8模式。
+**LMDeploy 规定 `qant_policy=4` 表示 kv int4 量化，`quant_policy=8` 表示 kv int8 量化。**
 
 ```sh
 export HF_MODEL=internlm/internlm2-chat-7b
@@ -313,7 +287,7 @@ lmdeploy chat \
     --model-format hf \
     --tp 1 \
     --cache-max-entry-count 0.8 \
-    --quant-policy 4 # 启用 kv int8 量化, 校准/W4A16量化的模型才能使用 kv int8 量化
+    --quant-policy 8 # 启用 kv int8 量化
 
 
 lmdeploy chat \
@@ -322,7 +296,7 @@ lmdeploy chat \
     --model-format hf \
     --tp 1 \
     --cache-max-entry-count 0.8 \
-    --quant-policy 4 # 启用 kv int8 量化, 校准/W4A16量化的模型才能使用 kv int8 量化
+    --quant-policy 8 # 启用 kv int8 量化
 ```
 
 ### [W4A16](https://github.com/InternLM/lmdeploy/blob/main/docs/zh_cn/quantization/w4a16.md)

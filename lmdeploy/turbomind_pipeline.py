@@ -13,7 +13,7 @@ SYSTEM_PROMPT = """You are an AI assistant whose name is InternLM (书生·浦�
 """
 print("system_prompt: ", SYSTEM_PROMPT)
 
-pipe = load_model(MODEL_PATH, backend='turbomind', system_prompt=SYSTEM_PROMPT)
+pipe = load_model(MODEL_PATH, backend = 'turbomind', system_prompt = SYSTEM_PROMPT)
 
 
 # https://lmdeploy.readthedocs.io/zh-cn/latest/api/pipeline.html#generationconfig

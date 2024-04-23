@@ -14,17 +14,17 @@ LOAD_IN_4BIT = False
 SYSTEM_PROMPT = "你现在是一名医生，具备丰富的医学知识和临床经验。你擅长诊断和治疗各种疾病，能为病人提供专业的医疗建议。你有良好的沟通技巧，能与病人和他们的家人建立信任关系。请在这个角色下为我解答以下问题。"
 
 TRANSFORMERS_CONFIG = TransformersConfig(
-    pretrained_model_name_or_path=PRETRAINED_MODEL_NAME_OR_PATH,
-    adapter_dir=ADAPTER_DIR,
-    load_in_8bit=LOAD_IN_8BIT,
-    load_in_4bit=LOAD_IN_4BIT,
-    system_prompt=SYSTEM_PROMPT
+    pretrained_model_name_or_path = PRETRAINED_MODEL_NAME_OR_PATH,
+    adapter_dir = ADAPTER_DIR,
+    load_in_8bit = LOAD_IN_8BIT,
+    load_in_4bit = LOAD_IN_4BIT,
+    system_prompt = SYSTEM_PROMPT
 )
 
 # 载入模型
 infer_engine = InferEngine(
-    backend='transformers', # transformers, lmdeploy
-    transformers_config=TRANSFORMERS_CONFIG,
+    backend = 'transformers', # transformers, lmdeploy
+    transformers_config = TRANSFORMERS_CONFIG,
 )
 
 history = [] # [['What is the capital of France?', 'The capital of France is Paris.'], ['Thanks', 'You are Welcome']]

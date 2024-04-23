@@ -13,18 +13,18 @@ SYSTEM_PROMPT = """You are an AI assistant whose name is InternLM (书生·浦�
 """
 
 LMDEPLOY_CONFIG = LmdeployConfig(
-    model_path=MODEL_PATH,
-    backend='turbomind',
-    model_format='hf',
-    model_name='internlm2',
-    custom_model_name='internlm2_chat_1_8b',
-    system_prompt=SYSTEM_PROMPT
+    model_path = MODEL_PATH,
+    backend = 'turbomind',
+    model_format = 'hf',
+    model_name = 'internlm2',
+    custom_model_name = 'internlm2_chat_1_8b',
+    system_prompt = SYSTEM_PROMPT
 )
 
 # 载入模型
 infer_engine = InferEngine(
-    backend='lmdeploy', # transformers, lmdeploy
-    lmdeploy_config=LMDEPLOY_CONFIG
+    backend = 'lmdeploy', # transformers, lmdeploy
+    lmdeploy_config = LMDEPLOY_CONFIG
 )
 
 history = [] # [['What is the capital of France?', 'The capital of France is Paris.'], ['Thanks', 'You are Welcome']]

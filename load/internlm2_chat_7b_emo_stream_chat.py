@@ -14,17 +14,17 @@ LOAD_IN_4BIT = False
 SYSTEM_PROMPT = "现在你是一个心理专家，我有一些心理问题，请你用专业的知识帮我解决。"
 
 TRANSFORMERS_CONFIG = TransformersConfig(
-    pretrained_model_name_or_path=PRETRAINED_MODEL_NAME_OR_PATH,
-    adapter_dir=ADAPTER_DIR,
-    load_in_8bit=LOAD_IN_8BIT,
-    load_in_4bit=LOAD_IN_4BIT,
-    system_prompt=SYSTEM_PROMPT
+    pretrained_model_name_or_path = PRETRAINED_MODEL_NAME_OR_PATH,
+    adapter_dir = ADAPTER_DIR,
+    load_in_8bit = LOAD_IN_8BIT,
+    load_in_4bit = LOAD_IN_4BIT,
+    system_prompt = SYSTEM_PROMPT
 )
 
 # 载入模型
 infer_engine = InferEngine(
-    backend='transformers', # transformers, lmdeploy
-    transformers_config=TRANSFORMERS_CONFIG,
+    backend = 'transformers', # transformers, lmdeploy
+    transformers_config = TRANSFORMERS_CONFIG,
 )
 
 history = [] # [['What is the capital of France?', 'The capital of France is Paris.'], ['Thanks', 'You are Welcome']]

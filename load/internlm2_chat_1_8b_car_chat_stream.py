@@ -19,17 +19,17 @@ SYSTEM_PROMPT = "你现在是评论总结小助手，负责总结用户对汽车
     "注意，只总结用户的输入的信息，不要自己编造用户没说的信息，以下是用户的评论，请进行总结\n"
 
 TRANSFORMERS_CONFIG = TransformersConfig(
-    pretrained_model_name_or_path=PRETRAINED_MODEL_NAME_OR_PATH,
-    adapter_dir=ADAPTER_DIR,
-    load_in_8bit=LOAD_IN_8BIT,
-    load_in_4bit=LOAD_IN_4BIT,
-    system_prompt=SYSTEM_PROMPT
+    pretrained_model_name_or_path = PRETRAINED_MODEL_NAME_OR_PATH,
+    adapter_dir = ADAPTER_DIR,
+    load_in_8bit = LOAD_IN_8BIT,
+    load_in_4bit = LOAD_IN_4BIT,
+    system_prompt = SYSTEM_PROMPT
 )
 
 # 载入模型
 infer_engine = InferEngine(
-    backend='transformers', # transformers, lmdeploy
-    transformers_config=TRANSFORMERS_CONFIG,
+    backend = 'transformers', # transformers, lmdeploy
+    transformers_config = TRANSFORMERS_CONFIG,
 )
 
 history = [] # [['What is the capital of France?', 'The capital of France is Paris.'], ['Thanks', 'You are Welcome']]

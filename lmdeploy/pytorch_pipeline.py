@@ -16,7 +16,7 @@ system_prompt = """You are an AI assistant whose name is InternLM (书生·浦�
 print("system_prompt: ", system_prompt)
 
 
-pipe = load_model(model_path, backend='pytorch', system_prompt=system_prompt)
+pipe = load_model(model_path, backend = 'pytorch', system_prompt = system_prompt)
 
 
 # https://lmdeploy.readthedocs.io/zh-cn/latest/api/pipeline.html#generationconfig
