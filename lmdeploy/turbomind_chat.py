@@ -2,7 +2,6 @@ import os
 from infer_engine import InferEngine, LmdeployConfig
 
 
-
 # clone 模型
 MODEL_PATH = '../models/internlm2-chat-1_8b'
 # os.system(f'git clone https://code.openxlab.org.cn/OpenLMLab/internlm2-chat-1.8b {MODEL_PATH}')
@@ -17,6 +16,8 @@ LMDEPLOY_CONFIG = LmdeployConfig(
     model_path = MODEL_PATH,
     backend = 'turbomind',
     model_format = 'hf',
+    cache_max_entry_count = 0.8,    # 调整 KV Cache 的占用比例为0.8
+    quant_policy = 0,               # KV Cache 量化, 0 代表禁用, 4 代表 4bit 量化, 8 代表 8bit 量化
     model_name = 'internlm2',
     custom_model_name = 'internlm2_chat_1_8b',
     system_prompt = SYSTEM_PROMPT
