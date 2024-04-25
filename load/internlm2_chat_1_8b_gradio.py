@@ -10,7 +10,7 @@ print("gradio version: ", gr.__version__)
 PRETRAINED_MODEL_NAME_OR_PATH = '../models/internlm2-chat-1_8b'
 # os.system(f'git clone https://code.openxlab.org.cn/OpenLMLab/internlm2-chat-1.8b {PRETRAINED_MODEL_NAME_OR_PATH}')
 # os.system(f'cd {PRETRAINED_MODEL_NAME_OR_PATH} && git lfs pull')
-ADAPTER_DIR = None
+ADAPTER_PATH = None
 # 量化
 LOAD_IN_8BIT= False
 LOAD_IN_4BIT = False
@@ -22,7 +22,7 @@ SYSTEM_PROMPT = """You are an AI assistant whose name is InternLM (书生·浦�
 
 TRANSFORMERS_CONFIG = TransformersConfig(
     pretrained_model_name_or_path = PRETRAINED_MODEL_NAME_OR_PATH,
-    adapter_dir = ADAPTER_DIR,
+    adapter_path = ADAPTER_PATH,
     load_in_8bit = LOAD_IN_8BIT,
     load_in_4bit = LOAD_IN_4BIT,
     system_prompt = SYSTEM_PROMPT

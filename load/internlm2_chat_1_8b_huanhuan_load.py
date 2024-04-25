@@ -9,11 +9,11 @@ import os
 PRETRAINED_MODEL_NAME_OR_PATH = '../models/internlm2-chat-1_8b'
 # os.system(f'git clone https://code.openxlab.org.cn/OpenLMLab/internlm2-chat-1.8b {PRETRAINED_MODEL_NAME_OR_PATH}')
 # os.system(f'cd {PRETRAINED_MODEL_NAME_OR_PATH} && git lfs pull')
-ADAPTER_DIR = "../work_dirs/internlm2_chat_1_8b_qlora_huanhuan_e3_hf/checkpoint-699"
+ADAPTER_PATH = "../work_dirs/internlm2_chat_1_8b_qlora_huanhuan_e3_hf/checkpoint-699"
 # 量化
 LOAD_IN_8BIT= False
 LOAD_IN_4BIT = False
-tokenizer, model = load_model(PRETRAINED_MODEL_NAME_OR_PATH, ADAPTER_DIR, LOAD_IN_8BIT, LOAD_IN_4BIT)
+tokenizer, model = load_model(PRETRAINED_MODEL_NAME_OR_PATH, ADAPTER_PATH, LOAD_IN_8BIT, LOAD_IN_4BIT)
 
 SYSTEM_PROMPT = "现在你要扮演皇帝身边的女人--甄嬛"
 

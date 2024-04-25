@@ -6,7 +6,7 @@ import torch
 
 def load_model(
     pretrained_model_name_or_path: str,
-    adapter_dir: str = None,
+    adapter_path: str = None,
     load_in_8bit: bool = False,
     load_in_4bit: bool = False,
 ) -> tuple[AutoTokenizer, AutoModelForCausalLM]:
@@ -37,13 +37,13 @@ def load_model(
         quantization_config = quantization_config if load_in_8bit or load_in_4bit else None,
     )
 
-    if adapter_dir:
-        print(f"load adapter: {adapter_dir}")
+    if adapter_path:
+        print(f"load adapter: {adapter_path}")
         # 2种加载adapter的方式
         # 1. load adapter https://huggingface.co/docs/transformers/main/zh/peft
-        # model.load_adapter(adapter_dir)
+        # model.load_adapter(adapter_path)
         # 2. https://huggingface.co/docs/peft/main/en/package_reference/peft_model#peft.PeftModel.from_pretrained
-        model = PeftModel.from_pretrained(model, adapter_dir)
+        model = PeftModel.from_pretrained(model, adapter_path)
 
     model.eval()
 
@@ -58,12 +58,12 @@ if __name__ == '__main__':
     pretrained_model_name_or_path = "../models/internlm2-chat-1_8b"
     # os.system(f'git clone https://code.openxlab.org.cn/OpenLMLab/internlm2-chat-1.8b {pretrained_model_name_or_path}')
     # os.system(f'cd {pretrained_model_name_or_path} && git lfs pull')
-    adapter_dir = None
+    adapter_path = None
 
     # 量化
     load_in_8bit = False
     load_in_4bit = False
 
-    tokenizer, model = load_model(pretrained_model_name_or_path, adapter_dir, load_in_8bit, load_in_4bit)
+    tokenizer, model = load_model(pretrained_model_name_or_path, adapter_path, load_in_8bit, load_in_4bit)
     print(tokenizer)
     print(model)

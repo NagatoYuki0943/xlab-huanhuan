@@ -6,7 +6,7 @@ from infer_engine import InferEngine, TransformersConfig
 PRETRAINED_MODEL_NAME_OR_PATH = '../models/internlm2-chat-1_8b'
 # os.system(f'git clone https://code.openxlab.org.cn/OpenLMLab/internlm2-chat-1.8b {PRETRAINED_MODEL_NAME_OR_PATH}')
 # os.system(f'cd {PRETRAINED_MODEL_NAME_OR_PATH} && git lfs pull')
-ADAPTER_DIR = "./internlm2_chat_1_8b_qlora_huatuo_e3/epoch_3_hf"
+ADAPTER_PATH = "./internlm2_chat_1_8b_qlora_huatuo_e3/epoch_3_hf"
 # 量化
 LOAD_IN_8BIT= False
 LOAD_IN_4BIT = False
@@ -15,7 +15,7 @@ SYSTEM_PROMPT = "你现在是一名医生，具备丰富的医学知识和临床
 
 TRANSFORMERS_CONFIG = TransformersConfig(
     pretrained_model_name_or_path = PRETRAINED_MODEL_NAME_OR_PATH,
-    adapter_dir = ADAPTER_DIR,
+    adapter_path = ADAPTER_PATH,
     load_in_8bit = LOAD_IN_8BIT,
     load_in_4bit = LOAD_IN_4BIT,
     system_prompt = SYSTEM_PROMPT
