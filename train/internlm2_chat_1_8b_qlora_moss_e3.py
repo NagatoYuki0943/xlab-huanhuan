@@ -68,7 +68,7 @@ from xtuner.utils import PROMPT_TEMPLATE, SYSTEM_TEMPLATE
 #                          PART 1  Settings                           #
 #######################################################################
 # Model
-pretrained_model_name_or_path = '../models/internlm2-chat-1_8b'
+pretrained_model_name_or_path = './models/internlm2-chat-1_8b'
 bot_name = 'InternLM'
 use_varlen_attn = False
 
