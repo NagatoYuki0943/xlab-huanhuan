@@ -13,7 +13,7 @@ convert:
         xtuner convert pth_to_hf \
             train/internlm2_chat_1_8b_qlora_moss_e3.py \
             work_dirs/internlm2_chat_1_8b_qlora_moss_e3/epoch_3.pth \
-            work_dirs/internlm2_chat_1_8b_qlora_moss_e3/hf \
+            work_dirs/internlm2_chat_1_8b_qlora_moss_e3/epoch_3_hf \
             --max-shard-size 2GB
 
 merge adapter:
@@ -62,6 +62,7 @@ from xtuner.engine.hooks import (DatasetInfoHook, EvaluateChatHook,
                                  VarlenAttnArgsToMessageHubHook, ThroughputHook)
 from xtuner.engine.runner import TrainLoop
 from xtuner.model import SupervisedFinetune
+from xtuner.parallel.sequence import SequenceParallelSampler
 from xtuner.utils import PROMPT_TEMPLATE, SYSTEM_TEMPLATE
 
 #######################################################################
@@ -79,9 +80,13 @@ moss_sft_plugins_path = './data/moss-003-sft-data/raw/conversations_with_tools_w
 max_length = 2048
 pack_to_max_length = True
 
+# parallel
+sequence_parallel_size = 1
+
 # Scheduler & Optimizer
 batch_size = 1  # per_device
 accumulative_counts = 16
+accumulative_counts *= sequence_parallel_size
 dataloader_num_workers = 0
 max_epochs = 3
 optim_type = AdamW
@@ -162,11 +167,13 @@ moss_sft_plugins = dict(
 train_dataset = dict(
     type=ConcatDataset, datasets=[moss_sft_no_plugins, moss_sft_plugins])
 
+sampler = SequenceParallelSampler \
+    if sequence_parallel_size > 1 else DefaultSampler
 train_dataloader = dict(
     batch_size=batch_size,
     num_workers=dataloader_num_workers,
     dataset=train_dataset,
-    sampler=dict(type=DefaultSampler, shuffle=True),
+    sampler=dict(type=sampler, shuffle=True),
     collate_fn=dict(type=default_collate_fn, use_varlen_attn=use_varlen_attn))
 
 #######################################################################
@@ -204,6 +211,7 @@ param_scheduler = [
 # train, val, test setting
 # 在 EpochBased 模式下，val_interval 的默认值为 1，表示训练一个 Epoch，验证一次
 # 在 IterBased 模式下，val_interval 的默认值为 1000，表示训练迭代 1000 次，验证一次
+# train_cfg = dict(type=TrainLoop, max_epochs=max_epochs)
 train_cfg = dict(by_epoch=True, max_epochs=max_epochs, val_interval=1)
 
 #######################################################################
@@ -272,4 +280,5 @@ resume = False
 randomness = dict(seed=None, deterministic=False)
 
 # set log processor
+# log_processor = dict(by_epoch=False)
 log_processor = dict(by_epoch=by_epoch)
