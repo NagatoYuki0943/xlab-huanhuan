@@ -3,7 +3,7 @@ import pandas as pd
 import transformers
 from transformers import AutoTokenizer, AutoModelForCausalLM, DataCollatorForSeq2Seq, TrainingArguments, Trainer, BitsAndBytesConfig, GenerationConfig
 import torch
-from typing import List, Tuple
+
 
 print("torch version: ", torch.__version__)
 print("transformers version: ", transformers.__version__)
@@ -30,7 +30,7 @@ internlm2_chat = dict(
     SEP = '\n',
     STOP_WORDS = ['<|im_end|>'])
 
-def build_inputs(query: str, history: List[Tuple[str, str]] = [], meta_instruction="我是系统"):
+def build_inputs(query: str, history: list[tuple[str, str]] = [], meta_instruction="我是系统"):
     prompt = ""
     if meta_instruction:
         # <s> tokenizer会默认添加,不过这里使用手动添加的方式
