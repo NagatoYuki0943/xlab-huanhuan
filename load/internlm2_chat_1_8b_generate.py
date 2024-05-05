@@ -62,5 +62,5 @@ ids = outputs[0].cpu()[len(inputs["input_ids"][0]) :]
 # decode 处理一维数据
 response = tokenizer.decode(ids, skip_special_tokens=True)
 print(response)
-# # batch_decode 处理二维数据
+# batch_decode 处理二维数据
 # print(tokenizer.batch_decode([ids], skip_special_tokens=True)[0])
