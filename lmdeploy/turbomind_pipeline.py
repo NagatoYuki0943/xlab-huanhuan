@@ -2,6 +2,7 @@ from load_model import load_model
 from lmdeploy import GenerationConfig
 import os
 
+
 # clone 模型
 MODEL_PATH = '../models/internlm2-chat-1_8b'
 # os.system(f'git clone https://code.openxlab.org.cn/OpenLMLab/internlm2-chat-1.8b {MODEL_PATH}')
@@ -12,6 +13,7 @@ SYSTEM_PROMPT = """You are an AI assistant whose name is InternLM (书生·浦�
 - InternLM (书生·浦语) can understand and communicate fluently in the language chosen by the user such as English and 中文.
 """
 print("system_prompt: ", SYSTEM_PROMPT)
+
 
 pipe = load_model(MODEL_PATH, backend = 'turbomind', system_prompt = SYSTEM_PROMPT)
 

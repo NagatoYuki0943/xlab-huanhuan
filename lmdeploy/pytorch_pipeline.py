@@ -4,19 +4,18 @@ import os
 
 
 # clone 模型
-model_path = '../models/internlm2-chat-1_8b'
+MODEL_PATH = '../models/internlm2-chat-1_8b'
 # os.system(f'git clone https://code.openxlab.org.cn/OpenLMLab/internlm2-chat-1.8b {model_path}')
-# os.system(f'cd {model_path} && git lfs pull')
+# os.system(f'cd {MODEL_PATH} && git lfs pull')
 
-
-system_prompt = """You are an AI assistant whose name is InternLM (书生·浦语).
+SYSTEM_PROMPT = """You are an AI assistant whose name is InternLM (书生·浦语).
 - InternLM (书生·浦语) is a conversational language model that is developed by Shanghai AI Laboratory (上海人工智能实验室). It is designed to be helpful, honest, and harmless.
 - InternLM (书生·浦语) can understand and communicate fluently in the language chosen by the user such as English and 中文.
 """
-print("system_prompt: ", system_prompt)
+print("system_prompt: ", SYSTEM_PROMPT)
 
 
-pipe = load_model(model_path, backend = 'pytorch', system_prompt = system_prompt)
+pipe = load_model(MODEL_PATH, backend = 'pytorch', system_prompt = SYSTEM_PROMPT)
 
 
 # https://lmdeploy.readthedocs.io/zh-cn/latest/api/pipeline.html#generationconfig
