@@ -34,17 +34,18 @@ internlm2_chat = dict(
     SEP = '\n',
     STOP_WORDS = ['<|im_end|>'])
 
-def build_inputs(query: str, history: list[tuple[str, str]] = [], meta_instruction="我是系统"):
-    prompt = ""
-    if meta_instruction:
-        # <s> tokenizer会默认添加,不过这里使用手动添加的方式
-        prompt += f"""<s><|im_start|>system\n{meta_instruction}<|im_end|>\n"""
+# https://huggingface.co/internlm/internlm2-chat-1_8b/blob/main/modeling_internlm2.py#L1136
+def build_inputs(tokenizer, query: str, history: list[tuple[str, str]] = [], meta_instruction=""):
+    if tokenizer.add_bos_token:
+        prompt = ""
     else:
-        prompt += "<s>"
+        prompt = tokenizer.bos_token
+    if meta_instruction:
+        prompt += f"""<|im_start|>system\n{meta_instruction}<|im_end|>\n"""
     for record in history:
         prompt += f"""<|im_start|>user\n{record[0]}<|im_end|>\n<|im_start|>assistant\n{record[1]}<|im_end|>\n"""
     prompt += f"""<|im_start|>user\n{query}<|im_end|>\n<|im_start|>assistant\n"""
-    return prompt
+    return prompt, tokenizer([prompt], return_tensors="pt")
 
 def process_func(example):
     # print(example)
