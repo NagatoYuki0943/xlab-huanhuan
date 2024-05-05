@@ -80,6 +80,8 @@ llava_internlm2_chat_1_8b_qlora_clip_vit_large_p14_336_lora_e1_gpu8_finetune
 =============================================================
 ```
 
+# [数据格式介绍](https://github.com/InternLM/xtuner/blob/main/docs/zh_cn/user_guides/dataset_format.md)
+
 # copy-cfg
 
 ```sh
@@ -101,7 +103,7 @@ Copy to ./internlm2_chat_1_8b_qlora_alpaca_e3_copy.py
 
 # 配置文件修改
 
-配置文件介绍
+[配置文件介绍](https://github.com/InternLM/xtuner/blob/main/docs/zh_cn/user_guides/config.md)
 
 打开配置文件后，我们可以看到整体的配置文件分为五部分：
 
@@ -545,8 +547,6 @@ xtuner train /root/ft/config/internlm2_1_8b_qlora_alpaca_e3_copy.py --work-dir /
 ## 模型续训指南
 
 假如我们的模型训练过程中突然被中断了，我们也可以通过在原有指令的基础上加上 `--resume {checkpoint_path}` 来实现模型的继续训练。需要注意的是，这个继续训练得到的权重文件和中断前的完全一致，并不会有任何区别。下面我将用训练了500轮的例子来进行演示。
-
-
 
 ```bash
 # 模型续训
