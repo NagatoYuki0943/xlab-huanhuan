@@ -6,6 +6,8 @@ def load_model(
     model_path: str,
     backend: str = 'turbomind', # turbomind, pytorch
     model_format: str = 'hf',
+    cache_max_entry_count: float = 0.8, # 调整 KV Cache 的占用比例为0.8
+    quant_policy: int = 0,              # KV Cache 量化, 0 代表禁用, 4 代表 4bit 量化, 8 代表 8bit 量化
     model_name: str = 'internlm2',
     custom_model_name: str = 'internlm2_chat_1_8b',
     system_prompt: str = """You are an AI assistant whose name is InternLM (书生·浦语).
@@ -26,9 +28,9 @@ def load_model(
             tp = 1,
             session_len = 2048,
             max_batch_size = 128,
-            cache_max_entry_count = 0.8, # 调整KV Cache的占用比例为0.8
+            cache_max_entry_count = cache_max_entry_count,
             cache_block_seq_len = 64,
-            quant_policy = 0, # 4 表示 kv int4 量化, 8 表示 kv int8 量化
+            quant_policy = quant_policy,
             rope_scaling_factor = 0.0,
             use_logn_attn = False,
             download_dir = None,
@@ -42,7 +44,7 @@ def load_model(
             tp = 1,
             session_len = 2048,
             max_batch_size = 128,
-            cache_max_entry_count = 0.8, # 调整KV Cache的占用比例为0.8
+            cache_max_entry_count = cache_max_entry_count,
             eviction_type = 'recompute',
             prefill_interval = 16,
             block_size = 64,
