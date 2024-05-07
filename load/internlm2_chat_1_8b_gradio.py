@@ -60,9 +60,9 @@ def chat(
         query = query,
         history = history,
         max_new_tokens = max_new_tokens,
+        temperature = temperature,
         top_p = top_p,
         top_k = top_k,
-        temperature = temperature,
     )
     print(f"query: {query}; response: {response}\n")
 

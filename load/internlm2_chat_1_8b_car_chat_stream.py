@@ -47,9 +47,9 @@ while True:
         query = query,
         history = history,
         max_new_tokens = 1024,
+        temperature = 0.8,
         top_p = 0.8,
         top_k = 40,
-        temperature = 0.8,
     ):
         print(response[length:], flush=True, end="")
         length = len(response)
