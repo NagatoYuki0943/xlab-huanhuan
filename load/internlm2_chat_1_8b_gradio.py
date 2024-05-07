@@ -1,9 +1,10 @@
 import os
 import gradio as gr
 from infer_engine import InferEngine, TransformersConfig
+from loguru import logger
 
 
-print("gradio version: ", gr.__version__)
+logger.info(f"gradio version: {gr.__version__}")
 
 
 # clone 模型
@@ -57,7 +58,6 @@ def chat(
         top_p = top_p,
         top_k = top_k,
     )
-    print(f"query: {query}; response: {response}\n")
 
     return history
 

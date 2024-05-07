@@ -2,9 +2,10 @@ import os
 import gradio as gr
 from infer_engine import InferEngine, TransformersConfig
 from typing import Generator, Any
+from loguru import logger
 
 
-print("gradio version: ", gr.__version__)
+logger.info(f"gradio version: {gr.__version__}")
 
 
 # clone 模型
@@ -51,8 +52,6 @@ def chat_stream(
         yield history
         return
 
-    print(f"query: {query}; response: ", end="", flush=True)
-    length = 0
     for response, history in infer_engine.chat_stream(
         query = query,
         history = history,
@@ -61,10 +60,7 @@ def chat_stream(
         top_p = top_p,
         top_k = top_k,
     ):
-        print(response[length:], flush=True, end="")
-        length = len(response)
         yield history
-    print("\n")
 
 
 def regenerate(
