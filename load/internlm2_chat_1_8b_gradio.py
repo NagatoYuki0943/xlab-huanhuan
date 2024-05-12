@@ -210,12 +210,12 @@ def main():
 
     # 设置队列启动
     demo.queue(
-        max_size=None,                  # If None, the queue size will be unlimited.
-        default_concurrency_limit=100   # 最大并发限制
+        max_size = None,                # If None, the queue size will be unlimited.
+        default_concurrency_limit = 100 # 最大并发限制
     )
 
-    # demo.launch(server_name = "127.0.0.1", server_port = 7860, share = True, max_threads=100)
-    demo.launch(max_threads=100)
+    # demo.launch(server_name = "127.0.0.1", server_port = 7860, share = True, max_threads = 100)
+    demo.launch(max_threads = 100)
 
 
 if __name__ == "__main__":
