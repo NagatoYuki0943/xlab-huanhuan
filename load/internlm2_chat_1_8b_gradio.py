@@ -112,13 +112,28 @@ def main():
                 # 创建聊天框
                 chatbot = gr.Chatbot(height=500, show_copy_button=True)
 
-                with gr.Row():
-                    # 创建一个文本框组件，用于输入 prompt。
-                    query = gr.Textbox(label="Prompt/问题", placeholder="Enter 发送; Shift + Enter 换行 / Enter to send; Shift + Enter to wrap")
-                    # 创建提交按钮。
-                    # variant https://www.gradio.app/docs/button
-                    # scale https://www.gradio.app/guides/controlling-layout
-                    submit = gr.Button("💬 Chat", variant="primary", scale=0)
+                # 组内的组件没有间距
+                with gr.Group():
+                    with gr.Row():
+                        # 创建一个文本框组件，用于输入 prompt。
+                        query = gr.Textbox(
+                            lines=1,
+                            label="Prompt / 问题",
+                            placeholder="Enter 发送; Shift + Enter 换行 / Enter to send; Shift + Enter to wrap"
+                        )
+                        # 创建提交按钮。
+                        # variant https://www.gradio.app/docs/button
+                        # scale https://www.gradio.app/guides/controlling-layout
+                        submit = gr.Button("💬 Chat", variant="primary", scale=0)
+
+                gr.Examples(
+                    examples=[
+                        ["你是谁"],
+                        ["你可以帮我做什么"],
+                    ],
+                    inputs=[query],
+                    label="示例问题 / Example questions"
+                )
 
                 with gr.Row():
                     # 创建一个重新生成按钮，用于重新生成当前对话内容。
