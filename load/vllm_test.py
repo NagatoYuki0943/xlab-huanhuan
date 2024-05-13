@@ -1,8 +1,12 @@
 from transformers import AutoTokenizer
 from vllm import LLM, LLMEngine, AsyncLLMEngine, EngineArgs, AsyncEngineArgs, SamplingParams
+from vllm.lora.request import LoRARequest
+from utils import random_uuid
+
 
 
 PRETRAINED_MODEL_NAME_OR_PATH = '../models/internlm2-chat-1_8b'
+ADAPTER_PATH = None
 
 
 tokenizer = AutoTokenizer.from_pretrained(PRETRAINED_MODEL_NAME_OR_PATH, trust_remote_code = True)
@@ -17,7 +21,7 @@ print(tokenizer.decode(stop_token_ids))
 # https://github.com/vllm-project/vllm/blob/main/vllm/engine/llm_engine.py
 model = LLM(
     model = PRETRAINED_MODEL_NAME_OR_PATH,
-    tokenizer = tokenizer, # 可以为 None,会自动从模型路径载入,不能传递实例化好的 tokenizer
+    tokenizer = None, # 可以为 None,会自动从模型路径载入,不能传递实例化好的 tokenizer
     tokenizer_mode = "auto",
     skip_tokenizer_init = False,
     trust_remote_code = True,
@@ -33,6 +37,7 @@ model = LLM(
     max_context_len_to_capture = None,
     max_seq_len_to_capture = 8192, # Maximum context len covered by CUDA graphs.
     disable_custom_all_reduce= False,
+    enable_lora = False,    # enable_lora
 )
 
 
@@ -41,7 +46,7 @@ engine_args = AsyncEngineArgs(
     # Arguments for vLLM engine.
     model = PRETRAINED_MODEL_NAME_OR_PATH,
     served_model_name = None,
-    tokenizer = tokenizer,
+    tokenizer = None,
     skip_tokenizer_init = False,
     tokenizer_mode = 'auto',
     trust_remote_code = True,
@@ -76,7 +81,7 @@ engine_args = AsyncEngineArgs(
     tokenizer_pool_size = 0,
     tokenizer_pool_type = "ray",
     tokenizer_pool_extra_config = None,
-    enable_lora = False,
+    enable_lora = False, # enable_lora
     max_loras = 1,
     max_lora_rank = 16,
     fully_sharded_loras = False,
@@ -140,10 +145,22 @@ prompts = [
     "The future of AI is",
 ]
 
+
 # batch
-for response in model.generate(prompts = prompts, sampling_params = sampling_config):
+for response in model.generate(
+    prompts = prompts,
+    sampling_params = sampling_config,
+    use_tqdm = True,
+    # lora_request = LoRARequest("emo", 1, ADAPTER_PATH)
+):
     print(response)
 
+
 # stream
-for response in engine.generate(prompt = prompts[0], sampling_params = sampling_config):
+for response in engine.generate(
+    prompt = prompts[0],
+    sampling_params = sampling_config,
+    request_id = random_uuid('str'),  # unique id
+    # lora_request = LoRARequest("emo", 1, ADAPTER_PATH)
+):
     print(response)
