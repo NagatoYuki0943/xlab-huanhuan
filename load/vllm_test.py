@@ -17,7 +17,7 @@ print(tokenizer.decode(stop_token_ids))
 # https://github.com/vllm-project/vllm/blob/main/vllm/engine/llm_engine.py
 model = LLM(
     model = PRETRAINED_MODEL_NAME_OR_PATH,
-    tokenizer = tokenizer, # 可以为 None,会自动从路径载入
+    tokenizer = tokenizer, # 可以为 None,会自动从模型路径载入,不能传递实例化好的 tokenizer
     tokenizer_mode = "auto",
     skip_tokenizer_init = False,
     trust_remote_code = True,
