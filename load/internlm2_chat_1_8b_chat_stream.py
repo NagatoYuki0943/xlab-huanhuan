@@ -51,4 +51,4 @@ while True:
     ):
         print(response[length:], flush=True, end="")
         length = len(response)
-    print("\n")
+    print("\n回答: ", response)
