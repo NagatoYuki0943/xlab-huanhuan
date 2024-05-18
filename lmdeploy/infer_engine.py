@@ -6,7 +6,10 @@ import transformers
 from transformers import AutoTokenizer, AutoModelForCausalLM, BitsAndBytesConfig
 from transformers.generation.streamers import BaseStreamer
 import queue
-import threading
+from threading import Thread
+from queue import Empty, Queue
+import asyncio
+import random
 from loguru import logger
 
 
@@ -311,7 +314,7 @@ class TransfomersEngine(DeployEngine):
             )
 
         def consumer():
-            producer = threading.Thread(target=stream_producer)
+            producer = Thread(target=stream_producer)
             producer.start()
             while True:
                 res = response_queue.get()
@@ -483,6 +486,93 @@ class LmdeployEngine(DeployEngine):
             min_new_tokens = None,
             skip_special_tokens = True,
         )
+
+    # https://github.com/InternLM/lmdeploy/blob/main/lmdeploy/serve/async_engine.py#L453-L528
+    def __stream_infer(
+            self,
+            prompts: list[str] | str | list[dict] | list[list[dict]],
+            session_ids: int | list[int],
+            gen_config = None,
+            do_preprocess: bool = True,
+            adapter_name: str | None = None,
+            **kwargs):
+        """Inference a batch of prompts with stream mode.
+
+        Args:
+            prompts (List[str] | str | List[Dict] | List[Dict]): a batch of
+                prompts. It accepts: string prompt, a list of string prompts,
+                a chat history in OpenAI format or a list of chat history.
+            gen_config (GenerationConfig | None): a instance of or a list of
+                GenerationConfig. Default to None.
+            do_preprocess (bool): whether pre-process the messages. Default to
+                True, which means chat_template will be applied.
+            adapter_name (str): the adapter name of slora for pytorch backend.
+                Pick one from adapters. Default to None, using the base model.
+        """
+        from lmdeploy.messages import GenerationConfig, Response
+        from lmdeploy.serve.async_engine import _get_event_loop
+
+        need_list_wrap = isinstance(prompts, str) or isinstance(
+            prompts[0], dict)
+        prompts = [prompts] if need_list_wrap else prompts
+        need_list_wrap = isinstance(session_ids, int)
+        session_ids = [session_ids] if need_list_wrap else session_ids
+
+        assert isinstance(prompts, list), 'prompts should be a list'
+        assert len(prompts) == len(session_ids), 'the length of prompts and session_ids should be the same'
+
+        if gen_config is None:
+            gen_config = GenerationConfig()
+        # set random if it is not set
+        if not isinstance(gen_config, list) and gen_config.random_seed is None:
+            gen_config.random_seed = random.getrandbits(64)
+        if not isinstance(gen_config, list):
+            gen_config = [gen_config] * len(prompts)
+        assert len(prompts) == len(gen_config),\
+                'input gen_confg length differs from the length of prompts' # noqa
+        outputs = Queue()
+        generators = []
+        # for i, prompt in enumerate(prompts):
+        for prompt, session_id, gen_conf in zip(prompts, session_ids, gen_config):
+            generators.append(
+                self.pipe.generate(prompt,
+                              session_id,   # i
+                              gen_config=gen_conf,  # gen_config[i]
+                              stream_response=True,
+                              sequence_start=True,
+                              sequence_end=True,
+                              do_preprocess=do_preprocess,
+                              adapter_name=adapter_name,
+                              **kwargs))
+
+        async def _inner_call(i, generator):
+            async for out in generator:
+                outputs.put(
+                    Response(out.response, out.generate_token_len,
+                             out.input_token_len, i, out.finish_reason,
+                             out.token_ids, out.logprobs))
+
+        async def gather():
+            await asyncio.gather(
+                # *[_inner_call(i, generators[i]) for i in range(len(prompts))])
+                *[_inner_call(session_id, generator) for session_id, generator in zip(session_ids, generators)])
+            outputs.put(None)
+
+        loop = _get_event_loop()
+        proc = Thread(target=lambda: loop.run_until_complete(gather()))
+        proc.start()
+
+        while True:
+            try:
+                out = outputs.get(timeout=0.001)
+                if out is None:
+                    break
+                yield out
+            except Empty:
+                pass
+
+        proc.join()
+
     def chat(
         self,
         query: str,
@@ -541,8 +631,10 @@ class LmdeployEngine(DeployEngine):
         response = ""
         # 放入 [{},{}] 格式返回一个response
         # 放入 [] 或者 [[{},{}]] 格式返回一个response列表
-        for _response in self.pipe.stream_infer(
+        # for _response in self.pipe.stream_infer(
+        for _response in self.__stream_infer(
             prompts = prompts,
+            session_ids = random.randint(1, 1e9),
             gen_config = self.gen_config,
             do_preprocess = True,
             adapter_name = None
