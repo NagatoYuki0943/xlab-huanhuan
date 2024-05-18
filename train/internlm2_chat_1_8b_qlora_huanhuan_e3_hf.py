@@ -34,8 +34,14 @@ internlm2_chat = dict(
     SEP = '\n',
     STOP_WORDS = ['<|im_end|>'])
 
-# https://huggingface.co/internlm/internlm2-chat-1_8b/blob/main/modeling_internlm2.py#L1136
-def build_inputs(tokenizer, query: str, history: list[tuple[str, str]] = [], meta_instruction=""):
+# https://huggingface.co/internlm/internlm2-chat-1_8b/blob/main/modeling_internlm2.py#L1136-L1146
+def build_inputs(
+    tokenizer,
+    query: str,
+    history: list[tuple[str, str]] | None = None,
+    meta_instruction = ""
+) -> tuple[str, list]:
+    history = [] if history is None else list(history)
     if tokenizer.add_bos_token:
         prompt = ""
     else:

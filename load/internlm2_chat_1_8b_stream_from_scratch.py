@@ -4,6 +4,7 @@ from transformers.generation.streamers import BaseStreamer
 from load_model import load_model
 import queue
 import threading
+from typing import Generator, Literal, Sequence, Any
 
 
 # clone 模型
@@ -22,8 +23,15 @@ SYSTEM_PROMPT = """You are an AI assistant whose name is InternLM (书生·浦�
     """
 
 
-# https://huggingface.co/internlm/internlm2-chat-1_8b/blob/main/modeling_internlm2.py#L1136
-def build_inputs(tokenizer, query: str, history: list[tuple[str, str]] = [], meta_instruction=""):
+# https://huggingface.co/internlm/internlm2-chat-1_8b/blob/main/modeling_internlm2.py#L1136-L1146
+def build_inputs(
+    tokenizer,
+    query: str,
+    history: list[tuple[str, str]] | None = None,
+    meta_instruction = ""
+) -> tuple[str, Sequence]:
+    history = [] if history is None else list(history)
+
     if tokenizer.add_bos_token:
         prompt = ""
     else:
@@ -43,11 +51,12 @@ print("input_ids: ", inputs["input_ids"])
 print("attention_mask: ", inputs["attention_mask"])
 
 
-# https://huggingface.co/internlm/internlm2-chat-1_8b/blob/main/modeling_internlm2.py#L1149
+# https://huggingface.co/internlm/internlm2-chat-1_8b/blob/main/modeling_internlm2.py#L1148-L1182
+@torch.no_grad()
 def chat(
     tokenizer,
     query: str,
-    history: list[tuple[str, str]] = [],
+    history: Sequence | None = None,
     streamer: BaseStreamer | None = None,
     max_new_tokens: int = 1024,
     do_sample: bool = True,
@@ -57,7 +66,8 @@ def chat(
     "- InternLM (书生·浦语) is a conversational language model that is developed by Shanghai AI Laboratory (上海人工智能实验室). It is designed to be helpful, honest, and harmless.\n"
     "- InternLM (书生·浦语) can understand and communicate fluently in the language chosen by the user such as English and 中文.",
     **kwargs,
-):
+) -> tuple[str, Sequence]:
+    history = [] if history is None else list(history)
     _, inputs = build_inputs(tokenizer, query, history, meta_instruction)
     inputs = {k: v.to(model.device) for k, v in inputs.items() if torch.is_tensor(v)}
     # also add end-of-assistant token in eos token id to avoid unnecessary generation
@@ -79,23 +89,25 @@ def chat(
     return response, history
 
 
-# https://huggingface.co/internlm/internlm2-chat-1_8b/blob/main/modeling_internlm2.py#L1185
+# https://huggingface.co/internlm/internlm2-chat-1_8b/blob/main/modeling_internlm2.py#L1184-L1268
+@torch.no_grad()
 def stream_chat(
     tokenizer,
     query: str,
-    history: list[tuple[str, str]] = [],
+    history: Sequence | None = None,
     max_new_tokens: int = 1024,
     do_sample: bool = True,
     temperature: float = 0.8,
     top_p: float = 0.8,
     **kwargs,
-):
+) -> Generator[tuple[str, Sequence], None, None]:
     """
     Return a generator in format: (response, history)
     Eg.
     ('你好，有什么可以帮助您的吗', [('你好', '你好，有什么可以帮助您的吗')])
     ('你好，有什么可以帮助您的吗？', [('你好', '你好，有什么可以帮助您的吗？')])
     """
+    history = [] if history is None else list(history)
 
     response_queue = queue.Queue(maxsize=20)
 
