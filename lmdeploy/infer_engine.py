@@ -654,6 +654,59 @@ class LmdeployLocalEngine(DeployEngine):
 
         proc.join()
 
+    # https://github.com/InternLM/lmdeploy/blob/main/lmdeploy/serve/gradio/turbomind_coupled.py#L21-L67
+    async def chat_stream_local(
+            self,
+            prompt: str | list[dict],
+            session_id: int,
+            gen_config = None,
+            do_preprocess: bool = True,
+            adapter_name: str | None = None,
+            **kwargs):
+        """stream chat 简单实现
+
+        Args:
+            prompt (str | list[dict]): a prompt. It accepts: string prompt,
+            a chat history in OpenAI format.
+            session_id (int): a session id.
+            gen_config (GenerationConfig | None): a instance of or a list of
+                GenerationConfig. Default to None.
+            do_preprocess (bool): whether pre-process the messages. Default to
+                True, which means chat_template will be applied.
+            adapter_name (str): the adapter name of slora for pytorch backend.
+                Pick one from adapters. Default to None, using the base model.
+        """
+        from lmdeploy.messages import GenerationConfig
+        from lmdeploy.serve.async_engine import GenOut
+        from lmdeploy.messages import Response
+
+        if gen_config is None:
+            gen_config = GenerationConfig()
+        # set random if it is not set
+        if gen_config.random_seed is None:
+            gen_config.random_seed = random.getrandbits(64)
+
+        output: GenOut
+        async for output in self.pipe.generate(
+                prompt,
+                session_id,
+                gen_config=gen_config,
+                stream_response=True,
+                sequence_start=True,
+                sequence_end=True,
+                do_preprocess=do_preprocess,
+                adapter_name=adapter_name,
+            ):
+            yield Response(
+                text=output.response,
+                generate_token_len=output.generate_token_len,
+                input_token_len=output.input_token_len,
+                session_id=session_id,
+                finish_reason=output.finish_reason,
+                token_ids=output.token_ids,
+                logprobs=output.logprobs,
+            )
+
     def chat(
         self,
         query: str,
@@ -722,7 +775,8 @@ class LmdeployLocalEngine(DeployEngine):
         # 放入 [{},{}] 格式返回一个response
         # 放入 [] 或者 [[{},{}]] 格式返回一个response列表
         # for _response in self.pipe.stream_infer(
-        for _response in self.__stream_infer_single(
+        # for _response in self.__stream_infer_single(
+        for _response in self.chat_stream_local(
             prompt = prompt,
             session_id = session_id,
             gen_config = self.gen_config,
