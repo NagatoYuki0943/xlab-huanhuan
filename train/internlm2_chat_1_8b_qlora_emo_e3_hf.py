@@ -157,7 +157,7 @@ model.print_trainable_parameters()
 args = TrainingArguments(
     output_dir=work_dir,
     optim="paged_adamw_32bit",
-    learning_rate=1e-5,
+    learning_rate=2e-4,
     gradient_checkpointing=True,
     per_device_train_batch_size=1,
     gradient_accumulation_steps=16,
