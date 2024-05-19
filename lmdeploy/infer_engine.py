@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 from abc import ABC, abstractmethod
-from typing import Generator, Literal, Sequence, Any
+from typing import Generator, AsyncGenerator, Literal, Sequence, Any
 import torch
 import transformers
 from transformers import AutoTokenizer, AutoModelForCausalLM, BitsAndBytesConfig
@@ -499,13 +499,14 @@ class LmdeployLocalEngine(DeployEngine):
 
     # https://github.com/InternLM/lmdeploy/blob/main/lmdeploy/serve/async_engine.py#L453-L528
     def __stream_infer(
-            self,
-            prompts: list[str] | str | list[dict] | list[list[dict]],
-            session_ids: int | list[int],
-            gen_config = None,
-            do_preprocess: bool = True,
-            adapter_name: str | None = None,
-            **kwargs):
+        self,
+        prompts: list[str] | str | list[dict] | list[list[dict]],
+        session_ids: int | list[int],
+        gen_config = None,
+        do_preprocess: bool = True,
+        adapter_name: str | None = None,
+        **kwargs
+    ) -> Generator:
         """Inference a batch of prompts with stream mode.
 
         Args:
@@ -586,13 +587,14 @@ class LmdeployLocalEngine(DeployEngine):
 
     # https://github.com/InternLM/lmdeploy/blob/main/lmdeploy/serve/async_engine.py#L453-L528
     def __stream_infer_single(
-            self,
-            prompt: str | list[dict],
-            session_id: int,
-            gen_config = None,
-            do_preprocess: bool = True,
-            adapter_name: str | None = None,
-            **kwargs):
+        self,
+        prompt: str | list[dict],
+        session_id: int,
+        gen_config = None,
+        do_preprocess: bool = True,
+        adapter_name: str | None = None,
+        **kwargs
+    ) -> Generator:
         """Inference a batch of prompts with stream mode.
         将输入的promot限制在一条
 
@@ -656,14 +658,15 @@ class LmdeployLocalEngine(DeployEngine):
 
     # https://github.com/InternLM/lmdeploy/blob/main/lmdeploy/serve/gradio/turbomind_coupled.py#L21-L67
     async def chat_stream_local(
-            self,
-            prompt: str | list[dict],
-            session_id: int,
-            gen_config = None,
-            do_preprocess: bool = True,
-            adapter_name: str | None = None,
-            **kwargs):
-        """stream chat 简单实现
+        self,
+        prompt: str | list[dict],
+        session_id: int,
+        gen_config = None,
+        do_preprocess: bool = True,
+        adapter_name: str | None = None,
+        **kwargs
+    ) -> AsyncGenerator:
+        """stream chat 异步实现
 
         Args:
             prompt (str | list[dict]): a prompt. It accepts: string prompt,
@@ -775,8 +778,8 @@ class LmdeployLocalEngine(DeployEngine):
         # 放入 [{},{}] 格式返回一个response
         # 放入 [] 或者 [[{},{}]] 格式返回一个response列表
         # for _response in self.pipe.stream_infer(
-        # for _response in self.__stream_infer_single(
-        for _response in self.chat_stream_local(
+        for _response in self.__stream_infer_single(
+        # async for _response in self.chat_stream_local(
             prompt = prompt,
             session_id = session_id,
             gen_config = self.gen_config,
