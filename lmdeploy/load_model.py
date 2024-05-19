@@ -1,19 +1,20 @@
 import lmdeploy
 from lmdeploy import pipeline, PytorchEngineConfig, TurbomindEngineConfig, ChatTemplateConfig
+from typing import Literal
 
 
 def load_model(
     model_path: str,
-    backend: str = 'turbomind', # turbomind, pytorch
+    backend: Literal['turbomind', 'pytorch'] = 'turbomind',
     model_format: str = 'hf',
     cache_max_entry_count: float = 0.8, # 调整 KV Cache 的占用比例为0.8
     quant_policy: int = 0,              # KV Cache 量化, 0 代表禁用, 4 代表 4bit 量化, 8 代表 8bit 量化
     model_name: str = 'internlm2',
-    custom_model_name: str = 'internlm2_chat_1_8b',
     system_prompt: str = """You are an AI assistant whose name is InternLM (书生·浦语).
     - InternLM (书生·浦语) is a conversational language model that is developed by Shanghai AI Laboratory (上海人工智能实验室). It is designed to be helpful, honest, and harmless.
     - InternLM (书生·浦语) can understand and communicate fluently in the language chosen by the user such as English and 中文.
     """,
+    log_level: Literal['CRITICAL', 'ERROR', 'WARNING', 'INFO', 'DEBUG'] = 'ERROR'
 ):
     print("lmdeploy version: ", lmdeploy.__version__)
 
@@ -59,7 +60,7 @@ def load_model(
 
     # https://lmdeploy.readthedocs.io/zh-cn/latest/_modules/lmdeploy/model.html#ChatTemplateConfig
     chat_template_config = ChatTemplateConfig(
-        model_name = model_name,
+        model_name = model_name, # All the chat template names: `lmdeploy list`
         system = None,
         meta_instruction = system_prompt,
     )
@@ -69,9 +70,10 @@ def load_model(
     # https://github.com/InternLM/lmdeploy/blob/main/lmdeploy/serve/async_engine.py
     pipe = pipeline(
         model_path = model_path,
-        model_name = custom_model_name,
+        model_name = None,
         backend_config = backend_config,
         chat_template_config = chat_template_config,
+        log_level = log_level
     )
 
     return pipe

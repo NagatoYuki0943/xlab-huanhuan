@@ -19,11 +19,11 @@ if __name__ == '__main__':
         model_name = 'internlm2',
         model_format = 'hf', # The format of input model. `hf` meaning `hf_llama`, `llama` meaning `meta_llama`, `awq` meaning the quantized model by awq. Default: None. Type: str
         tp = 1,
-        session_len = 2048,
+        session_len = 8192,
         max_batch_size = 128,
-        cache_max_entry_count = 0.5, # 调整KV Cache的占用比例为0.5
+        cache_max_entry_count = 0.5,    # 调整KV Cache的占用比例为0.5
         cache_block_seq_len = 64,
-        quant_policy = 0, # 默认为0, 4为开启kvcache int8 量化
+        quant_policy = 0,               # KV Cache 量化, 0 代表禁用, 4 代表 4bit 量化, 8 代表 8bit 量化
         rope_scaling_factor = 0.0,
         use_logn_attn = False,
         download_dir = None,
@@ -38,7 +38,7 @@ if __name__ == '__main__':
 
     # https://lmdeploy.readthedocs.io/zh-cn/latest/_modules/lmdeploy/model.html#ChatTemplateConfig
     chat_template_config = ChatTemplateConfig(
-        model_name = 'internlm2',
+        model_name = 'internlm2', # All the chat template names: `lmdeploy list`
         system = None,
         meta_instruction = system_prompt,
     )
@@ -48,7 +48,7 @@ if __name__ == '__main__':
     # https://github.com/InternLM/lmdeploy/blob/main/lmdeploy/serve/openai/api_server.py
     client = serve(
         model_path = MODEL_PATH,
-        model_name = 'internlm2_chat_1_8b',
+        model_name = None,
         backend_config = backend_config,
         chat_template_config = chat_template_config,
         server_name = '0.0.0.0',

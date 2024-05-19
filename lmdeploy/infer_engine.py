@@ -34,11 +34,14 @@ class LmdeployConfig:
     cache_max_entry_count: float = 0.8  # 调整 KV Cache 的占用比例为0.8
     quant_policy: int = 0               # KV Cache 量化, 0 代表禁用, 4 代表 4bit 量化, 8 代表 8bit 量化
     model_name: str = 'internlm2'
-    custom_model_name: str = 'internlm2_chat_1_8b'
     system_prompt: str = """You are an AI assistant whose name is InternLM (书生·浦语).
     - InternLM (书生·浦语) is a conversational language model that is developed by Shanghai AI Laboratory (上海人工智能实验室). It is designed to be helpful, honest, and harmless.
     - InternLM (书生·浦语) can understand and communicate fluently in the language chosen by the user such as English and 中文.
     """
+    log_level: Literal['CRITICAL', 'ERROR', 'WARNING', 'INFO', 'DEBUG'] = 'ERROR'
+    deploy_method: Literal['local', 'server'] = 'local'
+    server_name: str = '0.0.0.0'
+    server_port: int = 23333
 
 
 def convert_history(
@@ -396,7 +399,7 @@ class TransfomersEngine(DeployEngine):
         logger.info(f"history: {history}")
 
 
-class LmdeployEngine(DeployEngine):
+class LmdeployLocalEngine(DeployEngine):
     def __init__(self, config: LmdeployConfig) -> None:
         import lmdeploy
         from lmdeploy import pipeline, PytorchEngineConfig, TurbomindEngineConfig, ChatTemplateConfig, GenerationConfig
@@ -423,7 +426,7 @@ class LmdeployEngine(DeployEngine):
                 max_batch_size = 128,
                 cache_max_entry_count = config.cache_max_entry_count,
                 cache_block_seq_len = 64,
-                quant_policy = config.quant_policy,                    # KV Cache 量化, 0 代表禁用, 4 代表 4bit 量化, 8 代表 8bit 量化
+                quant_policy = config.quant_policy, # KV Cache 量化, 0 代表禁用, 4 代表 4bit 量化, 8 代表 8bit 量化
                 rope_scaling_factor = 0.0,
                 use_logn_attn = False,
                 download_dir = None,
@@ -453,7 +456,7 @@ class LmdeployEngine(DeployEngine):
 
         # https://lmdeploy.readthedocs.io/zh-cn/latest/_modules/lmdeploy/model.html#ChatTemplateConfig
         chat_template_config = ChatTemplateConfig(
-            model_name = config.model_name,
+            model_name = config.model_name, # All the chat template names: `lmdeploy list`
             system = None,
             meta_instruction = config.system_prompt,
         )
@@ -464,9 +467,10 @@ class LmdeployEngine(DeployEngine):
         # https://github.com/InternLM/lmdeploy/blob/main/lmdeploy/serve/async_engine.py
         self.pipe = pipeline(
             model_path = config.model_path,
-            model_name = config.custom_model_name,
+            model_name = None,
             backend_config = backend_config,
             chat_template_config = chat_template_config,
+            log_level = config.log_level
         )
 
         # https://lmdeploy.readthedocs.io/zh-cn/latest/api/pipeline.html#generationconfig
@@ -734,7 +738,11 @@ class InferEngine(DeployEngine):
             logger.info("transformers model loaded")
         elif backend == 'lmdeploy':
             assert lmdeploy_config is not None, "lmdeploy_config must not be None when backend is 'lmdeploy'"
-            self.engine = LmdeployEngine(lmdeploy_config)
+            assert lmdeploy_config.deploy_method in ['local', 'server'], f"deploy_method must be 'local' or 'server', but got {lmdeploy_config.deploy_method}"
+            if lmdeploy_config.deploy_method == 'local':
+                self.engine = LmdeployLocalEngine(lmdeploy_config)
+            elif lmdeploy_config.deploy_method == 'server':
+                raise NotImplementedError
             logger.info("lmdeploy model loaded")
 
     def chat(
