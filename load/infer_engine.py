@@ -333,8 +333,12 @@ class TransfomersEngine(DeployEngine):
         temperature: float = 0.8,
         top_p: float = 0.8,
         top_k: int = 40,
+        session_id: int | None = None,
         **kwargs,
     ) -> tuple[str, Sequence]:
+        # session_id
+        logger.info(f"{session_id = }")
+
         logger.info("gen_config: {}".format({
             "max_new_tokens": max_new_tokens,
             "temperature": temperature,
@@ -369,8 +373,12 @@ class TransfomersEngine(DeployEngine):
         temperature: float = 0.8,
         top_p: float = 0.8,
         top_k: int = 40,
+        session_id: int | None = None,
         **kwargs,
     ) -> Generator[tuple[str, Sequence], None, None]:
+        # session_id
+        logger.info(f"{session_id = }")
+
         logger.info("gen_config: {}".format({
             "max_new_tokens": max_new_tokens,
             "temperature": temperature,
@@ -654,8 +662,12 @@ class LmdeployLocalEngine(DeployEngine):
         temperature: float = 0.8,
         top_p: float = 0.8,
         top_k: int = 40,
+        session_id: int | None = None,
         **kwargs,
     ) -> tuple[str, Sequence]:
+        # session_id
+        logger.info(f"{session_id = }")
+
         # 将历史记录转换为openai格式
         prompt = convert_history(query, history)
 
@@ -688,8 +700,13 @@ class LmdeployLocalEngine(DeployEngine):
         temperature: float = 0.8,
         top_p: float = 0.8,
         top_k: int = 40,
+        session_id: int | None = None,
         **kwargs,
     ) -> Generator[tuple[str, Sequence], None, None]:
+        # session_id
+        session_id = random.randint(1, 1e9) if session_id is None else session_id
+        logger.info(f"{session_id = }")
+
         # 将历史记录转换为openai格式
         prompt = convert_history(query, history)
 
@@ -707,7 +724,7 @@ class LmdeployLocalEngine(DeployEngine):
         # for _response in self.pipe.stream_infer(
         for _response in self.__stream_infer_single(
             prompt = prompt,
-            session_id = random.randint(1, 1e9),
+            session_id = session_id,
             gen_config = self.gen_config,
             do_preprocess = True,
             adapter_name = None
@@ -753,6 +770,7 @@ class InferEngine(DeployEngine):
         temperature: float = 0.8,
         top_p: float = 0.8,
         top_k: int = 40,
+        session_id: int | None = None,
         **kwargs,
     ) -> tuple[str, Sequence]:
         """对话
@@ -765,6 +783,7 @@ class InferEngine(DeployEngine):
             temperature (float, optional): temperature. Defaults to 0.8.
             top_p (float, optional): top_p. Defaults to 0.8.
             top_k (int, optional): top_k. Defaults to 40.
+            session_id (int, optional): 会话id. Defaults to None.
 
         Returns:
             tuple[str, Sequence]: 回答和历史记录
@@ -777,6 +796,7 @@ class InferEngine(DeployEngine):
             temperature = temperature,
             top_p = top_p,
             top_k = top_k,
+            session_id = session_id,
             **kwargs
         )
 
@@ -788,6 +808,7 @@ class InferEngine(DeployEngine):
         temperature: float = 0.8,
         top_p: float = 0.8,
         top_k: int = 40,
+        session_id: int | None = None,
         **kwargs,
     ) -> Generator[tuple[str, Sequence], None, None]:
         """流式返回对话
@@ -800,6 +821,7 @@ class InferEngine(DeployEngine):
             temperature (float, optional): temperature. Defaults to 0.8.
             top_p (float, optional): top_p. Defaults to 0.8.
             top_k (int, optional): top_k. Defaults to 40.
+            session_id (int, optional): 会话id. Defaults to None.
 
         Yields:
             Generator[tuple[str, Sequence], None, None]: 回答和历史记录
@@ -812,5 +834,6 @@ class InferEngine(DeployEngine):
             temperature = temperature,
             top_p = top_p,
             top_k = top_k,
+            session_id = session_id,
             **kwargs
         )

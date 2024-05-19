@@ -2,6 +2,7 @@ import os
 import gradio as gr
 from infer_engine import InferEngine, LmdeployConfig
 from typing import Generator, Sequence
+import threading
 from loguru import logger
 
 
@@ -35,6 +36,11 @@ infer_engine = InferEngine(
 )
 
 
+class InterFace:
+    global_session_id: int = 0
+    lock = threading.Lock()
+
+
 def chat_stream(
     query: str,
     history: Sequence | None = None,  # [['What is the capital of France?', 'The capital of France is Paris.'], ['Thanks', 'You are Welcome']]
@@ -42,6 +48,7 @@ def chat_stream(
     temperature: float = 0.8,
     top_p: float = 0.8,
     top_k: int = 40,
+    session_id: int | None = None,
 ) -> Generator[Sequence, None, None]:
     history = [] if history is None else list(history)
 
@@ -57,6 +64,7 @@ def chat_stream(
         temperature = temperature,
         top_p = top_p,
         top_k = top_k,
+        session_id = session_id,
     ):
         yield history
 
@@ -68,6 +76,7 @@ def regenerate(
     temperature: float = 0.8,
     top_p: float = 0.8,
     top_k: int = 40,
+    session_id: int | None = None,
 ) -> Generator[Sequence, None, None]:
     history = [] if history is None else list(history)
 
@@ -81,6 +90,7 @@ def regenerate(
             temperature = temperature,
             top_p = top_p,
             top_k = top_k,
+            session_id = session_id,
         )
     else:
         yield history
@@ -98,6 +108,8 @@ def revocery(history: Sequence | None = None) -> tuple[str, Sequence]:
 def main():
     block = gr.Blocks()
     with block as demo:
+        state_session_id = gr.State(0)
+
         with gr.Row(equal_height=True):
             with gr.Column(scale=15):
                 gr.Markdown("""<h1><center>InternLM</center></h1>
@@ -175,7 +187,7 @@ def main():
             # 回车提交
             query.submit(
                 chat_stream,
-                inputs=[query, chatbot, max_new_tokens, temperature, top_p, top_k],
+                inputs=[query, chatbot, max_new_tokens, temperature, top_p, top_k, state_session_id],
                 outputs=[chatbot]
             )
 
@@ -189,7 +201,7 @@ def main():
             # 按钮提交
             submit.click(
                 chat_stream,
-                inputs=[query, chatbot, max_new_tokens, temperature, top_p, top_k],
+                inputs=[query, chatbot, max_new_tokens, temperature, top_p, top_k, state_session_id],
                 outputs=[chatbot]
             )
 
@@ -203,7 +215,7 @@ def main():
             # 重新生成
             regen.click(
                 regenerate,
-                inputs=[query, chatbot, max_new_tokens, temperature, top_p, top_k],
+                inputs=[query, chatbot, max_new_tokens, temperature, top_p, top_k, state_session_id],
                 outputs=[chatbot]
             )
 
@@ -217,6 +229,15 @@ def main():
         gr.Markdown("""提醒：<br>
         1. 内容由 AI 大模型生成，请仔细甄别。<br>
         """)
+
+        # 初始化session_id
+        def init():
+            with InterFace.lock:
+                InterFace.global_session_id += 1
+            new_session_id = InterFace.global_session_id
+            return new_session_id
+
+        demo.load(init, inputs=None, outputs=[state_session_id])
 
     # threads to consume the request
     gr.close_all()
