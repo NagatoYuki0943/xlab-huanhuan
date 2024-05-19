@@ -1,6 +1,4 @@
 """
-https://zhuanlan.zhihu.com/p/677761706
-
 train:
     xtuner train $CONFIG [other_config]
     ex:

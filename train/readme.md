@@ -142,12 +142,10 @@ Copy to ./internlm2_chat_1_8b_qlora_alpaca_e3_copy.py
 | **prompt_template**        | 模板提示，用于定义生成文本的格式或结构                       |
 | ......                     | ......                                                       |
 
-> 如果想把显卡的现存吃满，充分利用显卡资源，可以将 `max_length` 和 `batch_size` 这两个参数调大。
+> 如果想把显卡的显存吃满，充分利用显卡资源，可以将 `max_length` 和 `batch_size` 这两个参数调大。
 
 ```python
 """
-https://zhuanlan.zhihu.com/p/677761706
-
 train:
     xtuner train $CONFIG [other_config]
     ex:
