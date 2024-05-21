@@ -17,7 +17,6 @@ if False:
     snapshot_download(
         repo_id="internlm/internlm2-chat-1_8b",
         local_dir="models/internlm2-chat-1_8b",
-        resume_download=True,
         # proxies=proxies,
         max_workers=8,
         endpoint=endpoint,
@@ -29,7 +28,6 @@ hf_hub_download(
     repo_id="internlm/internlm2-chat-1_8b",
     filename="config.json",
     local_dir="models/internlm2-chat-1_8b",
-    resume_download=True,
     # proxies=proxies,
     endpoint=endpoint,
 )
