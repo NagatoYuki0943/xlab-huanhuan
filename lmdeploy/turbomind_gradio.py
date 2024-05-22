@@ -22,10 +22,10 @@ SYSTEM_PROMPT = """You are an AI assistant whose name is InternLM (书生·浦�
 LMDEPLOY_CONFIG = LmdeployConfig(
     model_path = MODEL_PATH,
     backend = 'turbomind',
+    model_name = 'internlm2',
     model_format = 'hf',
     cache_max_entry_count = 0.8,    # 调整 KV Cache 的占用比例为0.8
     quant_policy = 0,               # KV Cache 量化, 0 代表禁用, 4 代表 4bit 量化, 8 代表 8bit 量化
-    model_name = 'internlm2',
     system_prompt = SYSTEM_PROMPT,
     deploy_method = 'local'
 )
