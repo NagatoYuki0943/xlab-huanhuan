@@ -123,15 +123,18 @@ engine_args = AsyncEngineArgs(
 engine = AsyncLLMEngine.from_engine_args(engine_args)
 
 
+# https://github.com/vllm-project/vllm/blob/main/vllm/sampling_params.py
 sampling_config = SamplingParams(
     n = 1,
     max_tokens = 1024,
     temperature = 0.8,
     top_p = 0.8,
     top_k = 0.8,
-    presence_penalty = 0.0,
-    frequency_penalty = 0.0,
-    repetition_penalty = 1.0,
+    presence_penalty = 0.0,     # 存在惩罚，介于-2.0到2.0之间的数字。正值会根据新生成的词汇是否出现在文本中来进行惩罚，增加模型讨论新话题的可能性
+    frequency_penalty = 0.0,    # 频率惩罚，介于-2.0到2.0之间的数字。正值会根据新生成的词汇在文本中现有的频率来进行惩罚，减少模型一字不差重复同样话语的可能性
+    repetition_penalty = 1.0,   # 用于控制模型在生成文本时对新词和重复词的偏好，通过调整这个参数，可以影响生成文本的多样性和重复性。
+                                # 如果设置的值 > 1，那么模型会更倾向于生成新的词，因为对重复词的惩罚增加，从而鼓励使用不同的词汇。
+                                # 如果设置的值 < 1，那么模型会更倾向于重复已经生成的词，因为对新词的惩罚减少，从而鼓励重复使用词汇。
     length_penalty = 1.0,
     skip_special_tokens = True,
     stop = stop_words,
