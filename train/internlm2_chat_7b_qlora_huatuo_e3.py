@@ -54,7 +54,7 @@ from torch.optim import AdamW
 from transformers import (AutoModelForCausalLM, AutoTokenizer,
                           BitsAndBytesConfig)
 
-from xtuner.dataset import process_hf_dataset
+from xtuner.dataset import ConcatDataset, process_hf_dataset
 from xtuner.dataset.collate_fns import default_collate_fn
 from xtuner.dataset.map_fns import template_map_fn_factory
 from xtuner.engine.hooks import (DatasetInfoHook, EvaluateChatHook,
@@ -72,7 +72,8 @@ pretrained_model_name_or_path = './models/internlm2-chat-7b'
 use_varlen_attn = False
 
 # Data
-data_path = './data/Huatuo26M-Lite-xtuner-data.json'
+data_path1 = './data/Huatuo26M-Lite/Huatuo26M-Lite-markdown-xtuner.json' # 61222
+data_path2 = './data/Huatuo26M-Lite/Huatuo26M-Lite-old-xtuner.json'      # 116481
 prompt_template = PROMPT_TEMPLATE.internlm2_chat
 max_length = 2048
 pack_to_max_length = True
@@ -100,7 +101,12 @@ save_total_limit = 3  # Maximum checkpoints to keep (-1 means unlimited)
 
 # Evaluate the generation performance during the training
 evaluation_freq = 500
-SYSTEM = '你现在是一名医生，具备丰富的医学知识和临床经验。你擅长诊断和治疗各种疾病，能为病人提供专业的医疗建议。你有良好的沟通技巧，能与病人和他们的家人建立信任关系。请在这个角色下为我解答以下问题。'
+SYSTEM = """
+你是医疗保健智能体，名字叫做 "HeathcareAgent"。
+    - ”HeathcareAgent“ 可以根据自己丰富的医疗知识来回答问题。
+    - ”HeathcareAgent“ 的回答应该是有益的、诚实的和无害的。
+    - ”HeathcareAgent“ 可以使用用户选择的语言（如英语和中文）进行理解和交流。
+"""
 evaluation_inputs = [
     '我自去年春天双手起了一些对称性水泡，奇痒还脱皮，一直用药至今不见好。。有些医生说是汗疱疹，有些说是湿疹，用了一些地奈德乳膏，尿素软膏，还有一些中药泡手应该怎样治疗？',
     '一年前我不幸患上肺结核病，经过打针，吃药治疗，已满一年了，近期去医院复查，做了CT,验血生化检测，已经算是没什么了，但怎样才算康复呢，要不要停止吃药？'
@@ -147,10 +153,10 @@ model = dict(
 #######################################################################
 #                      PART 3  Dataset & Dataloader                   #
 #######################################################################
-train_dataset = dict(
+train_dataset1 = dict(
     type=process_hf_dataset,
     dataset=dict(
-        type=load_dataset, path='json', data_files=dict(train=data_path)),
+        type=load_dataset, path='json', data_files=dict(train=data_path1)),
     tokenizer=tokenizer,
     max_length=max_length,
     dataset_map_fn=None,
@@ -160,6 +166,22 @@ train_dataset = dict(
     shuffle_before_pack=True,
     pack_to_max_length=pack_to_max_length,
     use_varlen_attn=use_varlen_attn)
+
+train_dataset2 = dict(
+    type=process_hf_dataset,
+    dataset=dict(
+        type=load_dataset, path='json', data_files=dict(train=data_path2)),
+    tokenizer=tokenizer,
+    max_length=max_length,
+    dataset_map_fn=None,
+    template_map_fn=dict(
+        type=template_map_fn_factory, template=prompt_template),
+    remove_unused_columns=True,
+    shuffle_before_pack=True,
+    pack_to_max_length=pack_to_max_length,
+    use_varlen_attn=use_varlen_attn)
+
+train_dataset = dict(type=ConcatDataset, datasets=[train_dataset1, train_dataset2])
 
 sampler = SequenceParallelSampler \
     if sequence_parallel_size > 1 else DefaultSampler
