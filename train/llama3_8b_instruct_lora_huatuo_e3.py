@@ -56,7 +56,7 @@ from transformers import (AutoModelForCausalLM, AutoTokenizer,
 
 from xtuner.dataset import ConcatDataset, process_hf_dataset
 from xtuner.dataset.collate_fns import default_collate_fn
-from xtuner.dataset.map_fns import template_map_fn_factory
+from xtuner.dataset.map_fns import openai_map_fn, template_map_fn_factory
 from xtuner.engine.hooks import (DatasetInfoHook, EvaluateChatHook,
                                  VarlenAttnArgsToMessageHubHook, ThroughputHook)
 from xtuner.engine.runner import TrainLoop
@@ -74,6 +74,7 @@ use_varlen_attn = False
 # Data
 data_path1 = './data/Huatuo26M-Lite/Huatuo26M-Lite-markdown-xtuner.json' # 61222
 data_path2 = './data/Huatuo26M-Lite/Huatuo26M-Lite-old-xtuner.json'      # 116481
+data_path3 = './data/Huatuo26M-Lite/healthcare_format_add_system.jsonl'  # 788
 prompt_template = PROMPT_TEMPLATE.llama3_chat
 max_length = 2048
 pack_to_max_length = True
@@ -182,7 +183,22 @@ train_dataset2 = dict(
     pack_to_max_length=pack_to_max_length,
     use_varlen_attn=use_varlen_attn)
 
-train_dataset = dict(type=ConcatDataset, datasets=[train_dataset1, train_dataset2])
+train_dataset3 = dict(
+    type=process_hf_dataset,
+    dataset=dict(
+        type=load_dataset, path='json', data_files=dict(train=data_path3)),
+    tokenizer=tokenizer,
+    max_length=max_length,
+    dataset_map_fn=openai_map_fn,
+    template_map_fn=dict(
+        type=template_map_fn_factory, template=prompt_template),
+    remove_unused_columns=True,
+    shuffle_before_pack=True,
+    pack_to_max_length=pack_to_max_length,
+    use_varlen_attn=use_varlen_attn)
+
+train_dataset = dict(type=ConcatDataset, datasets=[train_dataset1, train_dataset2, train_dataset3])
+
 
 sampler = SequenceParallelSampler \
     if sequence_parallel_size > 1 else DefaultSampler
