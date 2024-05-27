@@ -13,7 +13,7 @@ linux:
 powershell:
     $env:API_KEY = "your token"
 """
-api_key = os.getenv("API_KEY", "")
+api_key = os.getenv("API_KEY", "I AM AN API_KEY")
 print(f"{ api_key = }")
 
 
