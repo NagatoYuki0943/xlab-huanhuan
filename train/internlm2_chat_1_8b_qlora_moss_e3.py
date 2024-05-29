@@ -79,6 +79,8 @@ max_length = 2048
 pack_to_max_length = True
 
 # parallel
+# https://xtuner.readthedocs.io/zh-cn/latest/acceleration/hyper_parameters.html#sequence-parallel-size-accumulative-counts
+# https://xtuner.readthedocs.io/zh-cn/latest/acceleration/train_extreme_long_sequence.html
 sequence_parallel_size = 1
 
 # Scheduler & Optimizer
