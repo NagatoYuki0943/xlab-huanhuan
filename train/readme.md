@@ -168,7 +168,7 @@ merge adapter:
         xtuner convert merge \
             models/internlm2-chat-1_8b \
             work_dirs/internlm2_chat_1_8b_qlora_emo_e3/hf \
-            work_dirs/internlm2_chat_1_8b_qlora_emo_e3/merged \
+            work_dirs/internlm2_chat_1_8b_qlora_emo_e3/epoch_3.merged \
             --max-shard-size 2GB
 
 chat:
@@ -680,7 +680,7 @@ xtuner convert merge ${NAME_OR_PATH_TO_LLM} ${NAME_OR_PATH_TO_ADAPTER} ${SAVE_PA
 xtuner convert merge \
     models/internlm2-chat-1_8b \
     work_dirs/internlm2_1_8b_qlora_emo_e3/hf \
-    work_dirs/internlm2_1_8b_qlora_emo_e3/merged \
+    work_dirs/internlm2_1_8b_qlora_emo_e3/epoch_3.merged \
     --max-shard-size 2GB
 ```
 

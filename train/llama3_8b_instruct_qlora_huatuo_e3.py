@@ -11,7 +11,7 @@ convert:
         xtuner convert pth_to_hf \
             train/llama3_8b_instruct_qlora_huatuo_e3.py \
             work_dirs/llama3_8b_instruct_qlora_huatuo_e3/epoch_3.pth \
-            work_dirs/llama3_8b_instruct_qlora_huatuo_e3/epoch_3_hf \
+            work_dirs/llama3_8b_instruct_qlora_huatuo_e3/epoch_3.hf \
             --max-shard-size 2GB
 
 merge adapter:
@@ -20,8 +20,8 @@ merge adapter:
     ex:
         xtuner convert merge \
             models/models/Meta-Llama-3-8B-Instruct \
-            work_dirs/llama3_8b_instruct_qlora_huatuo_e3/hf \
-            work_dirs/llama3_8b_instruct_qlora_huatuo_e3/merged \
+            work_dirs/llama3_8b_instruct_qlora_huatuo_e3/epoch_3.hf \
+            work_dirs/llama3_8b_instruct_qlora_huatuo_e3/epoch_3.merged \
             --max-shard-size 2GB
 
 chat:
@@ -30,7 +30,7 @@ chat:
     ex:
         xtuner chat \
             models/models/Meta-Llama-3-8B-Instruct \
-            --adapter work_dirs/llama3_8b_instruct_qlora_huatuo_e3/hf \
+            --adapter work_dirs/llama3_8b_instruct_qlora_huatuo_e3/epoch_3.hf \
             --bits 8 --temperature 0.7 --top-k 50 --top-p 0.9 \
             --system '你是医疗保健智能体，名字叫做 "HeathcareAgent"。\n    - "HeathcareAgent" 可以根据自己丰富的医疗知识来回答问题。\n    - "HeathcareAgent" 的回答应该是有益的、诚实的和无害的。\n    - "HeathcareAgent" 可以使用用户选择的语言（如英语和中文）进行理解和交流。'
 

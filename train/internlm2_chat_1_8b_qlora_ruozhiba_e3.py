@@ -15,7 +15,7 @@ convert:
         xtuner convert pth_to_hf \
             train/internlm2_chat_1_8b_qlora_ruozhiba_e3.py \
             work_dirs/internlm2_chat_1_8b_qlora_ruozhiba_e3/epoch_3.pth \
-            work_dirs/internlm2_chat_1_8b_qlora_ruozhiba_e3/epoch_3_hf \
+            work_dirs/internlm2_chat_1_8b_qlora_ruozhiba_e3/epoch_3.hf \
             --max-shard-size 2GB
 
 merge adapter:
@@ -24,8 +24,8 @@ merge adapter:
     ex:
         xtuner convert merge \
             models/internlm2-chat-1_8b \
-            work_dirs/internlm2_chat_1_8b_qlora_ruozhiba_e3/hf \
-            work_dirs/internlm2_chat_1_8b_qlora_ruozhiba_e3/merged \
+            work_dirs/internlm2_chat_1_8b_qlora_ruozhiba_e3/epoch_3.hf \
+            work_dirs/internlm2_chat_1_8b_qlora_ruozhiba_e3/epoch_3.merged \
             --max-shard-size 2GB
 
 chat:
@@ -34,7 +34,7 @@ chat:
     ex:
         xtuner chat \
             models/internlm2-chat-1_8b \
-            --adapter work_dirs/internlm2_chat_1_8b_qlora_ruozhiba_e3/hf \
+            --adapter work_dirs/internlm2_chat_1_8b_qlora_ruozhiba_e3/epoch_3.hf \
             --bits 8 --temperature 0.7 --top-k 50 --top-p 0.9
 
 验证数据集是否正确构建:
