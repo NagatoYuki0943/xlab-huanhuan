@@ -19,7 +19,7 @@ merge adapter:
 
     ex:
         xtuner convert merge \
-            models/internlm2-chat-1_8b \
+            models/internlm2-chat-7b \
             work_dirs/internlm2_chat_7b_qlora_oasst1_e3/hf \
             work_dirs/internlm2_chat_7b_qlora_oasst1_e3/merged \
             --max-shard-size 2GB
@@ -29,7 +29,7 @@ chat:
 
     ex:
         xtuner chat \
-            models/internlm2-chat-1_8b \
+            models/internlm2-chat-7b \
             --adapter work_dirs/internlm2_chat_7b_qlora_oasst1_e3/hf \
             --bits 8 --temperature 0.7 --top-k 50 --top-p 0.9
 

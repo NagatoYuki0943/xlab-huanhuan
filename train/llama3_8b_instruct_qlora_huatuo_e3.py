@@ -19,7 +19,7 @@ merge adapter:
 
     ex:
         xtuner convert merge \
-            models/internlm2-chat-1_8b \
+            models/models/Meta-Llama-3-8B-Instruct \
             work_dirs/llama3_8b_instruct_qlora_huatuo_e3/hf \
             work_dirs/llama3_8b_instruct_qlora_huatuo_e3/merged \
             --max-shard-size 2GB
@@ -29,7 +29,7 @@ chat:
 
     ex:
         xtuner chat \
-            models/internlm2-chat-1_8b \
+            models/models/Meta-Llama-3-8B-Instruct \
             --adapter work_dirs/llama3_8b_instruct_qlora_huatuo_e3/hf \
             --bits 8 --temperature 0.7 --top-k 50 --top-p 0.9 \
             --system 你现在是一名医生，具备丰富的医学知识和临床经验。你擅长诊断和治疗各种疾病，能为病人提供专业的医疗建议。你有良好的沟通技巧，能与病人和他们的家人建立信任关系。请在这个角色下为我解答以下问题。
