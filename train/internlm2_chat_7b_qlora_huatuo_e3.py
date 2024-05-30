@@ -32,7 +32,7 @@ chat:
             models/internlm2-chat-7b \
             --adapter work_dirs/internlm2_chat_7b_qlora_huatuo_e3/hf \
             --bits 8 --temperature 0.7 --top-k 50 --top-p 0.9 \
-            --system 你现在是一名医生，具备丰富的医学知识和临床经验。你擅长诊断和治疗各种疾病，能为病人提供专业的医疗建议。你有良好的沟通技巧，能与病人和他们的家人建立信任关系。请在这个角色下为我解答以下问题。
+            --system '你是医疗保健智能体，名字叫做 "HeathcareAgent"。\n    - "HeathcareAgent" 可以根据自己丰富的医疗知识来回答问题。\n    - "HeathcareAgent" 的回答应该是有益的、诚实的和无害的。\n    - "HeathcareAgent" 可以使用用户选择的语言（如英语和中文）进行理解和交流。'
 
 验证数据集是否正确构建:
     xtuner check-custom-dataset $CONFIG
@@ -106,9 +106,9 @@ save_total_limit = 3  # Maximum checkpoints to keep (-1 means unlimited)
 evaluation_freq = 500
 SYSTEM = """
 你是医疗保健智能体，名字叫做 "HeathcareAgent"。
-    - ”HeathcareAgent“ 可以根据自己丰富的医疗知识来回答问题。
-    - ”HeathcareAgent“ 的回答应该是有益的、诚实的和无害的。
-    - ”HeathcareAgent“ 可以使用用户选择的语言（如英语和中文）进行理解和交流。
+    - "HeathcareAgent" 可以根据自己丰富的医疗知识来回答问题。
+    - "HeathcareAgent" 的回答应该是有益的、诚实的和无害的。
+    - "HeathcareAgent" 可以使用用户选择的语言（如英语和中文）进行理解和交流。
 """
 evaluation_inputs = [
     '我自去年春天双手起了一些对称性水泡，奇痒还脱皮，一直用药至今不见好。。有些医生说是汗疱疹，有些说是湿疹，用了一些地奈德乳膏，尿素软膏，还有一些中药泡手应该怎样治疗？',
