@@ -150,7 +150,7 @@ model = dict(
         inference_mode=False,   # 训练模式
         r=8,                    # Lora 秩 lora 改为 8
         target_modules=['q_proj', 'k_proj', 'v_proj', 'o_proj', 'gate_proj', 'up_proj', 'down_proj'],
-        lora_alpha=16,          # Lora alaph，具体作用参见 Lora 原理
+        lora_alpha=8,           # Lora alaph，具体作用参见 Lora 原理
         lora_dropout=0.1,       # Dropout 比例
         bias='none'))
 

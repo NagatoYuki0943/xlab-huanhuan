@@ -2,16 +2,16 @@
 train:
     xtuner train $CONFIG [other_config]
     ex:
-        xtuner train train/internlm2_chat_7b_qlora_huatuo_e3.py --deepspeed deepspeed_zero2
+        xtuner train train/llama3_8b_instruct_qlora_huatuo_e1.py --deepspeed deepspeed_zero2
 
 convert:
     xtuner convert pth_to_hf $CONFIG $PATH_TO_PTH_MODEL $SAVE_PATH_TO_HF_MODEL --max-shard-size 2GB
 
     ex:
         xtuner convert pth_to_hf \
-            train/internlm2_chat_7b_qlora_huatuo_e3.py \
-            work_dirs/internlm2_chat_7b_qlora_huatuo_e3/epoch_3.pth \
-            work_dirs/internlm2_chat_7b_qlora_huatuo_e3/epoch_3.hf \
+            train/llama3_8b_instruct_qlora_huatuo_e1.py \
+            work_dirs/llama3_8b_instruct_qlora_huatuo_e1/iter_13935.hf.pth \
+            work_dirs/llama3_8b_instruct_qlora_huatuo_e1/iter_13935.hf \
             --max-shard-size 2GB
 
 merge adapter:
@@ -19,9 +19,9 @@ merge adapter:
 
     ex:
         xtuner convert merge \
-            models/internlm2-chat-7b \
-            work_dirs/internlm2_chat_7b_qlora_huatuo_e3/epoch_3.hf \
-            work_dirs/internlm2_chat_7b_qlora_huatuo_e3/epoch_3.merged \
+            models/models/Meta-Llama-3-8B-Instruct \
+            work_dirs/llama3_8b_instruct_qlora_huatuo_e1/iter_13935.hf \
+            work_dirs/llama3_8b_instruct_qlora_huatuo_e1/iter_13935.merged \
             --max-shard-size 2GB
 
 chat:
@@ -29,8 +29,8 @@ chat:
 
     ex:
         xtuner chat \
-            models/internlm2-chat-7b \
-            --adapter work_dirs/internlm2_chat_7b_qlora_huatuo_e3/epoch_3.hf \
+            models/models/Meta-Llama-3-8B-Instruct \
+            --adapter work_dirs/llama3_8b_instruct_qlora_huatuo_e1/iter_13935.hf \
             --bits 8 --temperature 0.7 --top-k 50 --top-p 0.9 \
             --system '你是医疗保健智能体，名字叫做 "HeathcareAgent"。\n    - "HeathcareAgent" 可以根据自己丰富的医疗知识来回答问题。\n    - "HeathcareAgent" 的回答应该是有益的、诚实的和无害的。\n    - "HeathcareAgent" 可以使用用户选择的语言（如英语和中文）进行理解和交流。'
 
@@ -38,7 +38,7 @@ chat:
     xtuner check-custom-dataset $CONFIG
 
     ex:
-        xtuner check-custom-dataset train/internlm2_chat_7b_qlora_huatuo_e3.py
+        xtuner check-custom-dataset train/llama3_8b_instruct_qlora_huatuo_e1.py
 """
 
 
@@ -68,14 +68,14 @@ from xtuner.utils import PROMPT_TEMPLATE, SYSTEM_TEMPLATE
 #                          PART 1  Settings                           #
 #######################################################################
 # Model
-pretrained_model_name_or_path = './models/internlm2-chat-7b'
+pretrained_model_name_or_path = './models/Meta-Llama-3-8B-Instruct'
 use_varlen_attn = False
 
 # Data
 data_path1 = './data/Huatuo26M-Lite/Huatuo26M-Lite-markdown-xtuner.json' # 61222
 data_path2 = './data/Huatuo26M-Lite/Huatuo26M-Lite-old-xtuner.json'      # 116481
 data_path3 = './data/Huatuo26M-Lite/healthcare_format_add_system.jsonl'  # 788
-prompt_template = PROMPT_TEMPLATE.internlm2_chat
+prompt_template = PROMPT_TEMPLATE.llama3_chat
 max_length = 2048
 pack_to_max_length = True
 
@@ -89,7 +89,7 @@ batch_size = 1  # per_device
 accumulative_counts = 16
 accumulative_counts *= sequence_parallel_size
 dataloader_num_workers = 0
-max_epochs = 3
+max_epochs = 1
 optim_type = AdamW
 lr = 2e-4
 betas = (0.9, 0.999)
@@ -98,8 +98,8 @@ max_norm = 1  # grad clip
 warmup_ratio = 0.03
 
 # Save
-by_epoch = True    # save and log by epoch or by iteration
-save_steps = 1
+by_epoch = False    # save and log by epoch or by iteration
+save_steps = 1000
 save_total_limit = 3  # Maximum checkpoints to keep (-1 means unlimited)
 
 # Evaluate the generation performance during the training
@@ -147,9 +147,9 @@ model = dict(
         type=LoraConfig,
         task_type=TaskType.CAUSAL_LM,
         inference_mode=False,   # 训练模式
-        r=64,                   # Lora 秩
-        target_modules=['wqkv', 'wo', 'w1', 'w2', 'w3'],
-        lora_alpha=16,          # Lora alaph，具体作用参见 Lora 原理
+        r=8,                    # Lora 秩
+        target_modules=['q_proj', 'k_proj', 'v_proj', 'o_proj', 'gate_proj', 'up_proj', 'down_proj'],
+        lora_alpha=8,           # Lora alaph，具体作用参见 Lora 原理
         lora_dropout=0.1,       # Dropout 比例
         bias='none'))
 
