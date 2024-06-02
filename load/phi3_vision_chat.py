@@ -38,8 +38,18 @@ url = "https://assets-c4akfrf5b4d3f4b7.z01.azurefd.net/assets/2024/04/BMDataViz_
 image = Image.open(requests.get(url, stream=True).raw)
 
 prompt = processor.tokenizer.apply_chat_template(messages, tokenize=False, add_generation_prompt=True)
+print(prompt)
+# <|user|>
+# <|image_1|>
+# What is shown in this image?<|end|>
+# <|assistant|>
+# The chart displays the percentage of respondents who agree with various statements about their preparedness for meetings. It shows five categories: 'Having clear and pre-defined goals for meetings', 'Knowing where to find the information I need for a meeting', 'Understanding my exact role and responsibilities when I'm invited', 'Having tools to manage admin tasks like note-taking or summarization', and 'Having more focus time to sufficiently prepare for meetings'. Each category has an associated bar indicating the level of agreement, measured on a scale from 0% to 100%.<|end|>
+# <|user|>
+# Provide insightful questions to spark discussion.<|end|>
+# <|assistant|>
+#
 
-inputs = processor(prompt, [image], return_tensors="pt").to("cuda:0")
+inputs = processor(text=prompt, images=image, return_tensors="pt").to("cuda:0")
 print(inputs.keys())
 # dict_keys(['input_ids', 'attention_mask', 'pixel_values', 'image_sizes'])
 
