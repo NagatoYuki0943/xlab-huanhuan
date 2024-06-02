@@ -74,7 +74,7 @@ with torch.inference_mode():
         attention_mask = inputs["attention_mask"],
         generation_config = generation_config,
     )
-outputs
+
 print(outputs)
 # 取出第一条数据
 ids = outputs[0].cpu()[len(inputs["input_ids"][0]) :]

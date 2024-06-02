@@ -65,8 +65,6 @@ def load_tokenizer_processor_and_model(
 
     logger.info(f"model.device: {model.device}, model.dtype: {model.dtype}")
 
-
-    print(f"model.device: {model.device}, model.dtype: {model.dtype}")
     return tokenizer, processor, model
 
 
