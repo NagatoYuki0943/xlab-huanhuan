@@ -1,5 +1,5 @@
 import transformers
-from transformers import AutoTokenizer, AutoModelForCausalLM, BitsAndBytesConfig
+from transformers import AutoTokenizer, AutoProcessor, AutoModelForCausalLM, BitsAndBytesConfig
 from peft import PeftModel
 import torch
 from dataclasses import dataclass
@@ -19,7 +19,7 @@ class TransformersConfig:
     """
 
 
-def load_tokenizer_and_model(
+def load_tokenizer_processor_and_model(
     config: TransformersConfig,
 ) -> tuple[AutoTokenizer, AutoModelForCausalLM]:
     logger.info(f"torch version: {torch.__version__}")
@@ -28,6 +28,9 @@ def load_tokenizer_and_model(
 
     # tokenizer
     tokenizer = AutoTokenizer.from_pretrained(config.pretrained_model_name_or_path, trust_remote_code = True)
+
+    # processor: Multimodal tasks require a processor that combines two types of preprocessing tools.
+    processor = AutoProcessor.from_pretrained(config.pretrained_model_name_or_path, trust_remote_code = True)
 
     # 量化
     quantization_config = BitsAndBytesConfig(
@@ -64,7 +67,7 @@ def load_tokenizer_and_model(
 
 
     print(f"model.device: {model.device}, model.dtype: {model.dtype}")
-    return tokenizer, model
+    return tokenizer, processor, model
 
 
 if __name__ == '__main__':
@@ -91,6 +94,7 @@ if __name__ == '__main__':
         system_prompt = SYSTEM_PROMPT
     )
 
-    tokenizer, model = load_tokenizer_and_model(config=TRANSFORMERS_CONFIG)
+    tokenizer, processor, model = load_tokenizer_processor_and_model(config=TRANSFORMERS_CONFIG)
     print(tokenizer)
+    print(processor)
     print(model)

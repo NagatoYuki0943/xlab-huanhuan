@@ -1,6 +1,6 @@
 import torch
 from transformers import GenerationConfig
-from load_tokenizer_and_model import load_tokenizer_and_model, TransformersConfig
+from load_tokenizer_processor_and_model import load_tokenizer_processor_and_model, TransformersConfig
 
 
 # clone 模型
@@ -27,7 +27,7 @@ TRANSFORMERS_CONFIG = TransformersConfig(
     system_prompt = SYSTEM_PROMPT
 )
 
-tokenizer, model = load_tokenizer_and_model(config=TRANSFORMERS_CONFIG)
+tokenizer, processor, model = load_tokenizer_processor_and_model(config=TRANSFORMERS_CONFIG)
 
 
 # https://huggingface.co/internlm/internlm2-chat-1_8b/blob/main/modeling_internlm2.py#L1136-L1146

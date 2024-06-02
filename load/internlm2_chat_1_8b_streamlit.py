@@ -1,6 +1,6 @@
 # https://github.com/dataprofessor/llama2/blob/master/streamlit_app_v2.py
 # cmd: streamlit run ./load/internlm2_chat_1_8b_streamlit.py
-from load_tokenizer_and_model import load_tokenizer_and_model, TransformersConfig
+from load_tokenizer_processor_and_model import load_tokenizer_processor_and_model, TransformersConfig
 import streamlit as st
 import os
 
@@ -60,7 +60,7 @@ TRANSFORMERS_CONFIG = TransformersConfig(
     system_prompt = SYSTEM_PROMPT
 )
 
-tokenizer, model = load_tokenizer_and_model(config=TRANSFORMERS_CONFIG)
+tokenizer, processor, model = load_tokenizer_processor_and_model(config=TRANSFORMERS_CONFIG)
 
 
 # App title

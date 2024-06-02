@@ -1,4 +1,4 @@
-from load_tokenizer_and_model import load_tokenizer_and_model, TransformersConfig
+from load_tokenizer_processor_and_model import load_tokenizer_processor_and_model, TransformersConfig
 
 
 # clone 模型
@@ -24,7 +24,7 @@ TRANSFORMERS_CONFIG = TransformersConfig(
     system_prompt = SYSTEM_PROMPT
 )
 
-tokenizer, model = load_tokenizer_and_model(config=TRANSFORMERS_CONFIG)
+tokenizer, processor, model = load_tokenizer_processor_and_model(config=TRANSFORMERS_CONFIG)
 
 
 print(tokenizer.all_special_tokens) # ['<s>', '</s>', '<unk>', '<|im_start|>', '<|im_end|>', '<|action_start|>', '<|action_end|>', '<|interpreter|>', '<|plugin|>']
