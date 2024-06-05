@@ -1,5 +1,6 @@
 from transformers import AutoTokenizer
-from vllm import LLM, LLMEngine, AsyncLLMEngine, EngineArgs, AsyncEngineArgs, SamplingParams
+from vllm import AsyncLLMEngine, EngineArgs, AsyncEngineArgs, SamplingParams
+from vllm.outputs import RequestOutput
 # https://docs.vllm.ai/en/latest/models/lora.html
 from vllm.lora.request import LoRARequest
 from utils import random_uuid
@@ -15,31 +16,6 @@ stop_words = [tokenizer.eos_token]
 print(stop_words)
 stop_token_ids = [tokenizer.eos_token_id]
 print(tokenizer.decode(stop_token_ids))
-
-
-# https://docs.vllm.ai/en/latest/getting_started/examples/offline_inference.html
-# https://github.com/vllm-project/vllm/blob/main/vllm/entrypoints/llm.py
-# https://github.com/vllm-project/vllm/blob/main/vllm/engine/llm_engine.py
-model = LLM(
-    model = PRETRAINED_MODEL_NAME_OR_PATH,
-    tokenizer = None, # 可以为 None,会自动从模型路径载入,不能传递实例化好的 tokenizer
-    tokenizer_mode = "auto",
-    skip_tokenizer_init = False,
-    trust_remote_code = True,
-    tensor_parallel_size = 1, # The number of GPUs to use for distributed execution with tensor parallelism.
-    dtype = "auto",
-    quantization = None,      # support "awq", "gptq", "squeezellm", and "fp8" (experimental). If None, we first check the `quantization_config` attribute in the model config file.
-    revision = None,
-    tokenizer_revision = None,
-    seed = 0,
-    gpu_memory_utilization = 0.9, # The ratio (between 0 and 1) of GPU memory to reserve for the model weights, activations, and KV cache.
-    swap_space = 4,
-    enforce_eager = False,
-    max_context_len_to_capture = None,
-    max_seq_len_to_capture = 8192, # Maximum context len covered by CUDA graphs.
-    disable_custom_all_reduce= False,
-    enable_lora = False,    # enable_lora
-)
 
 
 # https://github.com/vllm-project/vllm/blob/main/vllm/engine/arg_utils.py
@@ -120,11 +96,11 @@ engine_args = AsyncEngineArgs(
 # https://docs.vllm.ai/en/latest/dev/engine/async_llm_engine.html
 # https://github.com/vllm-project/vllm/blob/main/vllm/engine/async_llm_engine.py
 # https://github.com/vllm-project/vllm/blob/main/vllm/entrypoints/api_server.py
-engine = AsyncLLMEngine.from_engine_args(engine_args)
+engine: AsyncLLMEngine = AsyncLLMEngine.from_engine_args(engine_args)
 
 
 # https://github.com/vllm-project/vllm/blob/main/vllm/sampling_params.py
-sampling_config = SamplingParams(
+sampling_config: SamplingParams = SamplingParams(
     n = 1,
     max_tokens = 1024,
     temperature = 0.8,
@@ -150,17 +126,8 @@ prompts = [
 ]
 
 
-# batch
-for response in model.generate(
-    prompts = prompts,
-    sampling_params = sampling_config,
-    use_tqdm = True,
-    # lora_request = LoRARequest("emo", 1, ADAPTER_PATH)
-):
-    print(response)
-
-
 # stream
+response: RequestOutput
 for response in engine.generate(
     prompt = prompts[0],
     sampling_params = sampling_config,
