@@ -1,3 +1,4 @@
+import asyncio
 from transformers import AutoTokenizer
 from vllm import AsyncLLMEngine, EngineArgs, AsyncEngineArgs, SamplingParams
 from vllm.outputs import RequestOutput
@@ -63,7 +64,7 @@ engine_args = AsyncEngineArgs(
     max_lora_rank = 16,
     fully_sharded_loras = False,
     lora_extra_vocab_size = 256,
-    lora_dtype = 'auto',
+    # lora_dtype = 'auto',
     max_cpu_loras = None,
     device = 'auto',
     ray_workers_use_nsight = False,
@@ -126,12 +127,16 @@ prompts = [
 ]
 
 
-# stream
-response: RequestOutput
-for response in engine.generate(
-    prompt = prompts[0],
-    sampling_params = sampling_config,
-    request_id = random_uuid('str'),  # unique id
-    # lora_request = LoRARequest("emo", 1, ADAPTER_PATH)
-):
-    print(response)
+async def main() -> None:
+    # stream
+    response: RequestOutput
+    async for response in engine.generate(
+        inputs = prompts[0],
+        sampling_params = sampling_config,
+        request_id = random_uuid('str'),  # unique id
+        # lora_request = LoRARequest("emo", 1, ADAPTER_PATH)
+    ):
+        print(response)
+
+
+asyncio.run(main())
