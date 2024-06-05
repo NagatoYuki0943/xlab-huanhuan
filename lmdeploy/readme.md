@@ -620,7 +620,7 @@ lmdeploy serve api_server \
     --backend pytorch \
     --tp 1 \
     --cache-max-entry-count 0.8 \
-    --model-name internlm2_1_8b_chat \
+    --model-name internlm2 \
     --server-name {ip_addr} \
     --server-port {port}
 
@@ -632,7 +632,7 @@ lmdeploy serve api_server \
     --tp 1 \
     --cache-max-entry-count 0.8 \
     --quant-policy 0 \
-    --model-name internlm2_1_8b_chat \
+    --model-name internlm2 \
     --server-name {ip_addr} \
     --server-port {port}
 
@@ -643,9 +643,11 @@ lmdeploy serve api_server \
     --tp 1 \
     --cache-max-entry-count 0.8 \
     --quant-policy 0 \
-    --model-name internlm2_1_8b_chat \
+    --model-name internlm2 \
     --server-name 0.0.0.0 \
     --server-port 23333
+
+# 启动后访问 127.0.0.1:23333
 ```
 
 server访问
@@ -796,7 +798,7 @@ lmdeploy serve api_server \
     --backend pytorch \
     --tp 1 \
     --cache-max-entry-count 0.8 \
-    --model-name internlm2_1_8b_chat \
+    --model-name internlm2 \
     --server-name {ip_addr} \
     --server-port {port}
 
@@ -808,7 +810,7 @@ lmdeploy serve api_server \
     --tp 1 \
     --cache-max-entry-count 0.8 \
     --quant-policy 0 \
-    --model-name internlm2_1_8b_chat \
+    --model-name internlm2 \
     --server-name {ip_addr} \
     --server-port {port}
 
@@ -825,7 +827,7 @@ lmdeploy serve api_server \
     --tp 1 \
     --cache-max-entry-count 0.8 \
     --quant-policy 0 \
-    --model-name internlm2_1_8b_chat \
+    --model-name internlm2 \
     --server-name 0.0.0.0 \
     --server-port 23333
 
