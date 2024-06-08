@@ -21,7 +21,7 @@ class TransformersConfig:
 
 def load_tokenizer_processor_and_model(
     config: TransformersConfig,
-) -> tuple[AutoTokenizer, AutoModelForCausalLM]:
+) -> tuple[AutoTokenizer, AutoProcessor, AutoModelForCausalLM]:
     logger.info(f"torch version: {torch.__version__}")
     logger.info(f"transformers version: {transformers.__version__}")
     logger.info(f"transformers config: {config}")

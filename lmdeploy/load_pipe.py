@@ -1,6 +1,8 @@
 import lmdeploy
 from lmdeploy import pipeline, PytorchEngineConfig, TurbomindEngineConfig, ChatTemplateConfig
 from typing import Literal
+from lmdeploy.serve.async_engine import AsyncEngine
+from lmdeploy.serve.vl_async_engine import VLAsyncEngine
 from loguru import logger
 from dataclasses import dataclass
 
@@ -30,7 +32,7 @@ class LmdeployConfig:
 
 def load_pipe(
     config: LmdeployConfig
-):
+) -> AsyncEngine | VLAsyncEngine:
     logger.info(f"lmdeploy version: {lmdeploy.__version__}")
     logger.info(f"lmdeploy config: {config}")
 

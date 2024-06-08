@@ -5,10 +5,7 @@ from transformers import GenerationConfig
 from load_tokenizer_processor_and_model import load_tokenizer_processor_and_model, TransformersConfig
 
 
-# clone 模型
 PRETRAINED_MODEL_NAME_OR_PATH = '../models/Phi-3-vision-128k-instruct'
-# os.system(f'git clone https://code.openxlab.org.cn/OpenLMLab/internlm2-chat-1.8b {PRETRAINED_MODEL_NAME_OR_PATH}')
-# os.system(f'cd {PRETRAINED_MODEL_NAME_OR_PATH} && git lfs pull')
 ADAPTER_PATH = None
 # 量化
 LOAD_IN_8BIT= False
@@ -21,8 +18,8 @@ TRANSFORMERS_CONFIG = TransformersConfig(
     adapter_path = ADAPTER_PATH,
     load_in_8bit = LOAD_IN_8BIT,
     load_in_4bit = LOAD_IN_4BIT,
-    model_name = 'phi3_chat',
-    system_prompt = SYSTEM_PROMPT
+    model_name = 'phi3_chat',       # useless
+    system_prompt = SYSTEM_PROMPT   # useless
 )
 
 tokenizer, processor, model = load_tokenizer_processor_and_model(config=TRANSFORMERS_CONFIG)
@@ -78,6 +75,11 @@ ids = outputs[0].cpu()[len(inputs["input_ids"][0]) :]
 # decode 处理一维数据
 response = tokenizer.decode(ids, skip_special_tokens=True)
 print(response)
+# 1. What are the most significant barriers to meeting preparedness according to the respondents?
+# 2. How does the level of agreement with each statement correlate with the respondents' overall satisfaction with their meetings?
+# 3. Are there any notable differences in agreement levels between different demographics or job roles?
+# 4. What strategies have been most effective in helping respondents prepare for meetings, based on their feedback?
+# 5. How might organizations use this data to improve meeting preparation and effectiveness?
 
 # batch_decode 处理二维数据
 # print(tokenizer.batch_decode([ids], skip_special_tokens=True)[0])
