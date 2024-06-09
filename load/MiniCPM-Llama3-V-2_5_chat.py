@@ -68,7 +68,7 @@ response = model.chat(
     sampling = True,
     **generation_config,
     system_prompt = TRANSFORMERS_CONFIG.system_prompt,
-    stream = True
+    stream = True,
 )
 
 print(f"question: {question}")
