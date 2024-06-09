@@ -1,15 +1,12 @@
 # 导入必要的库
 import gradio as gr
-import numpy as np
 from typing import Generator, Sequence
 import threading
-import time
 from PIL import Image
 from loguru import logger
 import hashlib
 from load_tokenizer_processor_and_model import load_tokenizer_processor_and_model, TransformersConfig
 from infer_engine import convert_to_openai_history
-from typing import Generator
 
 
 logger.info(f"gradio version: {gr.__version__}")
