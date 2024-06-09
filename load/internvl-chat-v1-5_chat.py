@@ -127,7 +127,7 @@ pixel_values: Tensor = load_image(image_raw, max_num=6).to(torch.bfloat16).cuda(
 #     max_new_tokens = 1024,
 #     do_sample = True,
 #     num_beams = 1,
-#     temperature = 0.01,
+#     temperature = 0.8,
 #     top_k = 40,
 #     top_p = 0.8,
 #     eos_token_id = [tokenizer.eos_token_id]
@@ -137,7 +137,7 @@ generation_config = dict(
     max_new_tokens = 1024,
     do_sample = True,
     num_beams = 1,
-    temperature = 0.01,
+    temperature = 0.8,
     top_k = 40,
     top_p = 0.8,
     eos_token_id = [tokenizer.eos_token_id]
