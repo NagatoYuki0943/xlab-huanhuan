@@ -1,5 +1,13 @@
 import transformers
-from transformers import AutoTokenizer, AutoProcessor, AutoModelForCausalLM, BitsAndBytesConfig
+from transformers import (
+    AutoTokenizer,
+    PreTrainedTokenizer,
+    PreTrainedTokenizerFast,
+    AutoProcessor,
+    AutoModel,
+    AutoModelForCausalLM,
+    BitsAndBytesConfig,
+)
 from peft import PeftModel
 import torch
 from dataclasses import dataclass
@@ -27,7 +35,8 @@ def load_tokenizer_processor_and_model(
     logger.info(f"transformers config: {config}")
 
     # tokenizer
-    tokenizer = AutoTokenizer.from_pretrained(config.pretrained_model_name_or_path, trust_remote_code = True)
+    tokenizer: PreTrainedTokenizer | PreTrainedTokenizerFast = \
+        AutoTokenizer.from_pretrained(config.pretrained_model_name_or_path, trust_remote_code = True)
 
     # processor: Multimodal tasks require a processor that combines two types of preprocessing tools.
     processor = AutoProcessor.from_pretrained(config.pretrained_model_name_or_path, trust_remote_code = True)
@@ -44,22 +53,39 @@ def load_tokenizer_processor_and_model(
     )
 
     # 创建模型
-    model = AutoModelForCausalLM.from_pretrained(
-        config.pretrained_model_name_or_path,
-        torch_dtype = torch.bfloat16,
-        trust_remote_code = True,
-        device_map = 'auto',
-        low_cpu_mem_usage = True,   # 是否使用低CPU内存,使用 device_map 参数必须为 True
-        quantization_config = quantization_config if config.load_in_8bit or config.load_in_4bit else None,
-    )
+    try:
+        logger.info('AutoModelForCausalLM loading...')
+        model = AutoModelForCausalLM.from_pretrained(
+            config.pretrained_model_name_or_path,
+            torch_dtype = torch.bfloat16,
+            trust_remote_code = True,
+            device_map = 'auto',
+            low_cpu_mem_usage = True,   # 是否使用低CPU内存,使用 device_map 参数必须为 True
+            quantization_config = quantization_config if config.load_in_8bit or config.load_in_4bit else None,
+        )
+        logger.success(f'AutoModelForCausalLM load successfully: {config.pretrained_model_name_or_path}')
+
+    except ValueError as e:
+        logger.error(e)
+        logger.warning('AutoModelForCausalLM loaded failed, try to load model by AutoModel...')
+        model = AutoModel.from_pretrained(
+            config.pretrained_model_name_or_path,
+            torch_dtype = torch.bfloat16,
+            trust_remote_code = True,
+            device_map = 'auto',
+            low_cpu_mem_usage = True,   # 是否使用低CPU内存,使用 device_map 参数必须为 True
+            quantization_config = quantization_config if config.load_in_8bit or config.load_in_4bit else None,
+        )
+        logger.success(f'AutoModel load successfully: {config.pretrained_model_name_or_path}')
 
     if config.adapter_path:
-        logger.info(f"load adapter: {config.adapter_path}")
+        logger.info('PeftModel loading adapter...')
         # 2种加载adapter的方式
         # 1. load adapter https://huggingface.co/docs/transformers/main/zh/peft
         # model.load_adapter(adapter_path)
         # 2. https://huggingface.co/docs/peft/main/en/package_reference/peft_model#peft.PeftModel.from_pretrained
         model = PeftModel.from_pretrained(model, config.adapter_path)
+        logger.success(f"PeftModel load adapter successfully: {config.adapter_path}")
 
     model.eval()
 
