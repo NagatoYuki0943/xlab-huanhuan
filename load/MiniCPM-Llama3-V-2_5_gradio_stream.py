@@ -51,7 +51,6 @@ def chat_stream_with_image(
     top_p: float = 0.8,
     top_k: int = 40,
     image: Image.Image | None = None,
-    current_image_hash: str = "",
     state_session_id: int = 0,
 ) -> Generator[tuple[Sequence, Image.Image], None, None]:
     history = [] if history is None else list(history)
@@ -60,7 +59,7 @@ def chat_stream_with_image(
 
     query = query.strip()
     if query == None or len(query) < 1:
-        yield history, current_image_hash
+        yield history
         return
 
     logger.info({
@@ -71,22 +70,6 @@ def chat_stream_with_image(
     })
 
     logger.info(f"{image = }")
-    logger.info(f"{current_image_hash = }")
-    if isinstance(image, Image.Image):
-        new_image_hash = hash_image(image)
-        logger.info(f"{new_image_hash = }")
-
-        # 新图片
-        if new_image_hash != current_image_hash:
-            logger.warning(f"update image hash")
-            current_image_hash = new_image_hash
-        else:
-            # 图片和之前相同设置为 None
-            image = None
-    else:
-        # 不是 PIL.Image.Image 设置为 None
-        image = None
-    logger.info(f"updated image: {image}")
 
     generation_config = dict(
         max_new_tokens = max_new_tokens,
@@ -117,26 +100,9 @@ def chat_stream_with_image(
     for new_text in response:
         logger.info(f"new_text: {new_text}")
         generated_text += new_text
-        yield history + [[query, generated_text]], current_image_hash
+        yield history + [[query, generated_text]]
     logger.info(f"response: {generated_text}")
 
-
-"""regenerate 和 revocery 在使用图片和文字时会出现问题
-假设一下历史记录
-    [
-        [queston1, answer1], # use image
-    ]
-    image
-在只有一轮对话的情况下,regenerate 需要使用图片和问题, recovery 需要丢弃上一轮的回答和图片
-
-但是在有多轮对话,且上一轮对话没用到图片的情况下
-    [
-        [queston1, answer1], # not use image
-        [queston2, answer2], # use image
-    ]
-    image
-regenerate 不需要使用图片,但是我不知道上一轮是否使用了图片, recovery 需要丢弃上一轮的回答,单不需要丢弃图片
-"""
 
 def regenerate(
     query: str,
@@ -146,7 +112,6 @@ def regenerate(
     top_p: float = 0.8,
     top_k: int = 40,
     image: Image.Image | None = None,
-    current_image_hash: str = "",
     state_session_id: int = 0,
 ) -> Generator[tuple[Sequence, Image.Image], None, None]:
     history = [] if history is None else list(history)
@@ -162,11 +127,10 @@ def regenerate(
             top_p = top_p,
             top_k = top_k,
             image = image,
-            current_image_hash = "", # 重生成时强制使用之前的图片
             state_session_id = state_session_id,
         )
     else:
-        yield history, image
+        yield history
 
 
 def revocery(history: Sequence | None = None) -> tuple[str, Sequence]:
@@ -193,8 +157,6 @@ def main():
         with gr.Row():
             with gr.Column(scale=4):
                 with gr.Row():
-                    # 用来存放ocr图片路径，防止重复使用ocr
-                    current_image_hash = gr.State("")
                     image = gr.Image(sources=["upload", "webcam", "clipboard"], image_mode="RGB", type="pil", interactive=True)
 
                     with gr.Column(scale=2):
@@ -229,7 +191,7 @@ def main():
                     regen = gr.Button("🔄 Retry", variant="secondary")
                     undo = gr.Button("↩️ Undo", variant="secondary")
                     # 创建一个清除按钮，用于清除聊天机器人组件的内容。
-                    clear = gr.ClearButton(components=[chatbot, image, current_image_hash], value="🗑️ Clear", variant="stop")
+                    clear = gr.ClearButton(components=[chatbot, image], value="🗑️ Clear", variant="stop")
 
                 # 折叠
                 with gr.Accordion("Advanced Options", open=False):
@@ -266,8 +228,8 @@ def main():
             # 回车提交
             query.submit(
                 chat_stream_with_image,
-                inputs=[query, chatbot, max_new_tokens, temperature, top_p, top_k, image, current_image_hash, state_session_id],
-                outputs=[chatbot, current_image_hash]
+                inputs=[query, chatbot, max_new_tokens, temperature, top_p, top_k, image, state_session_id],
+                outputs=[chatbot]
             )
 
             # 清空query
@@ -280,8 +242,8 @@ def main():
             # 按钮提交
             submit.click(
                 chat_stream_with_image,
-                inputs=[query, chatbot, max_new_tokens, temperature, top_p, top_k, image, current_image_hash, state_session_id],
-                outputs=[chatbot, current_image_hash]
+                inputs=[query, chatbot, max_new_tokens, temperature, top_p, top_k, image, state_session_id],
+                outputs=[chatbot]
             )
 
             # 清空query
@@ -294,8 +256,8 @@ def main():
             # 重新生成
             regen.click(
                 regenerate,
-                inputs=[query, chatbot, max_new_tokens, temperature, top_p, top_k, image, current_image_hash, state_session_id],
-                outputs=[chatbot, current_image_hash]
+                inputs=[query, chatbot, max_new_tokens, temperature, top_p, top_k, image, state_session_id],
+                outputs=[chatbot]
             )
 
             # 撤销
