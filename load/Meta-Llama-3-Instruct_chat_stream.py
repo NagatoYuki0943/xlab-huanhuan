@@ -16,7 +16,7 @@ TRANSFORMERS_CONFIG = TransformersConfig(
     adapter_path = ADAPTER_PATH,
     load_in_8bit = LOAD_IN_8BIT,
     load_in_4bit = LOAD_IN_4BIT,
-    model_name = 'internlm2',
+    model_name = 'llama3_chat',
     system_prompt = SYSTEM_PROMPT
 )
 
