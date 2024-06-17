@@ -105,6 +105,17 @@ def revocery(history: Sequence | None = None) -> tuple[str, Sequence]:
     return query, history
 
 
+def combine_chatbot_and_query(
+    query: str,
+    history: Sequence | None = None,
+) -> Sequence:
+    history = [] if history is None else list(history)
+    query = query.strip()
+    if query == None or len(query) < 1:
+        return history
+    return history + [[query, None]]
+
+
 def main():
     block = gr.Blocks()
     with block as demo:
@@ -198,6 +209,13 @@ def main():
                 outputs=[query],
             )
 
+            # 拼接历史记录和问题
+            query.submit(
+                combine_chatbot_and_query,
+                inputs=[query, chatbot],
+                outputs=[chatbot],
+            )
+
             # 按钮提交
             submit.click(
                 chat,
@@ -210,6 +228,13 @@ def main():
                 lambda: gr.Textbox(value=""),
                 inputs=[],
                 outputs=[query],
+            )
+
+            # 拼接历史记录和问题
+            submit.click(
+                combine_chatbot_and_query,
+                inputs=[query, chatbot],
+                outputs=[chatbot],
             )
 
             # 重新生成
