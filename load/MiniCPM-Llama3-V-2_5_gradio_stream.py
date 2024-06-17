@@ -52,7 +52,7 @@ def chat_stream_with_image(
     top_k: int = 40,
     image: Image.Image | None = None,
     state_session_id: int = 0,
-) -> Generator[tuple[Sequence, Image.Image], None, None]:
+) -> Generator[Sequence, None, None]:
     history = [] if history is None else list(history)
 
     logger.info(f"{state_session_id = }")
@@ -113,7 +113,7 @@ def regenerate(
     top_k: int = 40,
     image: Image.Image | None = None,
     state_session_id: int = 0,
-) -> Generator[tuple[Sequence, Image.Image], None, None]:
+) -> Generator[Sequence, None, None]:
     history = [] if history is None else list(history)
 
     # 重新生成时要把最后的query和response弹出,重用query
