@@ -84,6 +84,7 @@ def chat_stream_with_image(
     # 转换格式到 OpenAI 格式
     msgs: list = convert_to_openai_history(history, query)
 
+    yield history + [[query, None]]
     response: Generator
     response = model.chat(
         image = image,

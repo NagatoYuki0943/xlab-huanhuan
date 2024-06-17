@@ -60,6 +60,7 @@ def chat_stream(
         yield history
         return
 
+    yield history + [[query, None]]
     for response, history in infer_engine.chat_stream(
         query = query,
         history = history,
