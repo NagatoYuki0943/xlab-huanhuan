@@ -19,7 +19,7 @@ proxies = {"https": "http://localhost:7897"}
 
 
 snapshot_download(
-    repo_id = "maidalun1020/bce-embedding-base_v1",
+    repo_id = "internlm/internlm2-chat-1_8b",
     local_dir = "./models/internlm2-chat-1_8b",
     # proxies = proxies,
     max_workers = 8,
