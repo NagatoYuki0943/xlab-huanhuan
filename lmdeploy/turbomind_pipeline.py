@@ -90,19 +90,32 @@ for response in responses:
     print('session_id:', response.session_id)
     print('finish_reason:', response.finish_reason)
     print()
-# Response(text='你好，我是一款语言模型，我的名字是书生·浦语。我是由上海人工智能实验室开发的，我的设计理念是有用、诚实并且无害。我可以理解并回应英文 和中文的问题，但我不能看、听、尝、触摸、闻、移动、与物理世界交互，也无法感受情感或体验感官输入，但我可以用我自己的方式来帮助人类。', generate_token_len=77, input_token_len=108, session_id=0, finish_reason='stop')
+# Response(
+#   text='你好，我是一款语言模型，我的名字是书生·浦语。我是由上海人工智能实验室开发的，我的设计理念是有用、诚实并且无害。我可以理解并回应英文 和中文的问题，但我不能看、听、尝、触摸、闻、移动、与物理世界交互，也无法感受情感或体验感官输入，但我可以用我自己的方式来帮助人类。',
+#   generate_token_len=77,
+#   input_token_len=108,
+#   session_id=0,
+#   finish_reason='stop'
+# )
 # text: 你好，我是一款语言模型，我的名字是书生·浦语。我是由上海人工智能实验室开发的，我的设计理念是有用、诚实并且无害。我可以理解并回应英文和中文的问题，但我不能看、听、尝、触摸、闻、移动、与物理世界交互，也无法感受情感或体验感官输入，但我可以用我自己的方式来帮助人类。
 # generate_token_len: 77
 # input_token_len: 108
 # session_id: 0
 # finish_reason: stop
 
-# Response(text='上海是中国的一座城市，位于中国东部沿海地区，是中国的经济、文化和交通中心之一。它是中国最大的城市之一，拥有许多重要的旅游景点、商业区和文化设施。', generate_token_len=35, input_token_len=105, session_id=1, finish_reason='stop')
+# Response(
+#   text='上海是中国的一座城市，位于中国东部沿海地区，是中国的经济、文化和交通中心之一。它是中国最大的城市之一，拥有许多重要的旅游景点、商业区和文化设施。',
+#   generate_token_len=35,
+#   input_token_len=105,
+#   session_id=1,
+#   finish_reason='stop'
+# )
 # text: 上海是中国的一座城市，位于中国东部沿海地区，是中国的经济、文化和交通中心之一。它是中国最大的城市之一，拥有许多重要的旅游景点、商业区和文化设 施。
 # generate_token_len: 35
 # input_token_len: 105
 # session_id: 1
 # finish_reason: stop
+
 
 # 流式返回处理结果
 # for item in pipe.stream_infer(prompts, gen_config=gen_config):
@@ -115,3 +128,22 @@ for response in responses:
     # print(item.text, end='')
     # if item.finish_reason == 'stop':
     #     print()
+
+
+# chat
+response = pipe.chat(
+    prompt = prompts[0],
+    gen_config = gen_config,
+    do_preprocess = True,
+    adapter_name = None
+).response
+print(response)
+# Response(
+#   text="Hello! I'm InternLM, a conversational language model developed by Shanghai AI Laboratory. I'm here to help you with any questions or tasks you may have. How can I assist you today?",
+#   generate_token_len=41,
+#   input_token_len=108,
+#   session_id=0,
+#   finish_reason='stop',
+#   token_ids=[],
+#   logprobs=None
+# )
