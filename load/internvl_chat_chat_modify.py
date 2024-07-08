@@ -14,7 +14,7 @@ IMAGENET_MEAN = (0.485, 0.456, 0.406)
 IMAGENET_STD = (0.229, 0.224, 0.225)
 
 
-def build_transform(input_size: int):
+def build_transform(input_size: int) -> T.Compose:
     MEAN, STD = IMAGENET_MEAN, IMAGENET_STD
     transform = T.Compose([
         T.Lambda(lambda img: img.convert('RGB') if img.mode != 'RGB' else img),
@@ -149,6 +149,8 @@ def internvl_chat(
     )
     response = tokenizer.batch_decode(generation_output, skip_special_tokens=True)[0]
     response = response.split(template.sep)[0].strip()
+
+    # 历史记录中不包含图片token
     history.append((question, response))
     if return_history:
         return response, history
@@ -159,7 +161,7 @@ def internvl_chat(
 
 
 if __name__ == '__main__':
-    PRETRAINED_MODEL_NAME_OR_PATH = '../models/InternVL-Chat-V1-5'
+    PRETRAINED_MODEL_NAME_OR_PATH = '../models/InternVL2-2B'
     ADAPTER_PATH = None
     # 量化
     LOAD_IN_8BIT= False
@@ -272,7 +274,7 @@ if __name__ == '__main__':
     # question: 给我介绍一下openai
     # response: OpenAI是一家总部位于旧金山的AI公司，成立于2015年，旨在通过开发通用人工智能技术来促进人工智能的进步。
     #           OpenAI的研究领域包括深度学习、强化学习、自然语言处理和计算机视觉等。OpenAI的使命是开发能够安全地实现人类水平的智能的AI系统。
-    # response: [
+    # history: [
     #   ('给我介绍一下openai', 'OpenAI是一家总部位于旧金山的AI公司，成立于2015年，旨在通过开发通用人工智能技术来促进人工智能的进步。
     #     OpenAI的研究领域包括深度学习、强化学习、自然语言处理和计算机视觉等。OpenAI的使命是开发能够安全地实现人类水平的智能的AI系统。')
     # ]
@@ -293,7 +295,7 @@ if __name__ == '__main__':
     print('\n\n')
     # question: openai成立于什么时间？
     # response: OpenAI成立于2015年。
-    # response: [
+    # history: [
     #   ('给我介绍一下openai', 'OpenAI是一家总部位于旧金山的AI公司，成立于2015年，旨在通过开发通用人工智能技术来促进人工智能的进步。
     #     OpenAI的研究领域包括深度学习、强化学习、自然语言处理和计算机视觉等。OpenAI的使命是开发能够安全地实现人类水平的智能的AI系统。'),
     #   ('openai成立于什么时间？', 'OpenAI成立于2015年。')

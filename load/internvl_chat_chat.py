@@ -1,4 +1,4 @@
-# https://huggingface.co/OpenGVLab/InternVL-Chat-V1-5
+# https://huggingface.co/OpenGVLab/InternVL2-2B
 
 import requests
 from PIL import Image
@@ -10,7 +10,7 @@ from transformers import GenerationConfig
 from load_tokenizer_processor_and_model import load_tokenizer_processor_and_model, TransformersConfig
 
 
-PRETRAINED_MODEL_NAME_OR_PATH = '../models/InternVL-Chat-V1-5'
+PRETRAINED_MODEL_NAME_OR_PATH = '../models/InternVL2-2B'
 ADAPTER_PATH = None
 # 量化
 LOAD_IN_8BIT= False
@@ -35,7 +35,7 @@ IMAGENET_MEAN = (0.485, 0.456, 0.406)
 IMAGENET_STD = (0.229, 0.224, 0.225)
 
 
-def build_transform(input_size: int):
+def build_transform(input_size: int) -> T.Compose:
     MEAN, STD = IMAGENET_MEAN, IMAGENET_STD
     transform = T.Compose([
         T.Lambda(lambda img: img.convert('RGB') if img.mode != 'RGB' else img),

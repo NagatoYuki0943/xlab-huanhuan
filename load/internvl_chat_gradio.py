@@ -8,13 +8,13 @@ from torch import Tensor
 from loguru import logger
 from load_tokenizer_processor_and_model import load_tokenizer_processor_and_model, TransformersConfig
 from infer_engine import convert_to_openai_history
-from internvl_chat_v1_5_chat_modify import internvl_chat, load_image
+from internvl_chat_chat_modify import internvl_chat, load_image
 
 
 logger.info(f"gradio version: {gr.__version__}")
 
 
-PRETRAINED_MODEL_NAME_OR_PATH = '../models/InternVL-Chat-V1-5'
+PRETRAINED_MODEL_NAME_OR_PATH = '../models/InternVL2-2B'
 ADAPTER_PATH = None
 # 量化
 LOAD_IN_8BIT= False
