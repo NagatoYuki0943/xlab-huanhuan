@@ -2,7 +2,7 @@ from load_pipe import load_pipe, LmdeployConfig
 from lmdeploy import GenerationConfig
 
 
-MODEL_PATH = '../models/InternVL-Chat-V1-5'
+MODEL_PATH = '../models/InternVL2-2B'
 
 SYSTEM_PROMPT = """You are an AI assistant whose name is InternLM (书生·浦语).
     - InternLM (书生·浦语) is a conversational language model that is developed by Shanghai AI Laboratory (上海人工智能实验室). It is designed to be helpful, honest, and harmless.
