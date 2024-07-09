@@ -109,11 +109,11 @@ def load_pipe(
     # https://github.com/InternLM/lmdeploy/blob/main/lmdeploy/api.py
     # https://github.com/InternLM/lmdeploy/blob/main/lmdeploy/serve/async_engine.py
     pipe = pipeline(
-            model_path = config.model_path,
-            model_name = None,
-            backend_config = backend_config,
-            chat_template_config = chat_template_config,
-            log_level = config.log_level
+        model_path = config.model_path,
+        model_name = None,
+        backend_config = backend_config,
+        chat_template_config = chat_template_config,
+        log_level = config.log_level
     )
 
     return pipe
