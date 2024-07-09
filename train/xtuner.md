@@ -525,6 +525,9 @@ pack_to_max_length = True
 sequence_parallel_size = 1
 
 # Scheduler & Optimizer
+# batch size per device, set to 1 if `use_varlen_attn` = True
+# To clarify, enlarging the batch size essentially enlarges the `max_length`.
+# For example, doubling the max length is tantamount to doubling the batch size
 batch_size = 1  # per_device
 accumulative_counts = 16
 accumulative_counts *= sequence_parallel_size
