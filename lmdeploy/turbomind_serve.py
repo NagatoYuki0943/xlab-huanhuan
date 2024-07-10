@@ -23,12 +23,15 @@ if __name__ == '__main__':
         max_batch_size = 128,
         cache_max_entry_count = 0.5,    # 调整KV Cache的占用比例为0.5
         cache_block_seq_len = 64,
+        enable_prefix_caching = False,
         quant_policy = 0,               # KV Cache 量化, 0 代表禁用, 4 代表 4bit 量化, 8 代表 8bit 量化
         rope_scaling_factor = 0.0,
         use_logn_attn = False,
         download_dir = None,
         revision = None,
         max_prefill_token_num = 8192,
+        num_tokens_per_iter = 0,
+        max_prefill_iters = 1,
     )
 
     system_prompt = """You are an AI assistant whose name is InternLM (书生·浦语).
@@ -49,10 +52,14 @@ if __name__ == '__main__':
     client = serve(
         model_path = MODEL_PATH,
         model_name = None,
+        backend = 'turbomind',
         backend_config = backend_config,
         chat_template_config = chat_template_config,
         server_name = '0.0.0.0',
         server_port = 23333,
+        log_level = 'ERROR',
+        api_keys = None,
+        ssl = False,
     )
     # 防止进程退出
     while True:
