@@ -4,7 +4,7 @@ from vllm import AsyncLLMEngine, EngineArgs, AsyncEngineArgs, SamplingParams
 from vllm.outputs import RequestOutput
 # https://docs.vllm.ai/en/latest/models/lora.html
 from vllm.lora.request import LoRARequest
-from utils import random_uuid
+from infer_utils import random_uuid
 
 
 

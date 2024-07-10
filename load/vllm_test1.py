@@ -3,7 +3,7 @@ from vllm import LLM, LLMEngine, SamplingParams
 from vllm.outputs import RequestOutput
 # https://docs.vllm.ai/en/latest/models/lora.html
 from vllm.lora.request import LoRARequest
-from utils import random_uuid
+from infer_utils import random_uuid
 
 
 PRETRAINED_MODEL_NAME_OR_PATH = '../models/internlm2-chat-1_8b'
