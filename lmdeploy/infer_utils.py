@@ -78,6 +78,8 @@ def encode_image_base64(image: str | Image.Image) -> str:
     return res
 
 
+# https://platform.openai.com/docs/guides/text-generation
+# https://platform.openai.com/docs/guides/vision
 # https://github.com/InternLM/lmdeploy/blob/main/lmdeploy/vl/templates.py#L25-L69
 def convert_to_openai_history(
     history: Sequence[Sequence],
