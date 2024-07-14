@@ -7,11 +7,21 @@ import uuid
 from typing import Literal, Sequence
 import random
 from loguru import logger
+try:
+    from lmdeploy.vl.constants import IMAGE_TOKEN
+except ImportError:
+    IMAGE_TOKEN = '<IMAGE_TOKEN>'
 
 
 # 可以传递一个提示语句 + 一张或者多张 PIL.Image.Image 的图片
 # 或者传递一个提示语句 + 一张或者多张图片的url地址或者本地地址,后面 tuple 中的第二个 str 或者 list[str] 指的就是图片地址
 VLQueryType = tuple[str, Image.Image] | tuple[str, list[Image.Image]] | tuple[str, str] | tuple[str, list[str]]
+
+
+# gradio一轮的对话格式
+# [问, 答]
+# [(图片, alt_text), None]
+GradioChat1TuneType = list[str, str] | list[tuple[Image.Image, str], None]
 
 
 def random_uuid(dtype: Literal['int', 'str', 'bytes', 'time'] = 'int') -> int | str | bytes:
@@ -66,7 +76,6 @@ def encode_image_base64(image: str | Image.Image) -> str:
         image.save(buffered, format='PNG')
         res = base64.b64encode(buffered.getvalue()).decode('utf-8')
     return res
-
 
 
 # https://github.com/InternLM/lmdeploy/blob/main/lmdeploy/vl/templates.py#L25-L69
@@ -211,6 +220,181 @@ def convert_to_openai_history(
     return messages
 
 
+# https://github.com/InternLM/lmdeploy/blob/main/lmdeploy/vl/templates.py#L25-L69
+def convert_to_openai_history_new(
+    history: Sequence[GradioChat1TuneType],
+    query: str | tuple[Image.Image, str] | None = None,
+) -> list:
+    """
+    将历史记录转换为openai格式
+
+    Args:
+        history (Sequence[GradioChat1TuneType]):聊天历史记录
+            example: [
+                ['What is the capital of France?', 'The capital of France is Paris.'],
+                [(Image, None), None],
+                ['what is in the image?', 'There is a dog in the image.'],
+                ['Thanks', 'You are Welcome'],
+            ]
+        query (str | tuple[Image.Image, str] | None): 查询语句,可以为图片元组,图片支持PIL.Image.Image或者本地文件路径/url
+            example: (Image, alt_text)
+
+    Returns:
+        list: a chat history in OpenAI format or a list of chat history.
+            [
+                {'role': 'user', 'content': [{'type': 'text', 'text': 'What is the capital of France?'}]},
+                {'role': 'assistant', 'content': 'The capital of France is Paris.'},
+                {'role': 'user', 'content': [{'type': 'image_data', 'image_data': {'data': Image}}]},
+                {'role': 'user', 'content': [{'type': 'text', 'text': 'what is in the image?'}]},
+                {'role': 'assistant', 'content': 'There is a dog in the image.'},
+                {'role': 'user', 'content': [{'type': 'text', 'text': 'Thanks'}]},
+                {'role': 'assistant', 'content': 'You are Welcome'},
+            ]
+    """
+    # 将历史记录转换为openai格式
+    messages = []
+    for prompt, response in history:
+        if isinstance(prompt, str):
+            content = [{
+                'type': 'text',
+                'text': prompt,
+            }]
+        else:
+            content = [{
+                'type': 'text',
+                'text': f'Image: {IMAGE_TOKEN}\n',  # text占位符
+            }]
+            image = prompt[0]
+            # 'image_url': means url or local path to image.
+            # 'image_data': means PIL.Image.Image object.
+            if isinstance(image, str):
+                image_base64_data = encode_image_base64(image)
+                if image_base64_data == '':
+                    logger.error(f'failed to load file {image}')
+                    raise ValueError(f'failed to load file {image}')
+                item = {
+                    'type': 'image_url',
+                    'image_url': {
+                        'url':
+                        f'data:image/jpeg;base64,{image_base64_data}'
+                    }
+                }
+            elif isinstance(image, Image.Image):
+                item = {
+                    'type': 'image_data',
+                    'image_data': {
+                        'data': image
+                    }
+                }
+            else:
+                raise ValueError(
+                    'image should be a str(url/path) or PIL.Image.Image')
+
+            content.append(item)
+
+        messages.append({
+            "role": "user",
+            "content": content
+        })
+
+        if response is not None:
+            messages.append({
+                "role": "assistant",
+                # assistant 的回答必须是字符串,不能是数组
+                "content": response
+            })
+
+    # 添加当前的query
+    if query is not None:
+        if isinstance(query, str):
+            content = [{
+                'type': 'text',
+                'text': query,
+            }]
+        else:
+            content = [{
+                'type': 'text',
+                'text': f'Image: {IMAGE_TOKEN}\n',  # text占位符
+            }]
+            image = query[0]
+            # 'image_url': means url or local path to image.
+            # 'image_data': means PIL.Image.Image object.
+            if isinstance(image, str):
+                image_base64_data = encode_image_base64(image)
+                if image_base64_data == '':
+                    logger.error(f'failed to load file {image}')
+                    raise ValueError(f'failed to load file {image}')
+                item = {
+                    'type': 'image_url',
+                    'image_url': {
+                        'url':
+                        f'data:image/jpeg;base64,{image_base64_data}'
+                    }
+                }
+            elif isinstance(image, Image.Image):
+                item = {
+                    'type': 'image_data',
+                    'image_data': {
+                        'data': image
+                    }
+                }
+            else:
+                raise ValueError(
+                    'image should be a str(url/path) or PIL.Image.Image')
+
+            content.append(item)
+        messages.append({
+            "role": "user",
+            "content": content
+        })
+
+    return messages
+
+
+def new_history_test(
+) -> list:
+    history1 = [
+        ['text1', '[91 24 10 19 73]'],
+        ['text2', '[85 98 95  3 25]'],
+        ['text3', '[58 60 35 97 39]'],
+    ]
+    query = 'text4'
+    messages1 = convert_to_openai_history_new(history1, query)
+    print(messages1)
+    [
+        {'role': 'user', 'content': [{'type': 'text', 'text': 'text1'}]},
+        {'role': 'assistant', 'content': '[91 24 10 19 73]'},
+        {'role': 'user', 'content': [{'type': 'text', 'text': 'text2'}]},
+        {'role': 'assistant', 'content': '[85 98 95  3 25]'},
+        {'role': 'user', 'content': [{'type': 'text', 'text': 'text3'}]},
+        {'role': 'assistant', 'content': '[58 60 35 97 39]'},
+        {'role': 'user', 'content': [{'type': 'text', 'text': 'text4'}]}
+    ]
+
+
+    history2 = [
+        ['你是谁', '[47  5 79  7 79]'],
+        [(Image.open('../images/logo.png'), None), None],
+        ['what is this?', '[58 71 49 87 10]'],
+        [(Image.open('../images/openxlab.png'), None), None],
+        [(Image.open('../images/openxlab_model.jpg'),), None],
+        ['这2张图片展示的什么内容?', '[29 86 41 26 84]'],
+    ]
+    query = '关联这2张图片写一个故事'
+    messages2 = convert_to_openai_history_new(history2, query)
+    print(messages2)
+    [
+        {'role': 'user', 'content': [{'type': 'text', 'text': '你是谁'}]},
+        {'role': 'assistant', 'content': '[47  5 79  7 79]'},
+        {'role': 'user', 'content': [{'type': 'text', 'text': 'Image: <IMAGE_TOKEN>\n'}, {'type': 'image_data', 'image_data': {'data': '<PIL.PngImagePlugin.PngImageFile image mode=RGBA size=1792x871 at 0x1DD28D60820>'}}]},
+        {'role': 'user', 'content': [{'type': 'text', 'text': 'what is this?'}]},
+        {'role': 'assistant', 'content': '[58 71 49 87 10]'},
+        {'role': 'user', 'content': [{'type': 'text', 'text': 'Image: <IMAGE_TOKEN>\n'}, {'type': 'image_data', 'image_data': {'data': '<PIL.PngImagePlugin.PngImageFile image mode=RGBA size=1580x1119 at 0x1DD28D8ADA0>'}}]},
+        {'role': 'user', 'content': [{'type': 'text', 'text': 'Image: <IMAGE_TOKEN>\n'}, {'type': 'image_data', 'image_data': {'data': '<PIL.PngImagePlugin.PngImageFile image mode=RGBA size=1019x716 at 0x1DD28D60790>'}}]},
+        {'role': 'user', 'content': [{'type': 'text', 'text': '这2张图片展示的什么内容?'}]},
+        {'role': 'assistant', 'content': '[29 86 41 26 84]'},
+        {'role': 'user', 'content': [{'type': 'text', 'text': '关联这2张图片写一个故事'}]}]
+
+
 if __name__ == '__main__':
-    print(random_uuid('int'))
-    print(random_uuid_int())
+    new_history_test()
