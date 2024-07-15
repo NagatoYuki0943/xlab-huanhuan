@@ -91,6 +91,7 @@ response, history = infer_engine.chat(
 )
 print("response:", response)
 print("history:", history)
+print("\n\n")
 # response: 这两张图片展示了一个冬季场景。
 # 1. 第一张图片：
 #    - 图中是一位穿着红色夹克和黑色裤子的滑雪者，戴着帽子，戴着太阳镜，手持滑雪杖。
