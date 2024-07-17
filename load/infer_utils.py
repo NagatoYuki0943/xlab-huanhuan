@@ -220,8 +220,7 @@ def convert_to_openai_history(
     return messages
 
 
-def test_convert_to_openai_history(
-) -> list:
+def test_convert_to_openai_history():
     history1 = [
         ['text1', '[91 24 10 19 73]'],
         ['text2', '[85 98 95  3 25]'],
@@ -250,6 +249,7 @@ def test_convert_to_openai_history(
     query = ('how dare you!', Image.open('../images/openxlab.png'))
 
     messages2 = convert_to_openai_history(history2, query)
+    print(messages2)
     [
         {'role': 'user', 'content': '你是谁'},
         {'role': 'assistant', 'content': '[47  5 79  7 79]'},
@@ -415,8 +415,7 @@ def convert_to_openai_history_new(
     return messages
 
 
-def test_convert_to_openai_history_new(
-) -> list:
+def test_convert_to_openai_history_new():
     history1 = [
         ['text1', '[91 24 10 19 73]'],
         ['text2', '[85 98 95  3 25]'],
@@ -485,6 +484,9 @@ def convert_to_lmdeploy_history(original_history: list) -> list:
         else:
             raise ValueError(f"{query} 格式错误")
 
+    if len(temp_image_list) > 0:
+        transformed_history.append([("", temp_image_list), ""])
+
     return transformed_history
 
 
@@ -515,16 +517,15 @@ def test_convert_to_lmdeploy_history():
         [('', ['./images/0005.jpg', './images/0006.jpg']), '这两张图片显示了雪山上的景色。']
     ]
 
-    # to
-    correct = [
+    transformed = convert_to_lmdeploy_history(original[:-1])
+    print(transformed)
+    [
         ['你是谁', '我是你的小助手。'],
         [('', ['./images/0001.jpg']), '这张图片中有一只猫。'],
         [('这张图片展示的什么内容?', ['./images/0002.jpg']), '这张图片中也有一只猫。'],
         [('这2张图片展示的什么内容?', ['./images/0003.jpg', './images/0004.jpg']), '第一张图片中有一个人在滑雪，第二张图片中有一个人坐在长椅上休息。'],
-        [('', ['./images/0005.jpg', './images/0006.jpg']), '这两张图片显示了雪山上的景色。']
+        [('', ['./images/0005.jpg', './images/0006.jpg']), '']
     ]
-
-    print(transformed == correct)
 
 
 if __name__ == '__main__':
