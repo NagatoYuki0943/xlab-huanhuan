@@ -51,13 +51,23 @@ def chat(
     temperature: float = 0.8,
     top_p: float = 0.8,
     top_k: int = 40,
-    session_id: int | None = None,
+    state_session_id: int | None = None,
 ) -> Sequence:
     history = [] if history is None else list(history)
 
+    logger.info(f"{state_session_id = }")
+    logger.info({
+            "max_new_tokens":  max_new_tokens,
+            "temperature": temperature,
+            "top_p": top_p,
+            "top_k": top_k,
+    })
+
     query = query.strip()
     if query == None or len(query) < 1:
+        logger.warning(f"query is None, return history")
         return history
+    logger.info(f"query: {query}")
 
     response, history = infer_engine.chat(
         query = query,
@@ -66,8 +76,10 @@ def chat(
         temperature = temperature,
         top_p = top_p,
         top_k = top_k,
-        session_id = session_id,
+        session_id = state_session_id,
     )
+    logger.info(f"response: {response}")
+    logger.info(f"history: {history}")
 
     return history
 
@@ -78,7 +90,7 @@ def regenerate(
     temperature: float = 0.8,
     top_p: float = 0.8,
     top_k: int = 40,
-    session_id: int | None = None,
+    state_session_id: int | None = None,
 ) -> Sequence:
     history = [] if history is None else list(history)
 
@@ -92,9 +104,10 @@ def regenerate(
             temperature = temperature,
             top_p = top_p,
             top_k = top_k,
-            session_id = session_id,
+            state_session_id = state_session_id,
         )
     else:
+        logger.warning(f"no history, can't regenerate")
         return history
 
 

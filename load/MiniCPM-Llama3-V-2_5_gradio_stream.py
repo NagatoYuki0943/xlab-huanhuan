@@ -56,12 +56,6 @@ def chat_stream_with_image(
     history = [] if history is None else list(history)
 
     logger.info(f"{state_session_id = }")
-
-    query = query.strip()
-    if query == None or len(query) < 1:
-        yield history
-        return
-
     logger.info({
             "max_new_tokens":  max_new_tokens,
             "temperature": temperature,
@@ -69,7 +63,14 @@ def chat_stream_with_image(
             "top_k": top_k,
     })
 
-    logger.info(f"{image = }")
+    query = query.strip()
+    if query == None or len(query) < 1:
+        logger.warning(f"query is None, return history")
+        yield history
+        return
+    logger.info(f"query: {query}")
+
+    logger.info(f"image: {image}")
 
     generation_config = dict(
         max_new_tokens = max_new_tokens,

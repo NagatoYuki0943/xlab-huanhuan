@@ -46,14 +46,24 @@ def chat_stream(
     temperature: float = 0.8,
     top_p: float = 0.8,
     top_k: int = 40,
-    session_id: int | None = None,
+    state_session_id: int | None = None,
 ) -> Generator[Sequence, None, None]:
     history = [] if history is None else list(history)
 
+    logger.info(f"{state_session_id = }")
+    logger.info({
+            "max_new_tokens":  max_new_tokens,
+            "temperature": temperature,
+            "top_p": top_p,
+            "top_k": top_k,
+    })
+
     query = query.strip()
     if query == None or len(query) < 1:
+        logger.warning(f"query is None, return history")
         yield history
         return
+    logger.info(f"query: {query}")
 
     yield history + [[query, None]]
     for response, history in infer_engine.chat_stream(
@@ -63,9 +73,11 @@ def chat_stream(
         temperature = temperature,
         top_p = top_p,
         top_k = top_k,
-        session_id = session_id,
+        session_id = state_session_id,
     ):
         yield history
+        logger.info(f"response: {response}")
+    logger.info(f"history: {history}")
 
 
 def regenerate(
@@ -74,7 +86,7 @@ def regenerate(
     temperature: float = 0.8,
     top_p: float = 0.8,
     top_k: int = 40,
-    session_id: int | None = None,
+    state_session_id: int | None = None,
 ) -> Generator[Sequence, None, None]:
     history = [] if history is None else list(history)
 
@@ -88,9 +100,10 @@ def regenerate(
             temperature = temperature,
             top_p = top_p,
             top_k = top_k,
-            session_id = session_id,
+            state_session_id = state_session_id,
         )
     else:
+        logger.warning(f"no history, can't regenerate")
         yield history
 
 
