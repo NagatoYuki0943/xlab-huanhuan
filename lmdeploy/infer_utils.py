@@ -98,7 +98,7 @@ def convert_to_openai_history(
     Returns:
         list: a chat history in OpenAI format or a list of chat history.
             [
-                {'role': 'user', 'content': [{'type': 'text', 'text': 'What is the capital of France?'}]},
+                {'role': 'user', 'content': 'What is the capital of France?'},
                 {'role': 'assistant', 'content': 'The capital of France is Paris.'},
                 {'role': 'user', 'content': [
                         {'type': 'text', 'text': 'What is in the image?'},
@@ -118,10 +118,11 @@ def convert_to_openai_history(
     messages = []
     for prompt, response in history:
         if isinstance(prompt, str):
-            content = [{
-                'type': 'text',
-                'text': prompt,
-            }]
+            content = prompt # 兼容不支持列表格式的模型
+            # content = [{
+            #     'type': 'text',
+            #     'text': prompt,
+            # }]
         else:
             prompt, images = prompt
             content = [{
@@ -172,10 +173,11 @@ def convert_to_openai_history(
     # 添加当前的query
     if query is not None:
         if isinstance(query, str):
-            content = [{
-                'type': 'text',
-                'text': query,
-            }]
+            content = query # 兼容不支持列表格式的模型
+            # content = [{
+            #     'type': 'text',
+            #     'text': query,
+            # }]
         else:
             query, images = query
             content = [{
@@ -218,8 +220,7 @@ def convert_to_openai_history(
     return messages
 
 
-def history_test(
-) -> list:
+def test_convert_to_openai_history():
     history1 = [
         ['text1', '[91 24 10 19 73]'],
         ['text2', '[85 98 95  3 25]'],
@@ -230,13 +231,13 @@ def history_test(
     print(messages1)
     print("\n")
     [
-        {'role': 'user', 'content': [{'type': 'text', 'text': 'text1'}]},
+        {'role': 'user', 'content': 'text1'},
         {'role': 'assistant', 'content': '[91 24 10 19 73]'},
-        {'role': 'user', 'content': [{'type': 'text', 'text': 'text2'}]},
+        {'role': 'user', 'content': 'text2'},
         {'role': 'assistant', 'content': '[85 98 95  3 25]'},
-        {'role': 'user', 'content': [{'type': 'text', 'text': 'text3'}]},
+        {'role': 'user', 'content': 'text3'},
         {'role': 'assistant', 'content': '[58 60 35 97 39]'},
-        {'role': 'user', 'content': [{'type': 'text', 'text': 'text4'}]}
+        {'role': 'user', 'content': 'text4'}
     ]
 
 
@@ -250,25 +251,22 @@ def history_test(
     messages2 = convert_to_openai_history(history2, query)
     print(messages2)
     [
-        {'role': 'user', 'content': [{'type': 'text', 'text': '你是谁'}]},
+        {'role': 'user', 'content': '你是谁'},
         {'role': 'assistant', 'content': '[47  5 79  7 79]'},
         {'role': 'user', 'content': [
-                {'type': 'text', 'text': 'what is this?'},
-                {'type': 'image_data', 'image_data': {'data':' <PIL.PngImagePlugin.PngImageFile image mode=RGBA size=1792x871 at 0x290FCF14C90>'}}
-            ]
+            {'type': 'text', 'text': 'what is this?'},
+            {'type': 'image_data', 'image_data': {'data': '<PIL.PngImagePlugin.PngImageFile image mode=RGBA size=1792x871 at 0x20EF90509D0>'}}]
         },
         {'role': 'assistant', 'content': '[58 71 49 87 10]'},
         {'role': 'user', 'content': [
-                {'type': 'text', 'text': '这2张图片展示的什么内容?'},
-                {'type': 'image_data', 'image_data': {'data': '<PIL.PngImagePlugin.PngImageFile image mode=RGBA size=1580x1119 at 0x290FCF7D650>'}},
-                {'type': 'image_data', 'image_data': {'data': '<PIL.PngImagePlugin.PngImageFile image mode=RGBA size=1019x716 at 0x290FCF7E710>'}}
-            ]
+            {'type': 'text', 'text': '这2张图片展示的什么内容?'},
+            {'type': 'image_data', 'image_data': {'data': '<PIL.PngImagePlugin.PngImageFile image mode=RGBA size=1580x1119 at 0x20EF90C62D0>'}},
+            {'type': 'image_data', 'image_data': {'data': '<PIL.PngImagePlugin.PngImageFile image mode=RGBA size=1019x716 at 0x20EF90C64D0>'}}]
         },
         {'role': 'assistant', 'content': '[29 86 41 26 84]'},
         {'role': 'user', 'content': [
-                {'type': 'text', 'text': 'how dare you!'},
-                {'type': 'image_data', 'image_data': {'data': '<PIL.PngImagePlugin.PngImageFile image mode=RGBA size=1580x1119 at 0x290FCF7EBD0>'}}
-            ]
+            {'type': 'text', 'text': 'how dare you!'},
+            {'type': 'image_data', 'image_data': {'data': '<PIL.PngImagePlugin.PngImageFile image mode=RGBA size=1580x1119 at 0x20EF90C6990>'}}]
         }
     ]
 
@@ -297,22 +295,32 @@ def convert_to_openai_history_new(
     Returns:
         list: a chat history in OpenAI format or a list of chat history.
             [
-                {'role': 'user', 'content': [{'type': 'text', 'text': 'What is the capital of France?'}]},
+                {'role': 'user', 'content': 'What is the capital of France?'},
                 {'role': 'assistant', 'content': 'The capital of France is Paris.'},
-                {'role': 'user', 'content': [{'type': 'text', 'text': ''}, {'type': 'image_data', 'image_data': {'data': Image1}}]},
-                {'role': 'user', 'content': [{'type': 'text', 'text': 'What is in the image?'}]},
+                {'role': 'user', 'content': [
+                        {'type': 'text', 'text': ''},
+                        {'type': 'image_data', 'image_data': {'data': Image1}}
+                    ]
+                },
+                {'role': 'user', 'content': 'What is in the image?'},
                 {'role': 'assistant', 'content': 'There is a dog in the image.'},
-                {'role': 'user', 'content': [{'type': 'text', 'text': 'How dare you!'}, {'type': 'image_data', 'image_data': {'data': Image2}}, {'type': 'image_data', 'image_data': {'data': Image3}}]}
+                {'role': 'user', 'content': [
+                        {'type': 'text', 'text': 'How dare you!'},
+                        {'type': 'image_data', 'image_data': {'data': Image2}},
+                        {'type': 'image_data', 'image_data': {'data': Image3}}
+                    ]
+                }
             ]
     """
     # 将历史记录转换为openai格式
     messages = []
     for prompt, response in history:
         if isinstance(prompt, str):
-            content = [{
-                'type': 'text',
-                'text': prompt,
-            }]
+            content = prompt # 兼容不支持列表格式的模型
+            # content = [{
+            #     'type': 'text',
+            #     'text': prompt,
+            # }]
         else:
             content = [{
                 'type': 'text',
@@ -361,10 +369,11 @@ def convert_to_openai_history_new(
     # 添加当前的query
     if query is not None:
         if isinstance(query, str):
-            content = [{
-                'type': 'text',
-                'text': query,
-            }]
+            content = query # 兼容不支持列表格式的模型
+            # content = [{
+            #     'type': 'text',
+            #     'text': query,
+            # }]
         else:
             query_text, images = query['text'], query['files']
             content = [{
@@ -406,8 +415,7 @@ def convert_to_openai_history_new(
     return messages
 
 
-def new_history_test(
-) -> list:
+def test_convert_to_openai_history_new():
     history1 = [
         ['text1', '[91 24 10 19 73]'],
         ['text2', '[85 98 95  3 25]'],
@@ -418,13 +426,13 @@ def new_history_test(
     print(messages1)
     print("\n")
     [
-        {'role': 'user', 'content': [{'type': 'text', 'text': 'text1'}]},
+        {'role': 'user', 'content': 'text1'},
         {'role': 'assistant', 'content': '[91 24 10 19 73]'},
-        {'role': 'user', 'content': [{'type': 'text', 'text': 'text2'}]},
+        {'role': 'user', 'content': 'text2'},
         {'role': 'assistant', 'content': '[85 98 95  3 25]'},
-        {'role': 'user', 'content': [{'type': 'text', 'text': 'text3'}]},
+        {'role': 'user', 'content': 'text3'},
         {'role': 'assistant', 'content': '[58 60 35 97 39]'},
-        {'role': 'user', 'content': [{'type': 'text', 'text': 'text4'}]}
+        {'role': 'user', 'content': 'text4'}
     ]
 
 
@@ -447,20 +455,80 @@ def new_history_test(
     messages2 = convert_to_openai_history_new(history2, query)
     print(messages2)
     [
-        {'role': 'user', 'content': [{'type': 'text', 'text': '你是谁'}]},
+        {'role': 'user', 'content': '你是谁'},
         {'role': 'assistant', 'content': '[47  5 79  7 79]'},
-        {'role': 'user', 'content': [{'type': 'text', 'text': ''}, {'type': 'image_data', 'image_data': {'data': '<PIL.PngImagePlugin.PngImageFile image mode=RGBA size=1792x871 at 0x23B1E20EB90>'}}]},
-        {'role': 'user', 'content': [{'type': 'text', 'text': 'what is this?'}]},
+        {'role': 'user', 'content': [{'type': 'text', 'text': ''}, {'type': 'image_data', 'image_data': {'data': '<PIL.PngImagePlugin.PngImageFile image mode=RGBA size=1792x871 at 0x1B5C064FF90>'}}]},
+        {'role': 'user', 'content': 'what is this?'},
         {'role': 'assistant', 'content': '[58 71 49 87 10]'},
-        {'role': 'user', 'content': [{'type': 'text', 'text': ''}, {'type': 'image_data', 'image_data': {'data': '<PIL.PngImagePlugin.PngImageFile image mode=RGBA size=1580x1119 at 0x23B1E288510>'}}]},
-        {'role': 'user', 'content': [{'type': 'text', 'text': ''}, {'type': 'image_data', 'image_data': {'data': '<PIL.PngImagePlugin.PngImageFile image mode=RGBA size=1019x716 at 0x23B1E288750>'}}]},
-        {'role': 'user', 'content': [{'type': 'text', 'text': '这2张图片展示的什么内容?'}]},
+        {'role': 'user', 'content': [{'type': 'text', 'text': ''}, {'type': 'image_data', 'image_data': {'data': '<PIL.PngImagePlugin.PngImageFile image mode=RGBA size=1580x1119 at 0x1B5C06C59D0>'}}]},
+        {'role': 'user', 'content': [{'type': 'text', 'text': ''}, {'type': 'image_data', 'image_data': {'data': '<PIL.PngImagePlugin.PngImageFile image mode=RGBA size=1019x716 at 0x1B5C06C5C10>'}}]},
+        {'role': 'user', 'content': '这2张图片展示的什么内容?'},
         {'role': 'assistant', 'content': '[29 86 41 26 84]'},
-        {'role': 'user', 'content': [{'type': 'text', 'text': 'how dare you!'}, {'type': 'image_data', 'image_data': {'data': '<PIL.PngImagePlugin.PngImageFile image mode=RGBA size=1580x1119 at 0x23B1E288C10>'}}, {'type': 'image_data', 'image_data': {'data': '<PIL.PngImagePlugin.PngImageFile image mode=RGBA size=1019x716 at 0x23B1E288E90>'}}]}
+        {'role': 'user', 'content': [{'type': 'text', 'text': 'how dare you!'}, {'type': 'image_data', 'image_data': {'data': '<PIL.PngImagePlugin.PngImageFile image mode=RGBA size=1580x1119 at 0x1B5C06C60D0>'}}, {'type': 'image_data', 'image_data': {'data': '<PIL.PngImagePlugin.PngImageFile image mode=RGBA size=1019x716 at 0x1B5C06C6350>'}}]}
     ]
 
 
+def convert_to_lmdeploy_history(original_history: list) -> list:
+    transformed_history = []
+    temp_image_list = []
+    for query, answer in original_history:
+        if isinstance(query, str):
+            if len(temp_image_list) == 0:
+                transformed_history.append([query, answer])
+            else:
+                query_with_image = (query, temp_image_list)
+                transformed_history.append([query_with_image, answer])
+                temp_image_list = []
+        elif isinstance(query, tuple):
+            temp_image_list.append(query[0])
+        else:
+            raise ValueError(f"{query} 格式错误")
+
+    return transformed_history
+
+
+def test_convert_to_lmdeploy_history():
+    # 原始列表
+    original = [
+        ['你是谁', '我是你的小助手。'],
+        [('./images/0001.jpg',), None],
+        ['', '这张图片中有一只猫。'],
+        [('./images/0002.jpg',), None],
+        ['这张图片展示的什么内容?', '这张图片中也有一只猫。'],
+        [('./images/0003.jpg',), None],
+        [('./images/0004.jpg',), None],
+        ['这2张图片展示的什么内容?', '第一张图片中有一个人在滑雪，第二张图片中有一个人坐在长椅上休息。'],
+        [('./images/0005.jpg',), None],
+        [('./images/0006.jpg',), None],
+        ['', '这两张图片显示了雪山上的景色。']
+    ]
+
+    # 转换列表
+    transformed = convert_to_lmdeploy_history(original)
+    print(transformed)
+    [
+        ['你是谁', '我是你的小助手。'],
+        [('', ['./images/0001.jpg']), '这张图片中有一只猫。'],
+        [('这张图片展示的什么内容?', ['./images/0002.jpg']), '这张图片中也有一只猫。'],
+        [('这2张图片展示的什么内容?', ['./images/0003.jpg', './images/0004.jpg']), '第一张图片中有一个人在滑雪，第二张图片中有一个人坐在长椅上休息。'],
+        [('', ['./images/0005.jpg', './images/0006.jpg']), '这两张图片显示了雪山上的景色。']
+    ]
+
+    # to
+    correct = [
+        ['你是谁', '我是你的小助手。'],
+        [('', ['./images/0001.jpg']), '这张图片中有一只猫。'],
+        [('这张图片展示的什么内容?', ['./images/0002.jpg']), '这张图片中也有一只猫。'],
+        [('这2张图片展示的什么内容?', ['./images/0003.jpg', './images/0004.jpg']), '第一张图片中有一个人在滑雪，第二张图片中有一个人坐在长椅上休息。'],
+        [('', ['./images/0005.jpg', './images/0006.jpg']), '这两张图片显示了雪山上的景色。']
+    ]
+
+    print(transformed == correct)
+
+
 if __name__ == '__main__':
-    history_test()
-    print("\n\n")
-    # new_history_test()
+    test_convert_to_openai_history()
+    print("*" * 100)
+    test_convert_to_openai_history_new()
+    print("*" * 100)
+    test_convert_to_lmdeploy_history()
