@@ -24,10 +24,12 @@ LMDEPLOY_CONFIG = LmdeployConfig(
     backend = 'turbomind',
     model_name = 'internlm2',
     model_format = 'hf',
+    tp = 1,                         # Tensor Parallelism.
+    max_batch_size = 128,
     cache_max_entry_count = 0.8,    # 调整 KV Cache 的占用比例为0.8
     quant_policy = 0,               # KV Cache 量化, 0 代表禁用, 4 代表 4bit 量化, 8 代表 8bit 量化
     system_prompt = SYSTEM_PROMPT,
-    deploy_method = 'local'
+    deploy_method = 'local',
 )
 
 # 载入模型
