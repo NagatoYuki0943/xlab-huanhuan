@@ -1,4 +1,5 @@
 import os
+from PIL import Image
 import gradio as gr
 from infer_engine import InferEngine, LmdeployConfig
 from infer_utils import convert_to_multimodal_history
@@ -25,6 +26,7 @@ LMDEPLOY_CONFIG = LmdeployConfig(
     cache_max_entry_count= 0.8,     # 调整 KV Cache 的占用比例为0.8
     quant_policy = 0,               # KV Cache 量化, 0 代表禁用, 4 代表 4bit 量化, 8 代表 8bit 量化
     system_prompt = SYSTEM_PROMPT,
+    deploy_method = 'local',
 )
 
 # 载入模型
@@ -66,11 +68,12 @@ def multimodal_chat(
         return history
     query_text = query_text.strip()
     logger.info(f"query_text: {query_text}")
-    multimodal_query = query_text if len(query["files"]) <= 0 else (query_text, query["files"])
+    # multimodal_query = query_text if len(query["files"]) <= 0 else (query_text, query["files"])
+    multimodal_query = query_text if len(query["files"]) <= 0 else (query_text, [Image.open(file) for file in query["files"]]) # use pil
     logger.info(f"multimodal_query: {multimodal_query}")
 
     logger.info(f"history before: {history}")
-    multimodal_history = convert_to_multimodal_history(history)
+    multimodal_history = convert_to_multimodal_history(history, use_pil=True)
     logger.info(f"multimodal_history before: {multimodal_history}")
 
     # 将图片放入历史记录中
@@ -85,6 +88,7 @@ def multimodal_chat(
         temperature = 0.8,
         top_p = 0.8,
         top_k = 40,
+        session_id = state_session_id,
     )
 
     logger.info(f"response: {response}")
