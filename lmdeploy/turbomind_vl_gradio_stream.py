@@ -1,3 +1,5 @@
+# 多轮对话会报错: https://github.com/InternLM/lmdeploy/issues/2101
+
 import os
 from PIL import Image
 import gradio as gr
