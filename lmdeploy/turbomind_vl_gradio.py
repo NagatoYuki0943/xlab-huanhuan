@@ -12,6 +12,7 @@ from loguru import logger
 
 logger.info(f"gradio version: {gr.__version__}")
 
+USE_PIL = True
 
 MODEL_PATH = '../models/InternVL2-2B'
 
@@ -71,11 +72,13 @@ def multimodal_chat(
     query_text = query_text.strip()
     logger.info(f"query_text: {query_text}")
     # multimodal_query = query_text if len(query["files"]) <= 0 else (query_text, query["files"])
-    multimodal_query = query_text if len(query["files"]) <= 0 else (query_text, [Image.open(file) for file in query["files"]]) # use pil
+    multimodal_query = query_text if len(query["files"]) <= 0 else (
+        query_text, [Image.open(file) if USE_PIL else file for file in query["files"]]
+    ) # use pil
     logger.info(f"multimodal_query: {multimodal_query}")
 
     logger.info(f"history before: {history}")
-    multimodal_history = convert_to_multimodal_history(history, use_pil=True)
+    multimodal_history = convert_to_multimodal_history(history, use_pil=USE_PIL)
     logger.info(f"multimodal_history before: {multimodal_history}")
 
     # 将图片放入历史记录中
