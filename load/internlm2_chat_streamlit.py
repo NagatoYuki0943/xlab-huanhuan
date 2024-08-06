@@ -37,10 +37,7 @@ print("streamlit version: ", st.__version__)
 #----------------------------------------------------------------------#
 
 
-# clone 模型
 PRETRAINED_MODEL_NAME_OR_PATH = '../models/internlm2_5-1_8b-chat'
-# os.system(f'git clone https://code.openxlab.org.cn/OpenLMLab/internlm2-chat-1.8b {PRETRAINED_MODEL_NAME_OR_PATH}')
-# os.system(f'cd {PRETRAINED_MODEL_NAME_OR_PATH} && git lfs pull')
 ADAPTER_PATH = None
 # 量化
 LOAD_IN_8BIT= False

@@ -9,7 +9,6 @@ from loguru import logger
 logger.info(f"gradio version: {gr.__version__}")
 
 
-# clone 模型
 PRETRAINED_MODEL_NAME_OR_PATH = '../models/Meta-Llama-3.1-8B-Instruct'
 ADAPTER_PATH = None
 # 量化

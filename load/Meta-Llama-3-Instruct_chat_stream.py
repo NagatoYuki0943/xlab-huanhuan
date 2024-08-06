@@ -2,7 +2,6 @@ import os
 from infer_engine import InferEngine, TransformersConfig
 
 
-# clone 模型
 PRETRAINED_MODEL_NAME_OR_PATH = '../models/Meta-Llama-3.1-8B-Instruct'
 ADAPTER_PATH = None
 # 量化
