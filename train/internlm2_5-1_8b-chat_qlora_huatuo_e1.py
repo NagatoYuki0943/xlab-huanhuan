@@ -2,16 +2,16 @@
 train:
     xtuner train $CONFIG [other_config]
     ex:
-        xtuner train train/internlm2_chat_1_8b_qlora_huatuo_e1.py --deepspeed deepspeed_zero2
+        xtuner train train/internlm2_5-1_8b-chat_qlora_huatuo_e1.py --deepspeed deepspeed_zero2
 
 convert:
     xtuner convert pth_to_hf $CONFIG $PATH_TO_PTH_MODEL $SAVE_PATH_TO_HF_MODEL --max-shard-size 2GB
 
     ex:
         xtuner convert pth_to_hf \
-            train/internlm2_chat_1_8b_qlora_huatuo_e1.py \
-            work_dirs/internlm2_chat_1_8b_qlora_huatuo_e1/iter_2708.pth \
-            work_dirs/internlm2_chat_1_8b_qlora_huatuo_e1/iter_2708.hf \
+            train/internlm2_5-1_8b-chat_qlora_huatuo_e1.py \
+            work_dirs/internlm2_5-1_8b-chat_qlora_huatuo_e1/iter_2708.pth \
+            work_dirs/internlm2_5-1_8b-chat_qlora_huatuo_e1/iter_2708.hf \
             --max-shard-size 2GB
 
 merge adapter:
@@ -20,8 +20,8 @@ merge adapter:
     ex:
         xtuner convert merge \
             models/internlm2-chat-1_8b \
-            work_dirs/internlm2_chat_1_8b_qlora_huatuo_e1/iter_2708.hf \
-            work_dirs/internlm2_chat_1_8b_qlora_huatuo_e1/iter_2708.merged \
+            work_dirs/internlm2_5-1_8b-chat_qlora_huatuo_e1/iter_2708.hf \
+            work_dirs/internlm2_5-1_8b-chat_qlora_huatuo_e1/iter_2708.merged \
             --max-shard-size 2GB
 
 chat:
@@ -30,7 +30,7 @@ chat:
     ex:
         xtuner chat \
             models/internlm2-chat-1_8b \
-            --adapter work_dirs/internlm2_chat_1_8b_qlora_huatuo_e1/iter_2708.hf \
+            --adapter work_dirs/internlm2_5-1_8b-chat_qlora_huatuo_e1/iter_2708.hf \
             --bits 8 --temperature 0.7 --top-k 50 --top-p 0.9 \
             --system '你是医疗保健智能体，名字叫做 "HeathcareAgent"。\n    - "HeathcareAgent" 可以根据自己丰富的医疗知识来回答问题。\n    - "HeathcareAgent" 的回答应该是有益的、诚实的和无害的。\n    - "HeathcareAgent" 可以使用用户选择的语言（如英语和中文）进行理解和交流。'
 
@@ -38,7 +38,7 @@ chat:
     xtuner check-custom-dataset $CONFIG
 
     ex:
-        xtuner check-custom-dataset train/internlm2_chat_1_8b_qlora_huatuo_e1.py
+        xtuner check-custom-dataset train/internlm2_5-1_8b-chat_qlora_huatuo_e1.py
 """
 
 
@@ -68,7 +68,7 @@ from xtuner.utils import PROMPT_TEMPLATE, SYSTEM_TEMPLATE
 #                          PART 1  Settings                           #
 #######################################################################
 # Model
-pretrained_model_name_or_path = './models/internlm2-chat-1_8b'
+pretrained_model_name_or_path = '../models/internlm2_5-1_8b-chat'
 use_varlen_attn = False
 
 # Data

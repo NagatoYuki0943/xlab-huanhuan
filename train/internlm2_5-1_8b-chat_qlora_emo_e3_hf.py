@@ -9,17 +9,13 @@ print("torch version: ", torch.__version__)
 print("transformers version: ", transformers.__version__)
 
 
-MAX_LENGTH = 512    # 分词器会将一个中文字切分为多个token，因此需要放开一些最大长度，保证数据的完整性
-data_path = "./data/huanhuan.json"
-pretrained_model_name_or_path = "./models/internlm2-chat-1_8b"
-work_dir = "./work_dirs/internlm2_chat_1_8b_qlora_huanhuan_e3_hf"
-system_prompt = "现在你要扮演皇帝身边的女人--甄嬛"
-
+MAX_LENGTH = 2048    # 分词器会将一个中文字切分为多个token，因此需要放开一些最大长度，保证数据的完整性
+data_path = "./data/emo_1234_xtuner.json"
+pretrained_model_name_or_path = "../models/internlm2_5-1_8b-chat"
+work_dir = "./work_dirs/internlm2_chat_1_8b_qlora_emo_e3_hf"
 
 ## 载入数据
-df = pd.read_json(data_path)
-ds = Dataset.from_pandas(df)
-
+ds = Dataset.from_json(data_path)
 
 ## 处理数据集
 tokenizer = AutoTokenizer.from_pretrained(pretrained_model_name_or_path, use_fast=False, trust_remote_code=True)
@@ -56,18 +52,42 @@ def build_inputs(
 def process_func(example):
     # print(example)
     # {
-    #     'instruction': '小姐，别的秀女都在求中选，唯有咱们小姐想被撂牌子，菩萨一定记得真真儿的——',
-    #     'input': '',
-    #     'output': '嘘——都说许愿说破是不灵的。'
+    #    'conversation': [
+    #         {
+    #             'input': '医生，我最近总是感到很焦虑，尤其是在学业上。我有个特别崇拜的同学，他好像在各方面都比我优秀，我总觉得自己怎么努力也追不上他，这让我压力特别大。\n\n',
+    #             'output': '你好，首先感谢你对我敞开心扉。你的这种情绪其实很常见，这是由于过度比较和自我期待过高引发的焦虑情绪。我们要认识到每个人都有自己的发展节奏和优势，与他人比较并不是衡量自身价值的唯一标准。你可以试着列出自己在学习和其他方面的优点，同时理解并接纳自己的不足。我们可以一步步来，先从调整自我认知开始。\n\n',
+    #             'system': '现在你是一个心理专家，我有一些心理问题，请你用专业的知识帮我解决。'
+    #         },
+    #         {
+    #             'input': '是的，我知道应该理性看待，但就是忍不住会去比较。我甚至晚上会因为这个睡不着觉，总想着怎样才能像他那样出色。\n\n',
+    #             'output': '了解你的情况后，我建议你在睡前尝试进行放松训练，比如深呼吸、冥想等方法，有助于改善睡眠质量。另外，设定实际可达的目标也是很重要的，避免给自己设定过于严苛的标准。你是否可以具体描述一下你在学业上的困扰，我们一起看看如何制定一个适合你的个人提升计划？\n\n',
+    #             'system': None
+    #         }
+    #     ]
     # }
 
-    input_ids, attention_mask, labels = [], [], []
-    # <s> tokenizer会默认添加,不过这里使用手动添加的方式
-    instruction = tokenizer(f"<s><|im_start|>system\n{system_prompt}<|im_end|>\n<|im_start|>user\n{example['instruction']}<|im_end|>\n<|im_start|>assistant\n", add_special_tokens=False)  # add_special_tokens 不在开头加 special_tokens
-    response = tokenizer(f"{example['output']}<|im_end|>\n", add_special_tokens=False)
-    input_ids = instruction["input_ids"] + response["input_ids"] + [tokenizer.eos_token_id]             # tokenizer.eos_token_id = 2 是 </s>
-    attention_mask = instruction["attention_mask"] + response["attention_mask"] + [1]                   # 因为eos token咱们也是要关注的所以 补充为1
-    labels = [-100] * len(instruction["input_ids"]) + response["input_ids"] + [tokenizer.eos_token_id]  # 3条数据长度相同
+    # 开始的 bos token
+    input_ids = [tokenizer.bos_token_id]
+    attention_mask = [1]
+    labels = [-100]
+
+    # 多轮对话
+    for i, conversation in enumerate(example['conversation']):
+        # 第一轮添加system指令
+        if i == 0:
+            text = f"<|im_start|>system\n{conversation['system']}<|im_end|>\n<|im_start|>user\n{conversation['input']}<|im_end|>\n<|im_start|>assistant\n"
+        else:
+            text = f"<|im_start|>user\n{conversation['input']}<|im_end|>\n<|im_start|>assistant\n"
+        instruction = tokenizer(text, add_special_tokens=False)  # add_special_tokens 不在开头加 special_tokens
+        response = tokenizer(f"{conversation['output']}<|im_end|>\n", add_special_tokens=False)
+        input_ids += instruction["input_ids"] + response["input_ids"]
+        attention_mask += instruction["attention_mask"] + response["attention_mask"]
+        labels += [-100] * len(instruction["input_ids"]) + response["input_ids"]
+
+    # 结束的 eos token
+    input_ids += [tokenizer.eos_token_id]
+    attention_mask += [1]                   # 因为eos token咱们也是要关注的所以 补充为1
+    labels += [tokenizer.eos_token_id]
 
     if len(input_ids) > MAX_LENGTH:  # 做一个截断
         input_ids = input_ids[:MAX_LENGTH]
@@ -139,8 +159,8 @@ args = TrainingArguments(
     optim="paged_adamw_32bit",
     learning_rate=2e-4,
     gradient_checkpointing=True,
-    per_device_train_batch_size=4,
-    gradient_accumulation_steps=4,  # 4*4=16
+    per_device_train_batch_size=1,
+    gradient_accumulation_steps=16,
     logging_steps=10,
     num_train_epochs=3,
     save_strategy="epoch",  # epoch or steps
@@ -161,3 +181,6 @@ trainer = Trainer(
 )
 
 trainer.train()
+
+# 1080ti: 14h:10m
+# v100:    7h:30m 13G men

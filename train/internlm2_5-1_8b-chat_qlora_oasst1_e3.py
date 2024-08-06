@@ -2,16 +2,16 @@
 train:
     xtuner train $CONFIG [other_config]
     ex:
-        xtuner train train/internlm2_chat_1_8b_qlora_alpaca_e3.py --deepspeed deepspeed_zero2
+        xtuner train train/internlm2_5-1_8b-chat_qlora_oasst1_e3.py --deepspeed deepspeed_zero2
 
 convert:
     xtuner convert pth_to_hf $CONFIG $PATH_TO_PTH_MODEL $SAVE_PATH_TO_HF_MODEL --max-shard-size 2GB
 
     ex:
         xtuner convert pth_to_hf \
-            train/internlm2_chat_1_8b_qlora_alpaca_e3.py \
-            work_dirs/internlm2_chat_1_8b_qlora_alpaca_e3/epoch_3.pth \
-            work_dirs/internlm2_chat_1_8b_qlora_alpaca_e3/epoch_3.hf \
+            train/internlm2_5-1_8b-chat_qlora_oasst1_e3.py \
+            work_dirs/internlm2_5-1_8b-chat_qlora_oasst1_e3/epoch_3.pth \
+            work_dirs/internlm2_5-1_8b-chat_qlora_oasst1_e3/epoch_3.hf \
             --max-shard-size 2GB
 
 merge adapter:
@@ -20,8 +20,8 @@ merge adapter:
     ex:
         xtuner convert merge \
             models/internlm2-chat-1_8b \
-            work_dirs/internlm2_chat_1_8b_qlora_alpaca_e3/epoch_3.hf \
-            work_dirs/internlm2_chat_1_8b_qlora_alpaca_e3/epoch_3.merged \
+            work_dirs/internlm2_5-1_8b-chat_qlora_oasst1_e3/epoch_3.hf \
+            work_dirs/internlm2_5-1_8b-chat_qlora_oasst1_e3/epoch_3.merged \
             --max-shard-size 2GB
 
 chat:
@@ -30,14 +30,14 @@ chat:
     ex:
         xtuner chat \
             models/internlm2-chat-1_8b \
-            --adapter work_dirs/internlm2_chat_1_8b_qlora_alpaca_e3/epoch_3.hf \
+            --adapter work_dirs/internlm2_5-1_8b-chat_qlora_oasst1_e3/epoch_3.hf \
             --bits 8 --temperature 0.7 --top-k 50 --top-p 0.9
 
 验证数据集是否正确构建:
     xtuner check-custom-dataset $CONFIG
 
     ex:
-        xtuner check-custom-dataset train/internlm2_chat_1_8b_qlora_alpaca_e3.py
+        xtuner check-custom-dataset train/internlm2_5-1_8b-chat_qlora_oasst1_e3.py
 """
 
 
@@ -56,7 +56,7 @@ from transformers import (AutoModelForCausalLM, AutoTokenizer,
 
 from xtuner.dataset import process_hf_dataset
 from xtuner.dataset.collate_fns import default_collate_fn
-from xtuner.dataset.map_fns import alpaca_map_fn, template_map_fn_factory
+from xtuner.dataset.map_fns import oasst1_map_fn, template_map_fn_factory
 from xtuner.engine.hooks import (DatasetInfoHook, EvaluateChatHook,
                                  VarlenAttnArgsToMessageHubHook, ThroughputHook)
 from xtuner.engine.runner import TrainLoop
@@ -68,11 +68,11 @@ from xtuner.utils import PROMPT_TEMPLATE, SYSTEM_TEMPLATE
 #                          PART 1  Settings                           #
 #######################################################################
 # Model
-pretrained_model_name_or_path = './models/internlm2-chat-1_8b'
+pretrained_model_name_or_path = '../models/internlm2_5-1_8b-chat'
 use_varlen_attn = False
 
 # Data
-alpaca_en_path = './data/alpaca'
+data_path = './data/openassistant-guanaco'
 prompt_template = PROMPT_TEMPLATE.internlm2_chat
 max_length = 2048
 pack_to_max_length = True
@@ -105,7 +105,7 @@ save_total_limit = 3  # Maximum checkpoints to keep (-1 means unlimited)
 
 # Evaluate the generation performance during the training
 evaluation_freq = 500
-SYSTEM = SYSTEM_TEMPLATE.alpaca
+SYSTEM = ''
 evaluation_inputs = [
     '请给我介绍五个上海的景点', 'Please tell me five scenic spots in Shanghai'
 ]
@@ -151,12 +151,12 @@ model = dict(
 #######################################################################
 #                      PART 3  Dataset & Dataloader                   #
 #######################################################################
-alpaca_en = dict(
+train_dataset = dict(
     type=process_hf_dataset,
-    dataset=dict(type=load_dataset, path=alpaca_en_path),
+    dataset=dict(type=load_dataset, path=data_path),
     tokenizer=tokenizer,
     max_length=max_length,
-    dataset_map_fn=alpaca_map_fn,
+    dataset_map_fn=oasst1_map_fn,
     template_map_fn=dict(
         type=template_map_fn_factory, template=prompt_template),
     remove_unused_columns=True,
@@ -169,7 +169,7 @@ sampler = SequenceParallelSampler \
 train_dataloader = dict(
     batch_size=batch_size,
     num_workers=dataloader_num_workers,
-    dataset=alpaca_en,
+    dataset=train_dataset,
     sampler=dict(type=sampler, shuffle=True),
     collate_fn=dict(type=default_collate_fn, use_varlen_attn=use_varlen_attn))
 
@@ -245,7 +245,7 @@ default_hooks = dict(
         interval=save_steps,
         max_keep_ckpts=save_total_limit),
     # set sampler seed in distributed evrionment.
-    sampler_seed=dict(type=DistSamplerSeedHook),
+    sampler_seed=dict(type=DistSamplerSeedHook)
 )
 
 # configure environment
@@ -255,7 +255,7 @@ env_cfg = dict(
     # set multi process parameters
     mp_cfg=dict(mp_start_method='fork', opencv_num_threads=0),
     # set distributed parameters
-    dist_cfg=dict(backend='nccl'),
+    dist_cfg=dict(backend='nccl')
 )
 
 # set visualizer
