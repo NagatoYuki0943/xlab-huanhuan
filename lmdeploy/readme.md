@@ -118,7 +118,7 @@ lmdeploy chat \
     --quant-policy 0
 
 lmdeploy chat \
-    ../models/internlm2-chat-1_8b \
+    ../models/internlm2_5-1_8b-chat \
     --backend turbomind \
     --model-format hf \
     --tp 1 \
@@ -208,7 +208,7 @@ lmdeploy chat \
     --quant-policy 0
 
 lmdeploy chat \
-    ../models/internlm2-chat-1_8b \
+    ../models/internlm2_5-1_8b-chat \
     --backend turbomind \
     --model-format hf \
     --tp 1 \
@@ -291,7 +291,7 @@ lmdeploy chat \
 
 
 lmdeploy chat \
-    ../models/internlm2-chat-1_8b \
+    ../models/internlm2_5-1_8b-chat \
     --backend turbomind \
     --model-format hf \
     --tp 1 \
@@ -348,13 +348,13 @@ lmdeploy lite auto_awq \
     --work-dir $WORK_DIR
 
 lmdeploy lite auto_awq \
-    ../models/internlm2-chat-1_8b \
+    ../models/internlm2_5-1_8b-chat \
     --calib-dataset 'ptb' \
     --calib-samples 128 \
     --calib-seqlen 2048 \
     --w-bits 4 \
     --w-group-size 128 \
-    --work-dir ../models/internlm2-chat-1_8b-4bit
+    --work-dir ../models/internlm2_5-1_8b-chat-4bit
 ```
 
 量化后的模型，可以用一些工具快速验证对话效果。
@@ -374,7 +374,7 @@ lmdeploy chat \
     --quant-policy 0 # 0/4 校准/W4A16量化的模型可以使用 kv int8 量化
 
 lmdeploy chat \
-    ../models/internlm2-chat-1_8b-4bit \
+    ../models/internlm2_5-1_8b-chat-4bit \
     --backend turbomind \
     --model-format awq \
     --tp 1 \
@@ -392,7 +392,7 @@ lmdeploy chat \
 from lmdeploy import pipeline, TurbomindEngineConfig
 
 engine_config = TurbomindEngineConfig(model_format='awq', cache_max_entry_count=0.5)
-pipe = pipeline("../models/internlm2-chat-1_8b-4bit", backend_config=engine_config)
+pipe = pipeline("../models/internlm2_5-1_8b-chat-4bit", backend_config=engine_config)
 response = pipe(["Hi, pls intro yourself", "Shanghai is"])
 
 print(response)
@@ -463,11 +463,11 @@ lmdeploy lite smooth_quant \
     --work-dir $WORK_DIR
 
 lmdeploy lite smooth_quant \
-    ../models/internlm2-chat-1_8b \
+    ../models/internlm2_5-1_8b-chat \
     --calib-dataset 'ptb' \
     --calib-samples 128 \
     --calib-seqlen 2048 \
-    --work-dir ../models/internlm2-chat-1_8b-w8
+    --work-dir ../models/internlm2_5-1_8b-chat-w8
 ```
 
 然后，执行以下命令，即可在终端与模型对话：
@@ -482,7 +482,7 @@ lmdeploy chat \
     --cache-max-entry-count 0.8
 
 lmdeploy chat \
-    ../models/internlm2-chat-1_8b-w8 \
+    ../models/internlm2_5-1_8b-chat-w8 \
     --backend pytorch \
     --tp 1 \
     --cache-max-entry-count 0.8
@@ -637,7 +637,7 @@ lmdeploy serve api_server \
     --server-port {port}
 
 lmdeploy serve api_server \
-    ../models/internlm2-chat-1_8b \
+    ../models/internlm2_5-1_8b-chat \
     --backend turbomind \
     --model-format hf \
     --tp 1 \
@@ -777,7 +777,7 @@ lmdeploy serve gradio \
     --server-port {port}
 
 lmdeploy serve gradio \
-    ../models/internlm2-chat-1_8b \
+    ../models/internlm2_5-1_8b-chat \
     --backend turbomind \
     --model-format hf \
     --tp 1 \
@@ -821,7 +821,7 @@ lmdeploy serve gradio {ip_addr}:{port} \
     --server-port 6006
 
 lmdeploy serve api_server \
-    ../models/internlm2-chat-1_8b \
+    ../models/internlm2_5-1_8b-chat \
     --backend turbomind \
     --model-format hf \
     --tp 1 \
@@ -885,10 +885,10 @@ lmdeploy convert internlm2 \
     --dst-path $DST_PATH
 
 lmdeploy convert internlm2 \
-    ../models/internlm2-chat-1_8b \
+    ../models/internlm2_5-1_8b-chat \
     --model-format hf \
     --tp 1 \
-    --dst-path ../models/internlm2-chat-1_8b-turbomind
+    --dst-path ../models/internlm2_5-1_8b-chat-turbomind
 ```
 
 > 转化量化后的W4A16模型,需要设置 group-size
@@ -906,11 +906,11 @@ lmdeploy convert internlm2 \
     --dst-path $DST_PATH
 
 lmdeploy convert internlm2 \
-    ../models/internlm2-chat-1_8b-4bit \
+    ../models/internlm2_5-1_8b-chat-4bit \
     --model-format awq \
     --group-size 128 \
     --tp 1 \
-    --dst-path ../models/internlm2-chat-1_8b-4bit-turbomind
+    --dst-path ../models/internlm2_5-1_8b-chat-4bit-turbomind
 ```
 
 > 推理
@@ -926,7 +926,7 @@ lmdeploy chat \
     --quant-policy 0 # 0/4 turbomind格式可以直接使用 kv int8 量化
 
 lmdeploy chat \
-    ../models/internlm2-chat-1_8b-turbomind \
+    ../models/internlm2_5-1_8b-chat-turbomind \
     --backend turbomind \
     --tp 1 \
     --cache-max-entry-count 0.8 \

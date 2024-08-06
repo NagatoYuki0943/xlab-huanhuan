@@ -8,7 +8,7 @@ from infer_utils import random_uuid
 
 
 
-PRETRAINED_MODEL_NAME_OR_PATH = '../models/internlm2-chat-1_8b'
+PRETRAINED_MODEL_NAME_OR_PATH = '../models/internlm2_5-1_8b-chat'
 ADAPTER_PATH = None
 
 

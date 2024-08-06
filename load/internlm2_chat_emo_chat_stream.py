@@ -3,7 +3,7 @@ from infer_engine import InferEngine, TransformersConfig
 
 
 # clone 模型
-PRETRAINED_MODEL_NAME_OR_PATH = '../models/internlm2-chat-1_8b'
+PRETRAINED_MODEL_NAME_OR_PATH = '../models/internlm2_5-1_8b-chat'
 # os.system(f'git clone https://code.openxlab.org.cn/OpenLMLab/internlm2-chat-1.8b {PRETRAINED_MODEL_NAME_OR_PATH}')
 # os.system(f'cd {PRETRAINED_MODEL_NAME_OR_PATH} && git lfs pull')
 ADAPTER_PATH = "../work_dirs/internlm2_chat_1_8b_qlora_emo_e3_hf/checkpoint-3000"
