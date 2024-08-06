@@ -166,7 +166,7 @@ merge adapter:
 
     ex:
         xtuner convert merge \
-            models/internlm2-chat-1_8b \
+            models/internlm2_5-1_8b-chat \
             work_dirs/internlm2_chat_1_8b_qlora_emo_e3/hf \
             work_dirs/internlm2_chat_1_8b_qlora_emo_e3/epoch_3.merged \
             --max-shard-size 2GB
@@ -176,7 +176,7 @@ chat:
 
     ex:
         xtuner chat \
-            models/internlm2-chat-1_8b \
+            models/internlm2_5-1_8b-chat \
             --adapter work_dirs/internlm2_chat_1_8b_qlora_emo_e3/hf \
             --bits 8 --temperature 0.7 --top-k 50 --top-p 0.9 \
             --system 现在你是一个心理专家，我有一些心理问题，请你用专业的知识帮我解决。
@@ -681,7 +681,7 @@ options:
 xtuner convert merge ${NAME_OR_PATH_TO_LLM} ${NAME_OR_PATH_TO_ADAPTER} ${SAVE_PATH} --max-shard-size 2GB
 
 xtuner convert merge \
-    models/internlm2-chat-1_8b \
+    models/internlm2_5-1_8b-chat \
     work_dirs/internlm2_1_8b_qlora_emo_e3/hf \
     work_dirs/internlm2_1_8b_qlora_emo_e3/epoch_3.merged \
     --max-shard-size 2GB
@@ -757,7 +757,7 @@ options:
 xtuner convert split $LLM $SAVE_PATH
 
 xtuner convert split \
-    models/internlm2-chat-1_8b \
+    models/internlm2_5-1_8b-chat \
     work_dirs/internlm2-chat-1_8b-sft-split
 ```
 
@@ -821,7 +821,7 @@ options:
 xtuner chat $LLM --adapter $ADAPTER --bits $BITS --temperature $TEMPERATURE --top-k $TOP_K --top-p $TOP_P --system $SYSTEM_TEXT
 
 xtuner chat \
-    models/internlm2-chat-1_8b \
+    models/internlm2_5-1_8b-chat \
     --adapter work_dirs/internlm2_1_8b_qlora_emo_e3/hf \
     --bits 8 --temperature 0.7 --top-k 50 --top-p 0.9 \
     --prompt-template internlm2_chat \

@@ -19,7 +19,7 @@ merge adapter:
 
     ex:
         xtuner convert merge \
-            models/internlm2-chat-1_8b \
+            models/internlm2_5-1_8b-chat \
             work_dirs/internlm2_5-1_8b-chat_qlora_huatuo_e1/iter_2708.hf \
             work_dirs/internlm2_5-1_8b-chat_qlora_huatuo_e1/iter_2708.merged \
             --max-shard-size 2GB
@@ -29,7 +29,7 @@ chat:
 
     ex:
         xtuner chat \
-            models/internlm2-chat-1_8b \
+            models/internlm2_5-1_8b-chat \
             --adapter work_dirs/internlm2_5-1_8b-chat_qlora_huatuo_e1/iter_2708.hf \
             --bits 8 --temperature 0.7 --top-k 50 --top-p 0.9 \
             --system '你是医疗保健智能体，名字叫做 "HeathcareAgent"。\n    - "HeathcareAgent" 可以根据自己丰富的医疗知识来回答问题。\n    - "HeathcareAgent" 的回答应该是有益的、诚实的和无害的。\n    - "HeathcareAgent" 可以使用用户选择的语言（如英语和中文）进行理解和交流。'
