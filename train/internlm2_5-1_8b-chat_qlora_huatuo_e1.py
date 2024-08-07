@@ -21,7 +21,7 @@ merge adapter:
         xtuner convert merge \
             models/internlm2_5-1_8b-chat \
             work_dirs/internlm2_5-1_8b-chat_qlora_huatuo_e1/iter_2708.hf \
-            work_dirs/internlm2_5-1_8b-chat_qlora_huatuo_e1/iter_2708.merged \
+            work_dirs/internlm2_5-1_8b-chat_qlora_huatuo_e1/iter_2708_merged \
             --max-shard-size 2GB
 
 chat:

@@ -21,7 +21,7 @@ merge adapter:
         xtuner convert merge \
             models/Meta-Llama-3-8B-Instruct \
             work_dirs/llama3_8b_instruct_qlora_huatuo_e1/epoch_1.hf \
-            work_dirs/llama3_8b_instruct_qlora_huatuo_e1/epoch_1.merged \
+            work_dirs/llama3_8b_instruct_qlora_huatuo_e1/epoch_1_merged \
             --max-shard-size 2GB
 
 chat:

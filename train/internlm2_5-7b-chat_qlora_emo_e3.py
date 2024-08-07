@@ -21,7 +21,7 @@ merge adapter:
         xtuner convert merge \
             models/internlm2-chat-7b \
             work_dirs/internlm2_5-7b-chat_qlora_emo_e3/epoch_3.hf \
-            work_dirs/internlm2_5-7b-chat_qlora_emo_e3/epoch_3.merged \
+            work_dirs/internlm2_5-7b-chat_qlora_emo_e3/epoch_3_merged \
             --max-shard-size 2GB
 
 chat:
