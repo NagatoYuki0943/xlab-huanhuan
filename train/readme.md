@@ -213,7 +213,7 @@ from xtuner.utils import PROMPT_TEMPLATE, SYSTEM_TEMPLATE
 #                          PART 1  Settings                           #
 #######################################################################
 # Model
-pretrained_model_name_or_path = '../models/internlm2_5-1_8b-chat'
+pretrained_model_name_or_path = './models/internlm2_5-1_8b-chat'
 use_varlen_attn = False
 
 # Data

@@ -11,7 +11,7 @@ print("transformers version: ", transformers.__version__)
 
 MAX_LENGTH = 512    # 分词器会将一个中文字切分为多个token，因此需要放开一些最大长度，保证数据的完整性
 data_path = "./data/huanhuan.json"
-pretrained_model_name_or_path = "../models/internlm2_5-1_8b-chat"
+pretrained_model_name_or_path = "./models/internlm2_5-1_8b-chat"
 work_dir = "./work_dirs/internlm2_chat_1_8b_qlora_huanhuan_e3_hf"
 system_prompt = "现在你要扮演皇帝身边的女人--甄嬛"
 
