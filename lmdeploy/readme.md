@@ -838,7 +838,7 @@ lmdeploy serve gradio http://localhost:23333 \
 
 现在使用的架构是这样的：
 
-![4.3_3](imgs/4.3_3.jpg)
+![](imgs/4.3_3.jpg)
 
 ## 转换模型格式
 
