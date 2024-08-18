@@ -71,7 +71,7 @@ pretrained_model_name_or_path = './models/internlm2_5-7b-chat'
 use_varlen_attn = False
 
 # Data
-data_path = './data/openassistant-guanaco'
+data_path = './datasets/openassistant-guanaco'
 prompt_template = PROMPT_TEMPLATE.internlm2_chat
 max_length = 2048
 pack_to_max_length = True

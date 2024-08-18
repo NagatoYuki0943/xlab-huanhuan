@@ -71,9 +71,9 @@ pretrained_model_name_or_path = './models/internlm2_5-7b-chat'
 use_varlen_attn = False
 
 # Data
-data_path1 = './data/Huatuo26M-Lite/Huatuo26M-Lite-markdown-xtuner.json' # 61222
-data_path2 = './data/Huatuo26M-Lite/Huatuo26M-Lite-old-xtuner.json'      # 116481
-data_path3 = './data/Huatuo26M-Lite/healthcare_format_add_system.jsonl'  # 788
+data_path1 = './datasets/Huatuo26M-Lite/Huatuo26M-Lite-markdown-xtuner.json' # 61222
+data_path2 = './datasets/Huatuo26M-Lite/Huatuo26M-Lite-old-xtuner.json'      # 116481
+data_path3 = './datasets/Huatuo26M-Lite/healthcare_format_add_system.jsonl'  # 788
 prompt_template = PROMPT_TEMPLATE.internlm2_chat
 max_length = 2048
 pack_to_max_length = True

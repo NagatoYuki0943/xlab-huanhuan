@@ -80,7 +80,7 @@ pretrained_model_name_or_path = './models/internlm2_5-1_8b-chat'
 use_varlen_attn = False
 
 # Data
-data_files = ['./data/our_money/our_money.json']
+data_files = ['./datasets/our_money/our_money.json']
 max_length = 2048
 pack_to_max_length = True
 

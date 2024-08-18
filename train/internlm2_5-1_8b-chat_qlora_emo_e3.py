@@ -71,7 +71,7 @@ pretrained_model_name_or_path = './models/internlm2_5-1_8b-chat'
 use_varlen_attn = False
 
 # Data
-data_path = './data/emo_1234_xtuner.json'
+data_path = './datasets/emo_1234_xtuner.json'
 prompt_template = PROMPT_TEMPLATE.internlm2_chat
 max_length = 2048
 pack_to_max_length = True

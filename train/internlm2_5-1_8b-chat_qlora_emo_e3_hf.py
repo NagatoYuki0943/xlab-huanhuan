@@ -10,7 +10,7 @@ print("transformers version: ", transformers.__version__)
 
 
 MAX_LENGTH = 2048    # 分词器会将一个中文字切分为多个token，因此需要放开一些最大长度，保证数据的完整性
-data_path = "./data/emo_1234_xtuner.json"
+data_path = "./datasets/emo_1234_xtuner.json"
 pretrained_model_name_or_path = "./models/internlm2_5-1_8b-chat"
 work_dir = "./work_dirs/internlm2_chat_1_8b_qlora_emo_e3_hf"
 
