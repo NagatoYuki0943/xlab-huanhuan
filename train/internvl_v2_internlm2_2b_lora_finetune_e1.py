@@ -5,39 +5,12 @@ train:
         xtuner train train/internvl_v2_internlm2_2b_lora_finetune_e1.py --deepspeed deepspeed_zero2
 
 convert:
-    xtuner convert pth_to_hf $CONFIG $PATH_TO_PTH_MODEL $SAVE_PATH_TO_HF_MODEL --max-shard-size 2GB
-
-    ex:
-        xtuner convert pth_to_hf \
-            train/internvl_v2_internlm2_2b_lora_finetune_e1.py \
-            work_dirs/internvl_v2_internlm2_2b_lora_finetune_e1/epoch_1.pth \
-            work_dirs/internvl_v2_internlm2_2b_lora_finetune_e1/epoch_1.hf \
-            --max-shard-size 2GB
-
-merge adapter:
-    xtuner convert merge $LLM $ADAPTER $SAVE_PATH --max-shard-size 2GB
-
-    ex:
-        xtuner convert merge \
-            models/InternVL2-2B \
-            work_dirs/internvl_v2_internlm2_2b_lora_finetune_e1/epoch_1.hf \
-            work_dirs/internvl_v2_internlm2_2b_lora_finetune_e1/epoch_1_merged \
-            --max-shard-size 2GB
-
-chat:
-    xtuner chat $LLM --adapter $ADAPTER --bits $BITS --temperature $TEMPERATURE --top-k $TOP_K --top-p $TOP_P --system $SYSTEM_TEXT
-
-    ex:
-        xtuner chat \
-            models/InternVL2-2B \
-            --adapter work_dirs/internvl_v2_internlm2_2b_lora_finetune_e1/epoch_1.hf \
-            --bits 8 --temperature 0.7 --top-k 50 --top-p 0.9 \
-
-验证数据集是否正确构建:
-    xtuner check-custom-dataset $CONFIG
-
-    ex:
-        xtuner check-custom-dataset train/internvl_v2_internlm2_2b_lora_finetune_e1.py
+    合并权重&&模型转换
+    用官方脚本进行权重合并
+    python xtuner/configs/internvl/v1_5/convert_to_official.py \
+        internvl_v2_internlm2_2b_lora_finetune_e1.py \
+        work_dirs/internvl_v2_internlm2_2b_lora_finetune_e1/epoch_1.pth \
+        work_dirs/internvl_v2_internlm2_2b_lora_finetune_e1/epoch_1_hf
 """
 
 
