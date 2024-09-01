@@ -7,7 +7,6 @@ import torch
 from torch import Tensor
 from loguru import logger
 from load_tokenizer_processor_and_model import load_tokenizer_processor_and_model, TransformersConfig
-from infer_engine import convert_to_openai_history
 from internvl_chat_chat_modify import internvl_chat, load_image
 
 
