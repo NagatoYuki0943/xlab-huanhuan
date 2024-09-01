@@ -1,6 +1,7 @@
 from datasets import Dataset, load_dataset
 import pandas as pd
 import transformers
+from transformers.tokenization_utils_base import BatchEncoding
 from transformers import AutoTokenizer, AutoModelForCausalLM, DataCollatorForSeq2Seq, TrainingArguments, Trainer, BitsAndBytesConfig, GenerationConfig
 import torch
 
@@ -30,13 +31,13 @@ internlm2_chat = dict(
     SEP = '\n',
     STOP_WORDS = ['<|im_end|>'])
 
-# https://huggingface.co/internlm/internlm2-chat-1_8b/blob/main/modeling_internlm2.py#L1136-L1146
+# https://huggingface.co/internlm/internlm2_5-1_8b-chat/blob/main/modeling_internlm2.py#L1350-L1362
 def build_inputs(
     tokenizer,
     query: str,
     history: list[tuple[str, str]] | None = None,
     meta_instruction = ""
-) -> tuple[str, list]:
+) -> tuple[str, BatchEncoding]:
     history = [] if history is None else list(history)
     if tokenizer.add_bos_token:
         prompt = ""

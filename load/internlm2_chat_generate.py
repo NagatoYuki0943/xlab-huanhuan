@@ -1,4 +1,5 @@
 import torch
+from transformers.tokenization_utils_base import BatchEncoding
 from transformers import GenerationConfig
 from load_tokenizer_processor_and_model import load_tokenizer_processor_and_model, TransformersConfig
 
@@ -27,13 +28,13 @@ TRANSFORMERS_CONFIG = TransformersConfig(
 tokenizer, processor, model = load_tokenizer_processor_and_model(config=TRANSFORMERS_CONFIG)
 
 
-# https://huggingface.co/internlm/internlm2-chat-1_8b/blob/main/modeling_internlm2.py#L1136-L1146
+# https://huggingface.co/internlm/internlm2_5-1_8b-chat/blob/main/modeling_internlm2.py#L1350-L1362
 def build_inputs(
     tokenizer,
     query: str,
     history: list[tuple[str, str]] | None = None,
     meta_instruction = ""
-) -> tuple[str, list]:
+) -> tuple[str, BatchEncoding]:
     history = [] if history is None else list(history)
     if tokenizer.add_bos_token:
         prompt = ""
@@ -48,7 +49,7 @@ def build_inputs(
 
 
 prompt, inputs = build_inputs(tokenizer, "给我讲一个猫和老鼠的小故事", history=[], meta_instruction=SYSTEM_PROMPT)
-print(prompt)
+print(f"{prompt = }")
 inputs = inputs.to(model.device)
 print("input_ids: ", inputs["input_ids"])
 print("attention_mask: ", inputs["attention_mask"])
