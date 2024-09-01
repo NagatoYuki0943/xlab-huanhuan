@@ -9,10 +9,7 @@ from loguru import logger
 logger.info(f"gradio version: {gr.__version__}")
 
 
-# clone 模型
 MODEL_PATH = '../models/internlm2_5-1_8b-chat'
-# os.system(f'git clone https://code.openxlab.org.cn/OpenLMLab/internlm2-chat-1.8b {MODEL_PATH}')
-# os.system(f'cd {MODEL_PATH} && git lfs pull')
 
 SYSTEM_PROMPT = """You are an AI assistant whose name is InternLM (书生·浦语).
 - InternLM (书生·浦语) is a conversational language model that is developed by Shanghai AI Laboratory (上海人工智能实验室). It is designed to be helpful, honest, and harmless.
@@ -34,7 +31,7 @@ LMDEPLOY_CONFIG = LmdeployConfig(
 
 # 载入模型
 infer_engine = InferEngine(
-    backend = 'lmdeploy', # transformers, lmdeploy
+    backend = 'lmdeploy', # transformers, lmdeploy, api
     lmdeploy_config = LMDEPLOY_CONFIG
 )
 
