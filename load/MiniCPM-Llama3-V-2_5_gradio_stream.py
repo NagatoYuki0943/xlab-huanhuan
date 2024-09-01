@@ -6,7 +6,7 @@ from PIL import Image
 from loguru import logger
 import hashlib
 from load_tokenizer_processor_and_model import load_tokenizer_processor_and_model, TransformersConfig
-from infer_engine import convert_gradio_to_openai_history
+from infer_engine import convert_gradio_to_openai_format
 
 
 logger.info(f"gradio version: {gr.__version__}")
@@ -83,7 +83,7 @@ def chat_stream_with_image(
     )
 
     # 转换格式到 OpenAI 格式
-    msgs: list = convert_gradio_to_openai_history(history, query)
+    msgs: list = convert_gradio_to_openai_format(history, query)
 
     yield history + [[query, None]]
     response: Generator
