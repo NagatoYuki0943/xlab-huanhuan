@@ -37,7 +37,7 @@ while True:
     if query.lower() == "exit":
         break
 
-    response, history = infer_engine.chat(
+    response = infer_engine.chat(
         query = query,
         history = history,
         max_new_tokens = 1024,
@@ -45,4 +45,5 @@ while True:
         top_p = 0.8,
         top_k = 40,
     )
+    history.append([query, response])
     print("回答:", response)

@@ -32,7 +32,7 @@ image = load_image('https://raw.githubusercontent.com/open-mmlab/mmdeploy/main/t
 history = [] # [['What is the capital of France?', 'The capital of France is Paris.'], ['Thanks', 'You are Welcome']]
 query = ('描述一下这幅图片', image)
 
-response, history = infer_engine.chat(
+response = infer_engine.chat(
     query = query,
     history = history,
     max_new_tokens = 1024,
@@ -40,6 +40,7 @@ response, history = infer_engine.chat(
     top_p = 0.8,
     top_k = 40,
 )
+history.append([query, response])
 print("response:", response)
 print("history:", history)
 print("\n\n")
@@ -51,7 +52,7 @@ print("\n\n")
 
 
 query = '根据这一张图片写一首诗'
-response, history = infer_engine.chat(
+response = infer_engine.chat(
     query = query,
     history = history,
     max_new_tokens = 1024,
@@ -59,6 +60,7 @@ response, history = infer_engine.chat(
     top_p = 0.8,
     top_k = 40,
 )
+history.append([query, response])
 print("response:", response)
 print("history:", history)
 print("\n\n")
@@ -82,7 +84,7 @@ images = [load_image(img_url) for img_url in image_urls]
 history = [] # [['What is the capital of France?', 'The capital of France is Paris.'], ['Thanks', 'You are Welcome']]
 query = (f'Image-1: {IMAGE_TOKEN}\nImage-2: {IMAGE_TOKEN}\n描述一下这两张图片', images)
 
-response, history = infer_engine.chat(
+response = infer_engine.chat(
     query = query,
     history = history,
     max_new_tokens = 1024,
@@ -90,6 +92,7 @@ response, history = infer_engine.chat(
     top_p = 0.8,
     top_k = 40,
 )
+history.append([query, response])
 print("response:", response)
 print("history:", history)
 print("\n\n")
@@ -110,7 +113,7 @@ print("\n\n")
 
 
 query = '联想这2张图片讲一个关联的小故事'
-response, history = infer_engine.chat(
+response = infer_engine.chat(
     query = query,
     history = history,
     max_new_tokens = 1024,
@@ -118,6 +121,7 @@ response, history = infer_engine.chat(
     top_p = 0.8,
     top_k = 40,
 )
+history.append([query, response])
 print("response:", response)
 print("history:", history)
 # response: 想象一下，这两个人物，一个是在雪山上滑雪的滑雪者，另一个是在公园长椅上的行人。
@@ -131,4 +135,3 @@ print("history:", history)
 #     ['联想这2张图片讲一个关联的小故事',
 #      '想象一下，这两个人物，一个是在雪山上滑雪的滑雪者，另一个是在公园长椅上的行人。\n\n在一个寒冷的冬日早晨，滑雪者穿着厚重的滑雪服，戴着手套和帽子，熟练地操控着滑雪杖，沿着雪坡滑下。滑雪时，她感受到滑雪杖的重量和风带来的寒冷，但她依然保持着冷静和专注。\n\n而坐在公园长椅上的行人，则悠闲地享受着阳光和空气。她穿着舒适的休闲服，戴着太阳镜，在树荫下小憩。阳光透过树叶的缝隙洒在她的身上，让她感受到温暖和宁静。\n\n这两个场景虽然不同，但都体现了人在面对大自然时的不同态度和心情。滑雪者专注于滑雪的挑战和乐趣，而行人则享受着悠闲和放松的时刻。这反映了人与自然和谐相处的重要性，以及在不同的情境下，人们如何应对和享受生活。\n\n这就是这两张图片背后的故事，展示了滑雪者与公园长椅上行人的不同心态和体验，以及他们各自在自然中的不同角色和位置。']
 # ]
-

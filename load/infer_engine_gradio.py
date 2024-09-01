@@ -65,8 +65,9 @@ def chat(
         logger.warning(f"query is None, return history")
         return history
     logger.info(f"query: {query}")
+    logger.info(f"history before: {history}")
 
-    response, history = infer_engine.chat(
+    response = infer_engine.chat(
         query = query,
         history = history,
         max_new_tokens = max_new_tokens,
@@ -75,8 +76,8 @@ def chat(
         top_k = top_k,
         session_id = state_session_id,
     )
-    logger.info(f"response: {response}")
-    logger.info(f"history: {history}")
+    history.append([query, response])
+    logger.info(f"history after: {history}")
 
     return history
 

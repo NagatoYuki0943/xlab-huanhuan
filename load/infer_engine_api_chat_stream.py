@@ -34,7 +34,7 @@ while True:
 
     print(f"回答: ", end="", flush=True)
     length = 0
-    for response, history in infer_engine.chat_stream(
+    for response in infer_engine.chat_stream(
         query = query,
         history = history,
         max_new_tokens = 1024,
@@ -45,4 +45,5 @@ while True:
     ):
         print(response[length:], flush=True, end="")
         length = len(response)
+    history.append([query, response])
     print("\n回答: ", response)

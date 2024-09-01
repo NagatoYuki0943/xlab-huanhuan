@@ -77,14 +77,13 @@ def multimodal_chat(
 
     logger.info(f"history before: {history}")
     multimodal_history = convert_to_multimodal_history(history, use_pil=USE_PIL)
-    logger.info(f"multimodal_history before: {multimodal_history}")
+    logger.info(f"multimodal_history: {multimodal_history}")
 
     # 将图片放入历史记录中
     for file in query["files"]:
-        logger.info(f"{file = }")
         history.append([(file,), None])
 
-    response, multimodal_history = infer_engine.chat(
+    response = infer_engine.chat(
         query = multimodal_query,
         history = multimodal_history,
         max_new_tokens = 1024,
@@ -93,11 +92,8 @@ def multimodal_chat(
         top_k = 40,
         session_id = state_session_id,
     )
-
-    logger.info(f"response: {response}")
     history.append([query_text, response])
     logger.info(f"history after: {history}")
-    logger.info(f"multimodal_history after: {multimodal_history}")
 
     return history
 

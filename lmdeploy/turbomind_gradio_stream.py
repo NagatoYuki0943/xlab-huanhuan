@@ -66,9 +66,10 @@ def chat_stream(
         yield history
         return
     logger.info(f"query: {query}")
+    logger.info(f"history before: {history}")
 
     yield history + [[query, None]]
-    for response, history in infer_engine.chat_stream(
+    for response in infer_engine.chat_stream(
         query = query,
         history = history,
         max_new_tokens = max_new_tokens,
@@ -77,9 +78,8 @@ def chat_stream(
         top_k = top_k,
         session_id = state_session_id,
     ):
-        yield history
-        logger.info(f"response: {response}")
-    logger.info(f"history: {history}")
+        yield history + [[query, response]]
+    logger.info(f"history after: {history + [[query, response]]}")
 
 
 def regenerate(

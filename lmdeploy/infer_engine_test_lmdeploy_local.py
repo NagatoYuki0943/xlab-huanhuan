@@ -32,7 +32,7 @@ infer_engine = InferEngine(
 history = [] # [['What is the capital of France?', 'The capital of France is Paris.'], ['Thanks', 'You are Welcome']]
 query = "猫和老鼠的作者是谁?"
 
-response, history = infer_engine.chat(
+response = infer_engine.chat(
     query = query,
     history = history,
     max_new_tokens = 1024,
@@ -49,7 +49,7 @@ query = [
     {'role': 'user', 'content': "讲一个猫和老鼠的小故事"},
 ]
 
-response, history = infer_engine.chat(
+response = infer_engine.chat(
     query = query,
     history = None,
     max_new_tokens = 1024,
@@ -63,7 +63,7 @@ print("*" * 100)
 
 query = [{'role': 'user', 'content': "猫和老鼠的作者是谁?"}]
 
-response, history = infer_engine.chat(
+response = infer_engine.chat(
     query = query,
     history = None,
     max_new_tokens = 1024,
@@ -71,12 +71,13 @@ response, history = infer_engine.chat(
     top_p = 0.8,
     top_k = 40,
 )
+history = [[query[0]['content'], response]]
 print("回答:", response)
 
 
 query = "讲一个猫和老鼠的小故事"
 
-response, history = infer_engine.chat(
+response = infer_engine.chat(
     query = query,
     history = history,
     max_new_tokens = 1024,
