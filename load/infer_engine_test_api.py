@@ -13,7 +13,7 @@ powershell:
 """
 api_config = ApiConfig(
     base_url = "https://api.moonshot.cn/v1",
-    api_key = os.getenv("API_KEY", "sk-SS08e69T7J6dvUjlD8U4tJDNRlfUKIk841H7PHUmUzxdgFlZ"),
+    api_key = os.getenv("API_KEY", "I AM AN API_KEY"),
     model = "moonshot-v1-8k",
 )
 
