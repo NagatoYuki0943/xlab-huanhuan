@@ -54,8 +54,13 @@ Data format:
 import torch
 from datasets import load_dataset
 from mmengine.dataset import DefaultSampler
-from mmengine.hooks import (CheckpointHook, DistSamplerSeedHook, IterTimerHook,
-                            LoggerHook, ParamSchedulerHook)
+from mmengine.hooks import (
+    CheckpointHook,
+    DistSamplerSeedHook,
+    IterTimerHook,
+    LoggerHook,
+    ParamSchedulerHook,
+)
 from mmengine.visualization import Visualizer, LocalVisBackend, TensorboardVisBackend
 from mmengine.optim import AmpOptimWrapper, CosineAnnealingLR, LinearLR
 from torch.optim import AdamW
@@ -65,8 +70,12 @@ from peft import LoraConfig, TaskType
 from xtuner.dataset import process_hf_dataset
 from xtuner.dataset.collate_fns import default_collate_fn
 from xtuner.dataset.map_fns import pretrain_map_fn
-from xtuner.engine.hooks import (DatasetInfoHook, EvaluateChatHook,
-                                 VarlenAttnArgsToMessageHubHook, ThroughputHook)
+from xtuner.engine.hooks import (
+    DatasetInfoHook,
+    EvaluateChatHook,
+    VarlenAttnArgsToMessageHubHook,
+    ThroughputHook,
+)
 from xtuner.engine.runner import TrainLoop
 from xtuner.model import SupervisedFinetune
 from xtuner.parallel.sequence import SequenceParallelSampler
@@ -76,11 +85,11 @@ from xtuner.parallel.sequence import SequenceParallelSampler
 #                          PART 1  Settings                           #
 #######################################################################
 # Model
-pretrained_model_name_or_path = './models/internlm2_5-1_8b-chat'
+pretrained_model_name_or_path = "./models/internlm2_5-1_8b-chat"
 use_varlen_attn = False
 
 # Data
-data_files = ['./datasets/our_money/our_money.json']
+data_files = ["./datasets/our_money/our_money.json"]
 max_length = 2048
 pack_to_max_length = True
 
@@ -106,17 +115,14 @@ max_norm = 1  # grad clip
 warmup_ratio = 0.03
 
 # Save
-by_epoch = True    # save and log by epoch or by iteration
+by_epoch = True  # save and log by epoch or by iteration
 save_steps = 1
 save_total_limit = 3  # Maximum checkpoints to keep (-1 means unlimited)
 
 # Evaluate the generation performance during the training
 evaluation_freq = 500
-SYSTEM = ''
-evaluation_inputs = [
-    '社保，为何越缴越多？',
-    'A股为什么不随经济增长而增长？'
-]
+SYSTEM = ""
+evaluation_inputs = ["社保，为何越缴越多？", "A股为什么不随经济增长而增长？"]
 
 #######################################################################
 #                      PART 2  Model & Tokenizer                      #
@@ -125,7 +131,8 @@ tokenizer = dict(
     type=AutoTokenizer.from_pretrained,
     pretrained_model_name_or_path=pretrained_model_name_or_path,
     trust_remote_code=True,
-    padding_side='right')
+    padding_side="right",
+)
 
 model = dict(
     type=SupervisedFinetune,
@@ -139,29 +146,33 @@ model = dict(
         # low_cpu_mem_usage=True,                   # 是否使用低CPU内存，使用 device_map 参数必须为 True
         quantization_config=dict(
             type=BitsAndBytesConfig,
-            load_in_4bit=True,                      # 是否在4位精度下加载模型。如果设置为True，则在4位精度下加载模型。
+            load_in_4bit=True,  # 是否在4位精度下加载模型。如果设置为True，则在4位精度下加载模型。
             load_in_8bit=False,
             llm_int8_threshold=6.0,
             llm_int8_has_fp16_weight=False,
             bnb_4bit_compute_dtype=torch.bfloat16,  # 4位精度计算的数据类型。这里设置为torch.bfloat16，表示使用半精度浮点数。
-            bnb_4bit_use_double_quant=True,         # 是否使用双精度量化。如果设置为True，则使用双精度量化。
-            bnb_4bit_quant_type='nf4')),            # 4位精度量化的类型。这里设置为"nf4"，表示使用nf4量化类型。 nf4: 4bit-NormalFloat
+            bnb_4bit_use_double_quant=True,  # 是否使用双精度量化。如果设置为True，则使用双精度量化。
+            bnb_4bit_quant_type="nf4",
+        ),
+    ),  # 4位精度量化的类型。这里设置为"nf4"，表示使用nf4量化类型。 nf4: 4bit-NormalFloat
     lora=dict(
         type=LoraConfig,
         task_type=TaskType.CAUSAL_LM,
-        inference_mode=False,   # 训练模式
-        r=64,                   # Lora 秩
-        target_modules=['wqkv', 'wo', 'w1', 'w2', 'w3'],
-        lora_alpha=16,          # Lora alaph，具体作用参见 Lora 原理
-        lora_dropout=0.1,       # Dropout 比例
-        bias='none'))
+        inference_mode=False,  # 训练模式
+        r=64,  # Lora 秩
+        target_modules=["wqkv", "wo", "w1", "w2", "w3"],
+        lora_alpha=16,  # Lora alaph，具体作用参见 Lora 原理
+        lora_dropout=0.1,  # Dropout 比例
+        bias="none",
+    ),
+)
 
 #######################################################################
 #                      PART 3  Dataset & Dataloader                   #
 #######################################################################
 train_dataset = dict(
     type=process_hf_dataset,
-    dataset=dict(type=load_dataset, path='json', data_files=data_files),
+    dataset=dict(type=load_dataset, path="json", data_files=data_files),
     tokenizer=tokenizer,
     max_length=max_length,
     dataset_map_fn=pretrain_map_fn,
@@ -169,16 +180,17 @@ train_dataset = dict(
     remove_unused_columns=True,
     shuffle_before_pack=False,
     pack_to_max_length=pack_to_max_length,
-    use_varlen_attn=use_varlen_attn)
+    use_varlen_attn=use_varlen_attn,
+)
 
-sampler = SequenceParallelSampler \
-    if sequence_parallel_size > 1 else DefaultSampler
+sampler = SequenceParallelSampler if sequence_parallel_size > 1 else DefaultSampler
 train_dataloader = dict(
     batch_size=batch_size,
     num_workers=dataloader_num_workers,
     dataset=train_dataset,
     sampler=dict(type=sampler, shuffle=True),
-    collate_fn=dict(type=default_collate_fn, use_varlen_attn=use_varlen_attn))
+    collate_fn=dict(type=default_collate_fn, use_varlen_attn=use_varlen_attn),
+)
 
 #######################################################################
 #                    PART 4  Scheduler & Optimizer                    #
@@ -186,12 +198,12 @@ train_dataloader = dict(
 # optimizer
 optim_wrapper = dict(
     type=AmpOptimWrapper,
-    optimizer=dict(
-        type=optim_type, lr=lr, betas=betas, weight_decay=weight_decay),
+    optimizer=dict(type=optim_type, lr=lr, betas=betas, weight_decay=weight_decay),
     clip_grad=dict(max_norm=max_norm, error_if_nonfinite=False),
     accumulative_counts=accumulative_counts,
-    loss_scale='dynamic',
-    dtype='float16')
+    loss_scale="dynamic",
+    dtype="float16",
+)
 
 # learning policy
 # More information: https://github.com/open-mmlab/mmengine/blob/main/docs/en/tutorials/param_scheduler.md  # noqa: E501
@@ -202,14 +214,16 @@ param_scheduler = [
         by_epoch=True,
         begin=0,
         end=warmup_ratio * max_epochs,
-        convert_to_iter_based=True),
+        convert_to_iter_based=True,
+    ),
     dict(
         type=CosineAnnealingLR,
         eta_min=0.0,
         by_epoch=True,
         begin=warmup_ratio * max_epochs,
         end=max_epochs,
-        convert_to_iter_based=True)
+        convert_to_iter_based=True,
+    ),
 ]
 
 # train, val, test setting
@@ -229,8 +243,9 @@ custom_hooks = [
         tokenizer=tokenizer,
         every_n_iters=evaluation_freq,
         evaluation_inputs=evaluation_inputs,
-        system=SYSTEM),
-    dict(type=ThroughputHook)
+        system=SYSTEM,
+    ),
+    dict(type=ThroughputHook),
 ]
 
 if use_varlen_attn:
@@ -249,9 +264,10 @@ default_hooks = dict(
         type=CheckpointHook,
         by_epoch=by_epoch,
         interval=save_steps,
-        max_keep_ckpts=save_total_limit),
+        max_keep_ckpts=save_total_limit,
+    ),
     # set sampler seed in distributed evrionment.
-    sampler_seed=dict(type=DistSamplerSeedHook)
+    sampler_seed=dict(type=DistSamplerSeedHook),
 )
 
 # configure environment
@@ -259,19 +275,19 @@ env_cfg = dict(
     # whether to enable cudnn benchmark
     cudnn_benchmark=False,
     # set multi process parameters
-    mp_cfg=dict(mp_start_method='fork', opencv_num_threads=0),
+    mp_cfg=dict(mp_start_method="fork", opencv_num_threads=0),
     # set distributed parameters
-    dist_cfg=dict(backend='nccl')
+    dist_cfg=dict(backend="nccl"),
 )
 
 # set visualizer
 visualizer = dict(
     type=Visualizer,
-    vis_backends=[dict(type=LocalVisBackend), dict(type=TensorboardVisBackend)]
+    vis_backends=[dict(type=LocalVisBackend), dict(type=TensorboardVisBackend)],
 )
 
 # set log level
-log_level = 'INFO'
+log_level = "INFO"
 
 # load from which checkpoint
 load_from = None
@@ -288,4 +304,5 @@ randomness = dict(seed=None, deterministic=False)
 log_processor = dict(
     by_epoch=by_epoch,
     window_size=1,
-    mean_pattern=r'.*(loss|time|data_time|grad_norm|tflops).*')
+    mean_pattern=r".*(loss|time|data_time|grad_norm|tflops).*",
+)

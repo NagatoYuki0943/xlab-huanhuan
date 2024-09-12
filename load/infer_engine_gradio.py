@@ -9,10 +9,10 @@ from loguru import logger
 logger.info(f"gradio version: {gr.__version__}")
 
 
-PRETRAINED_MODEL_NAME_OR_PATH = '../models/internlm2_5-1_8b-chat'
+PRETRAINED_MODEL_NAME_OR_PATH = "../models/internlm2_5-1_8b-chat"
 ADAPTER_PATH = None
 # 量化
-LOAD_IN_8BIT= False
+LOAD_IN_8BIT = False
 LOAD_IN_4BIT = False
 
 SYSTEM_PROMPT = """You are an AI assistant whose name is InternLM (书生·浦语).
@@ -21,18 +21,18 @@ SYSTEM_PROMPT = """You are an AI assistant whose name is InternLM (书生·浦�
 """
 
 TRANSFORMERS_CONFIG = TransformersConfig(
-    pretrained_model_name_or_path = PRETRAINED_MODEL_NAME_OR_PATH,
-    adapter_path = ADAPTER_PATH,
-    load_in_8bit = LOAD_IN_8BIT,
-    load_in_4bit = LOAD_IN_4BIT,
-    model_name = 'internlm2',
-    system_prompt = SYSTEM_PROMPT
+    pretrained_model_name_or_path=PRETRAINED_MODEL_NAME_OR_PATH,
+    adapter_path=ADAPTER_PATH,
+    load_in_8bit=LOAD_IN_8BIT,
+    load_in_4bit=LOAD_IN_4BIT,
+    model_name="internlm2",
+    system_prompt=SYSTEM_PROMPT,
 )
 
 # 载入模型
 infer_engine = InferEngine(
-    backend = 'transformers', # transformers, lmdeploy
-    transformers_config = TRANSFORMERS_CONFIG,
+    backend="transformers",  # transformers, lmdeploy
+    transformers_config=TRANSFORMERS_CONFIG,
 )
 
 
@@ -43,7 +43,8 @@ class InterFace:
 
 def chat(
     query: str,
-    history: Sequence | None = None,  # [['What is the capital of France?', 'The capital of France is Paris.'], ['Thanks', 'You are Welcome']]
+    history: Sequence
+    | None = None,  # [['What is the capital of France?', 'The capital of France is Paris.'], ['Thanks', 'You are Welcome']]
     max_new_tokens: int = 1024,
     temperature: float = 0.8,
     top_p: float = 0.8,
@@ -53,28 +54,30 @@ def chat(
     history = [] if history is None else list(history)
 
     logger.info(f"{state_session_id = }")
-    logger.info({
-            "max_new_tokens":  max_new_tokens,
+    logger.info(
+        {
+            "max_new_tokens": max_new_tokens,
             "temperature": temperature,
             "top_p": top_p,
             "top_k": top_k,
-    })
+        }
+    )
 
     query = query.strip()
-    if query == None or len(query) < 1:
+    if query is None or len(query) < 1:
         logger.warning(f"query is None, return history")
         return history
     logger.info(f"query: {query}")
     logger.info(f"history before: {history}")
 
     response = infer_engine.chat(
-        query = query,
-        history = history,
-        max_new_tokens = max_new_tokens,
-        temperature = temperature,
-        top_p = top_p,
-        top_k = top_k,
-        session_id = state_session_id,
+        query=query,
+        history=history,
+        max_new_tokens=max_new_tokens,
+        temperature=temperature,
+        top_p=top_p,
+        top_k=top_k,
+        session_id=state_session_id,
     )
     history.append([query, response])
     logger.info(f"history after: {history}")
@@ -83,7 +86,8 @@ def chat(
 
 
 def regenerate(
-    history: Sequence | None = None,  # [['What is the capital of France?', 'The capital of France is Paris.'], ['Thanks', 'You are Welcome']]
+    history: Sequence
+    | None = None,  # [['What is the capital of France?', 'The capital of France is Paris.'], ['Thanks', 'You are Welcome']]
     max_new_tokens: int = 1024,
     temperature: float = 0.8,
     top_p: float = 0.8,
@@ -96,13 +100,13 @@ def regenerate(
     if len(history) > 0:
         query, _ = history.pop(-1)
         return chat(
-            query = query,
-            history = history,
-            max_new_tokens = max_new_tokens,
-            temperature = temperature,
-            top_p = top_p,
-            top_k = top_k,
-            state_session_id = state_session_id,
+            query=query,
+            history=history,
+            max_new_tokens=max_new_tokens,
+            temperature=temperature,
+            top_p=top_p,
+            top_k=top_k,
+            state_session_id=state_session_id,
         )
     else:
         logger.warning(f"no history, can't regenerate")
@@ -124,7 +128,7 @@ def combine_chatbot_and_query(
 ) -> Sequence:
     history = [] if history is None else list(history)
     query = query.strip()
-    if query == None or len(query) < 1:
+    if query is None or len(query) < 1:
         return history
     return history + [[query, None]]
 
@@ -153,7 +157,7 @@ def main():
                         query = gr.Textbox(
                             lines=1,
                             label="Prompt / 问题",
-                            placeholder="Enter 发送; Shift + Enter 换行 / Enter to send; Shift + Enter to wrap"
+                            placeholder="Enter 发送; Shift + Enter 换行 / Enter to send; Shift + Enter to wrap",
                         )
                         # 创建提交按钮。
                         # variant https://www.gradio.app/docs/button
@@ -166,7 +170,7 @@ def main():
                         ["你可以帮我做什么"],
                     ],
                     inputs=[query],
-                    label="示例问题 / Example questions"
+                    label="示例问题 / Example questions",
                 )
 
                 with gr.Row():
@@ -174,7 +178,9 @@ def main():
                     regen = gr.Button("🔄 Retry", variant="secondary")
                     undo = gr.Button("↩️ Undo", variant="secondary")
                     # 创建一个清除按钮，用于清除聊天机器人组件的内容。
-                    clear = gr.ClearButton(components=[chatbot], value="🗑️ Clear", variant="stop")
+                    clear = gr.ClearButton(
+                        components=[chatbot], value="🗑️ Clear", variant="stop"
+                    )
 
                 # 折叠
                 with gr.Accordion("Advanced Options", open=False):
@@ -184,35 +190,35 @@ def main():
                             maximum=2048,
                             value=1024,
                             step=1,
-                            label='Max new tokens'
+                            label="Max new tokens",
                         )
                         temperature = gr.Slider(
                             minimum=0.01,
                             maximum=2,
                             value=0.8,
                             step=0.01,
-                            label='Temperature'
+                            label="Temperature",
                         )
                         top_p = gr.Slider(
-                            minimum=0.01,
-                            maximum=1,
-                            value=0.8,
-                            step=0.01,
-                            label='Top_p'
+                            minimum=0.01, maximum=1, value=0.8, step=0.01, label="Top_p"
                         )
                         top_k = gr.Slider(
-                            minimum=1,
-                            maximum=100,
-                            value=40,
-                            step=1,
-                            label='Top_k'
+                            minimum=1, maximum=100, value=40, step=1, label="Top_k"
                         )
 
             # 回车提交
             query.submit(
                 chat,
-                inputs=[query, chatbot, max_new_tokens, temperature, top_p, top_k, state_session_id],
-                outputs=[chatbot]
+                inputs=[
+                    query,
+                    chatbot,
+                    max_new_tokens,
+                    temperature,
+                    top_p,
+                    top_k,
+                    state_session_id,
+                ],
+                outputs=[chatbot],
             )
 
             # 清空query
@@ -232,8 +238,16 @@ def main():
             # 按钮提交
             submit.click(
                 chat,
-                inputs=[query, chatbot, max_new_tokens, temperature, top_p, top_k, state_session_id],
-                outputs=[chatbot]
+                inputs=[
+                    query,
+                    chatbot,
+                    max_new_tokens,
+                    temperature,
+                    top_p,
+                    top_k,
+                    state_session_id,
+                ],
+                outputs=[chatbot],
             )
 
             # 清空query
@@ -253,16 +267,19 @@ def main():
             # 重新生成
             regen.click(
                 regenerate,
-                inputs=[chatbot, max_new_tokens, temperature, top_p, top_k, state_session_id],
-                outputs=[chatbot]
+                inputs=[
+                    chatbot,
+                    max_new_tokens,
+                    temperature,
+                    top_p,
+                    top_k,
+                    state_session_id,
+                ],
+                outputs=[chatbot],
             )
 
             # 撤销
-            undo.click(
-                revocery,
-                inputs=[chatbot],
-                outputs=[query, chatbot]
-            )
+            undo.click(revocery, inputs=[chatbot], outputs=[query, chatbot])
 
         gr.Markdown("""提醒：<br>
         1. 内容由 AI 大模型生成，请仔细甄别。<br>
@@ -282,15 +299,15 @@ def main():
 
     # 设置队列启动
     demo.queue(
-        max_size = None,                # If None, the queue size will be unlimited.
-        default_concurrency_limit = 100 # 最大并发限制
+        max_size=None,  # If None, the queue size will be unlimited.
+        default_concurrency_limit=100,  # 最大并发限制
     )
 
     demo.launch(
-        server_name = "0.0.0.0",
-        server_port = 7860,
-        share = True,
-        max_threads = 100,
+        server_name="0.0.0.0",
+        server_port=7860,
+        share=True,
+        max_threads=100,
     )
 
 

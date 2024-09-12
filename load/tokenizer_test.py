@@ -1,10 +1,13 @@
-from load_tokenizer_processor_and_model import load_tokenizer_processor_and_model, TransformersConfig
+from load_tokenizer_processor_and_model import (
+    load_tokenizer_processor_and_model,
+    TransformersConfig,
+)
 
 
-PRETRAINED_MODEL_NAME_OR_PATH = '../models/internlm2_5-1_8b-chat'
+PRETRAINED_MODEL_NAME_OR_PATH = "../models/internlm2_5-1_8b-chat"
 ADAPTER_PATH = None
 # 量化
-LOAD_IN_8BIT= False
+LOAD_IN_8BIT = False
 LOAD_IN_4BIT = False
 
 SYSTEM_PROMPT = """You are an AI assistant whose name is InternLM (书生·浦语).
@@ -13,23 +16,29 @@ SYSTEM_PROMPT = """You are an AI assistant whose name is InternLM (书生·浦�
 """
 
 TRANSFORMERS_CONFIG = TransformersConfig(
-    pretrained_model_name_or_path = PRETRAINED_MODEL_NAME_OR_PATH,
-    adapter_path = ADAPTER_PATH,
-    load_in_8bit = LOAD_IN_8BIT,
-    load_in_4bit = LOAD_IN_4BIT,
-    model_name = 'internlm2',
-    system_prompt = SYSTEM_PROMPT
+    pretrained_model_name_or_path=PRETRAINED_MODEL_NAME_OR_PATH,
+    adapter_path=ADAPTER_PATH,
+    load_in_8bit=LOAD_IN_8BIT,
+    load_in_4bit=LOAD_IN_4BIT,
+    model_name="internlm2",
+    system_prompt=SYSTEM_PROMPT,
 )
 
-tokenizer, processor, model = load_tokenizer_processor_and_model(config=TRANSFORMERS_CONFIG)
+tokenizer, processor, model = load_tokenizer_processor_and_model(
+    config=TRANSFORMERS_CONFIG
+)
 
 
-print(tokenizer.all_special_tokens) # ['<s>', '</s>', '<unk>', '<|im_start|>', '<|im_end|>', '<|action_start|>', '<|action_end|>', '<|interpreter|>', '<|plugin|>']
-print(tokenizer.all_special_ids)    # [1, 2, 0, 92543, 92542, 92541, 92540, 92539, 92538]
+print(
+    tokenizer.all_special_tokens
+)  # ['<s>', '</s>', '<unk>', '<|im_start|>', '<|im_end|>', '<|action_start|>', '<|action_end|>', '<|interpreter|>', '<|plugin|>']
+print(tokenizer.all_special_ids)  # [1, 2, 0, 92543, 92542, 92541, 92540, 92539, 92538]
 
 
 token = tokenizer.decode(tokenizer.all_special_ids, skip_special_tokens=False)
-print(f"{token = }")    # token = '<s></s><unk><|im_start|><|im_end|><|action_start|><|action_end|><|interpreter|><|plugin|>'
+print(
+    f"{token = }"
+)  # token = '<s></s><unk><|im_start|><|im_end|><|action_start|><|action_end|><|interpreter|><|plugin|>'
 
 token = tokenizer.decode(tokenizer.all_special_ids, skip_special_tokens=True)
-print(f"{token = }")    # token = ''
+print(f"{token = }")  # token = ''

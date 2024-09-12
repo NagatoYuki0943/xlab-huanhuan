@@ -29,10 +29,10 @@ api_key = os.getenv("API_KEY", "I AM AN API_KEY")
 
 
 client = OpenAI(
-    api_key = api_key,  # 此处传token，不带Bearer
+    api_key=api_key,  # 此处传token，不带Bearer
     # base_url = "https://internlm-chat.intern-ai.org.cn/puyu/api/v1/",
     # base_url = "https://api.moonshot.cn/v1",
-    base_url = "http://0.0.0.0:23333/v1" # lmdeploy 本地端口
+    base_url="http://0.0.0.0:23333/v1",  # lmdeploy 本地端口
 )
 
 

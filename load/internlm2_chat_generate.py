@@ -1,13 +1,16 @@
 import torch
 from transformers.tokenization_utils_base import BatchEncoding
 from transformers import GenerationConfig
-from load_tokenizer_processor_and_model import load_tokenizer_processor_and_model, TransformersConfig
+from load_tokenizer_processor_and_model import (
+    load_tokenizer_processor_and_model,
+    TransformersConfig,
+)
 
 
-PRETRAINED_MODEL_NAME_OR_PATH = '../models/internlm2_5-1_8b-chat'
+PRETRAINED_MODEL_NAME_OR_PATH = "../models/internlm2_5-1_8b-chat"
 ADAPTER_PATH = None
 # 量化
-LOAD_IN_8BIT= False
+LOAD_IN_8BIT = False
 LOAD_IN_4BIT = False
 
 SYSTEM_PROMPT = """You are an AI assistant whose name is InternLM (书生·浦语).
@@ -17,15 +20,17 @@ SYSTEM_PROMPT = """You are an AI assistant whose name is InternLM (书生·浦�
 
 
 TRANSFORMERS_CONFIG = TransformersConfig(
-    pretrained_model_name_or_path = PRETRAINED_MODEL_NAME_OR_PATH,
-    adapter_path = ADAPTER_PATH,
-    load_in_8bit = LOAD_IN_8BIT,
-    load_in_4bit = LOAD_IN_4BIT,
-    model_name = 'internlm2',
-    system_prompt = SYSTEM_PROMPT
+    pretrained_model_name_or_path=PRETRAINED_MODEL_NAME_OR_PATH,
+    adapter_path=ADAPTER_PATH,
+    load_in_8bit=LOAD_IN_8BIT,
+    load_in_4bit=LOAD_IN_4BIT,
+    model_name="internlm2",
+    system_prompt=SYSTEM_PROMPT,
 )
 
-tokenizer, processor, model = load_tokenizer_processor_and_model(config=TRANSFORMERS_CONFIG)
+tokenizer, processor, model = load_tokenizer_processor_and_model(
+    config=TRANSFORMERS_CONFIG
+)
 
 
 # https://huggingface.co/internlm/internlm2_5-1_8b-chat/blob/main/modeling_internlm2.py#L1350-L1362
@@ -33,7 +38,7 @@ def build_inputs(
     tokenizer,
     query: str,
     history: list[tuple[str, str]] | None = None,
-    meta_instruction = ""
+    meta_instruction="",
 ) -> tuple[str, BatchEncoding]:
     history = [] if history is None else list(history)
     if tokenizer.add_bos_token:
@@ -48,7 +53,9 @@ def build_inputs(
     return prompt, tokenizer([prompt], return_tensors="pt")
 
 
-prompt, inputs = build_inputs(tokenizer, "给我讲一个猫和老鼠的小故事", history=[], meta_instruction=SYSTEM_PROMPT)
+prompt, inputs = build_inputs(
+    tokenizer, "给我讲一个猫和老鼠的小故事", history=[], meta_instruction=SYSTEM_PROMPT
+)
 print(f"{prompt = }")
 inputs = inputs.to(model.device)
 print("input_ids: ", inputs["input_ids"])
@@ -56,21 +63,24 @@ print("attention_mask: ", inputs["attention_mask"])
 
 
 generation_config = GenerationConfig(
-    max_new_tokens = 1024,
-    do_sample = True,
-    num_beams = 1,
-    temperature = 0.8,
-    top_k = 40,
-    top_p = 0.8,
-    eos_token_id = [tokenizer.eos_token_id, tokenizer.convert_tokens_to_ids(["<|im_end|>"])[0]]
+    max_new_tokens=1024,
+    do_sample=True,
+    num_beams=1,
+    temperature=0.8,
+    top_k=40,
+    top_p=0.8,
+    eos_token_id=[
+        tokenizer.eos_token_id,
+        tokenizer.convert_tokens_to_ids(["<|im_end|>"])[0],
+    ],
 )
 
 model.eval()
 with torch.inference_mode():
     outputs = model.generate(
-        input_ids = inputs["input_ids"],
-        attention_mask = inputs["attention_mask"],
-        generation_config = generation_config,
+        input_ids=inputs["input_ids"],
+        attention_mask=inputs["attention_mask"],
+        generation_config=generation_config,
     )
 
 print(outputs)

@@ -21,33 +21,39 @@ print(f"{ api_key = }")
 
 class Formater:
     def __init__(self) -> None:
-
         self.client = OpenAI(
-            api_key = api_key,  # 此处传token，不带Bearer
+            api_key=api_key,  # 此处传token，不带Bearer
             # base_url = "https://internlm-chat.intern-ai.org.cn/puyu/api/v1/",
             # base_url = "https://api.moonshot.cn/v1",
-            base_url = "http://0.0.0.0:23333/v1" # lmdeploy 本地端口
+            base_url="http://0.0.0.0:23333/v1",  # lmdeploy 本地端口
         )
 
     def format_answer(self, answer: str) -> str:
-
         messages = [
-            {"role": "system", "content": "你是一个文档格式化小助手，你很擅长将文档转换为markdown格式"},
-            {"role": "user", "content": "请将以下医学问题的答案格式化为Markdown格式，保持内容的专业性不变，同时使格式更加美观，易于阅读。回答时直接返回格式化的句子，不需要其他说明。\n{answer}".format(answer=answer)},
+            {
+                "role": "system",
+                "content": "你是一个文档格式化小助手，你很擅长将文档转换为markdown格式",
+            },
+            {
+                "role": "user",
+                "content": "请将以下医学问题的答案格式化为Markdown格式，保持内容的专业性不变，同时使格式更加美观，易于阅读。回答时直接返回格式化的句子，不需要其他说明。\n{answer}".format(
+                    answer=answer
+                ),
+            },
         ]
 
         try:
             response: ChatCompletion = self.client.chat.completions.create(
-                messages = messages,
-                model = "internlm2_20b_chat",
-                max_tokens = 2000,
-                n = 1,  # 为每条输入消息生成多少个结果，默认为 1
-                presence_penalty = 0.0,     # 存在惩罚，介于-2.0到2.0之间的数字。正值会根据新生成的词汇是否出现在文本中来进行惩罚，增加模型讨论新话题的可能性
-                frequency_penalty = 0.0,    # 频率惩罚，介于-2.0到2.0之间的数字。正值会根据新生成的词汇在文本中现有的频率来进行惩罚，减少模型一字不差重复同样话语的可能性
-                stream = False,
-                temperature = 0.8,
-                top_p = 0.8,
-                seed = random.randint(1, 1e9),
+                messages=messages,
+                model="internlm2_20b_chat",
+                max_tokens=2000,
+                n=1,  # 为每条输入消息生成多少个结果，默认为 1
+                presence_penalty=0.0,  # 存在惩罚，介于-2.0到2.0之间的数字。正值会根据新生成的词汇是否出现在文本中来进行惩罚，增加模型讨论新话题的可能性
+                frequency_penalty=0.0,  # 频率惩罚，介于-2.0到2.0之间的数字。正值会根据新生成的词汇在文本中现有的频率来进行惩罚，减少模型一字不差重复同样话语的可能性
+                stream=False,
+                temperature=0.8,
+                top_p=0.8,
+                seed=random.randint(1, 1e9),
             )
 
             choice = response.choices[0]

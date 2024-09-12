@@ -13,10 +13,14 @@ convert:
         work_dirs/internvl_v2_internlm2_2b_lora_finetune_e1/epoch_1_hf
 """
 
-
 # Copyright (c) OpenMMLab. All rights reserved.
-from mmengine.hooks import (CheckpointHook, DistSamplerSeedHook, IterTimerHook,
-                            LoggerHook, ParamSchedulerHook)
+from mmengine.hooks import (
+    CheckpointHook,
+    DistSamplerSeedHook,
+    IterTimerHook,
+    LoggerHook,
+    ParamSchedulerHook,
+)
 from mmengine.visualization import Visualizer, LocalVisBackend, TensorboardVisBackend
 from mmengine.optim import AmpOptimWrapper, CosineAnnealingLR, LinearLR
 from torch.optim import AdamW
@@ -26,8 +30,7 @@ from peft import LoraConfig, TaskType
 from xtuner.dataset import InternVL_V1_5_Dataset
 from xtuner.dataset.collate_fns import default_collate_fn
 from xtuner.dataset.samplers import LengthGroupedSampler
-from xtuner.engine.hooks import (DatasetInfoHook, EvaluateChatHook,
-                                 ThroughputHook)
+from xtuner.engine.hooks import DatasetInfoHook, EvaluateChatHook, ThroughputHook
 from xtuner.engine.runner import TrainLoop
 from xtuner.model import InternVL_V1_5
 from xtuner.utils import PROMPT_TEMPLATE
@@ -36,12 +39,12 @@ from xtuner.utils import PROMPT_TEMPLATE
 #                          PART 1  Settings                           #
 #######################################################################
 # Model
-model_path = './models/InternVL2-2B'
+model_path = "./models/InternVL2-2B"
 
 # Data
-data_root = './datasets/llava_data/'
-data_path = data_root + 'LLaVA-Instruct-150K/llava_v1_5_mix665k.json'
-image_folder = data_root + 'llava_images'
+data_root = "./datasets/llava_data/"
+data_path = data_root + "LLaVA-Instruct-150K/llava_v1_5_mix665k.json"
+image_folder = data_root + "llava_images"
 prompt_template = PROMPT_TEMPLATE.internlm2_chat
 max_length = 8192
 
@@ -59,7 +62,7 @@ max_norm = 1  # grad clip
 warmup_ratio = 0.03
 
 # Save
-by_epoch = False    # save and log by epoch or by iteration
+by_epoch = False  # save and log by epoch or by iteration
 save_steps = 1000
 save_total_limit = 1  # Maximum checkpoints to keep (-1 means unlimited)
 
@@ -80,7 +83,8 @@ model = dict(
         r=128,
         lora_alpha=256,
         lora_dropout=0.05,
-        target_modules=None),
+        target_modules=None,
+    ),
     # uncomment the following lines if you don't want to use Lora in visual encoder # noqa
     # visual_encoder_lora=dict(
     #     type=LoraConfig, r=64, lora_alpha=16, lora_dropout=0.05,
@@ -96,7 +100,8 @@ llava_dataset = dict(
     data_paths=data_path,
     image_folders=image_folder,
     template=prompt_template,
-    max_length=max_length)
+    max_length=max_length,
+)
 
 train_dataloader = dict(
     batch_size=batch_size,
@@ -104,9 +109,11 @@ train_dataloader = dict(
     dataset=llava_dataset,
     sampler=dict(
         type=LengthGroupedSampler,
-        length_property='modality_length',
-        per_device_batch_size=batch_size * accumulative_counts),
-    collate_fn=dict(type=default_collate_fn))
+        length_property="modality_length",
+        per_device_batch_size=batch_size * accumulative_counts,
+    ),
+    collate_fn=dict(type=default_collate_fn),
+)
 
 #######################################################################
 #                    PART 4  Scheduler & Optimizer                    #
@@ -114,12 +121,12 @@ train_dataloader = dict(
 # optimizer
 optim_wrapper = dict(
     type=AmpOptimWrapper,
-    optimizer=dict(
-        type=optim_type, lr=lr, betas=betas, weight_decay=weight_decay),
+    optimizer=dict(type=optim_type, lr=lr, betas=betas, weight_decay=weight_decay),
     clip_grad=dict(max_norm=max_norm, error_if_nonfinite=False),
     accumulative_counts=accumulative_counts,
-    loss_scale='dynamic',
-    dtype='float16')
+    loss_scale="dynamic",
+    dtype="float16",
+)
 
 # learning policy
 # More information: https://github.com/open-mmlab/mmengine/blob/main/docs/en/tutorials/param_scheduler.md  # noqa: E501
@@ -130,14 +137,16 @@ param_scheduler = [
         by_epoch=True,
         begin=0,
         end=warmup_ratio * max_epochs,
-        convert_to_iter_based=True),
+        convert_to_iter_based=True,
+    ),
     dict(
         type=CosineAnnealingLR,
         eta_min=0.0,
         by_epoch=True,
         begin=warmup_ratio * max_epochs,
         end=max_epochs,
-        convert_to_iter_based=True)
+        convert_to_iter_based=True,
+    ),
 ]
 
 # train, val, test setting
@@ -153,7 +162,8 @@ train_cfg = dict(by_epoch=True, max_epochs=max_epochs, val_interval=1)
 tokenizer = dict(
     type=AutoTokenizer.from_pretrained,
     pretrained_model_name_or_path=model_path,
-    trust_remote_code=True)
+    trust_remote_code=True,
+)
 
 custom_hooks = [
     dict(type=DatasetInfoHook, tokenizer=tokenizer),
@@ -174,7 +184,8 @@ default_hooks = dict(
         save_optimizer=False,
         by_epoch=by_epoch,
         interval=save_steps,
-        max_keep_ckpts=save_total_limit),
+        max_keep_ckpts=save_total_limit,
+    ),
     # set sampler seed in distributed evrionment.
     sampler_seed=dict(type=DistSamplerSeedHook),
 )
@@ -184,19 +195,19 @@ env_cfg = dict(
     # whether to enable cudnn benchmark
     cudnn_benchmark=False,
     # set multi process parameters
-    mp_cfg=dict(mp_start_method='fork', opencv_num_threads=0),
+    mp_cfg=dict(mp_start_method="fork", opencv_num_threads=0),
     # set distributed parameters
-    dist_cfg=dict(backend='nccl'),
+    dist_cfg=dict(backend="nccl"),
 )
 
 # set visualizer
 visualizer = dict(
     type=Visualizer,
-    vis_backends=[dict(type=LocalVisBackend), dict(type=TensorboardVisBackend)]
+    vis_backends=[dict(type=LocalVisBackend), dict(type=TensorboardVisBackend)],
 )
 
 # set log level
-log_level = 'INFO'
+log_level = "INFO"
 
 # load from which checkpoint
 load_from = None

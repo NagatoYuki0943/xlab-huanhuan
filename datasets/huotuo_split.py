@@ -15,8 +15,8 @@ from collections import defaultdict
 # 清洗数据
 
 # 数据集
-path = "FreedomIntelligence/Huatuo26M-Lite" # hugginface 地址
-path = "./Huatuo26M-Lite"                   # 本地路径
+path = "FreedomIntelligence/Huatuo26M-Lite"  # hugginface 地址
+path = "./Huatuo26M-Lite"  # 本地路径
 
 dataset = load_dataset(path)
 
@@ -27,9 +27,9 @@ dataset = load_dataset(path)
 disease_categories_number = defaultdict(lambda: 0)
 disease_categories = defaultdict(list)
 
-for data in tqdm(dataset['train']):
-    disease_categories_number[data['label']] += 1
-    disease_categories[data['label']].append(data)
+for data in tqdm(dataset["train"]):
+    disease_categories_number[data["label"]] += 1
+    disease_categories[data["label"]].append(data)
 
 # 将每种疾病都放到同一个文件中
 # subdir = os.path.join(path, "category")

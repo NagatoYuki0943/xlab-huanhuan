@@ -16,7 +16,7 @@ else:
     from multiprocessing import Process, Pool, Queue, Pipe, Lock
 
 
-log_file = logger.add('./logs/runtime_{time}.log')
+log_file = logger.add("./logs/runtime_{time}.log")
 
 
 base_path = Path("category_old/")
@@ -24,10 +24,12 @@ save_path = Path("category_markdown/")
 save_path.mkdir(parents=True, exist_ok=True)
 
 
-jsonl_paths = list(base_path.glob("**/5.jsonl")) + \
-    list(base_path.glob("**/6.jsonl")) + \
-    list(base_path.glob("**/7.jsonl")) + \
-    list(base_path.glob("**/8.jsonl"))
+jsonl_paths = (
+    list(base_path.glob("**/5.jsonl"))
+    + list(base_path.glob("**/6.jsonl"))
+    + list(base_path.glob("**/7.jsonl"))
+    + list(base_path.glob("**/8.jsonl"))
+)
 jsonl_paths_num = len(jsonl_paths)
 logger.info(jsonl_paths)
 logger.info(f"{jsonl_paths_num = }")
@@ -46,9 +48,9 @@ def format_answers(jsonl_path: Path) -> None:
     # 创建格式化工具
     formater = Formater()
 
-    with open(jsonl_path, "r", encoding='utf-8') as jsonl_file, \
-         open(formated_jsonl_path, "a", encoding='utf-8') as formated_jsonl_file, \
-         open(record_path, "a", encoding='utf-8') as record_file:
+    with open(jsonl_path, "r", encoding="utf-8") as jsonl_file, open(
+        formated_jsonl_path, "a", encoding="utf-8"
+    ) as formated_jsonl_file, open(record_path, "a", encoding="utf-8") as record_file:
         i = 1
         fails = 0
         lines = jsonl_file.read().splitlines()
@@ -74,10 +76,14 @@ def format_answers(jsonl_path: Path) -> None:
             record_file.flush()
             # 成功还是失败
             if res:
-                logger.success(f"{parent_name}: num = {i} / {lines_num}, data id = {data['id']} formated")
+                logger.success(
+                    f"{parent_name}: num = {i} / {lines_num}, data id = {data['id']} formated"
+                )
             else:
                 fails += 1
-                logger.error(f"{parent_name}: num = {i} / {lines_num}, data id = {data['id']} format failed")
+                logger.error(
+                    f"{parent_name}: num = {i} / {lines_num}, data id = {data['id']} format failed"
+                )
             i += 1
             # if fails > 10:
             #     logger.critical(f"发生大量错误，请排查")

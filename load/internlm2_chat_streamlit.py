@@ -1,6 +1,9 @@
 # https://github.com/dataprofessor/llama2/blob/master/streamlit_app_v2.py
 # cmd: streamlit run ./load/internlm2_chat_1_8b_streamlit.py
-from load_tokenizer_processor_and_model import load_tokenizer_processor_and_model, TransformersConfig
+from load_tokenizer_processor_and_model import (
+    load_tokenizer_processor_and_model,
+    TransformersConfig,
+)
 import streamlit as st
 import os
 
@@ -8,7 +11,7 @@ import os
 print("streamlit version: ", st.__version__)
 
 
-#----------------------------------------------------------------------#
+# ----------------------------------------------------------------------#
 # prompts (List[str] | str | List[Dict] | List[Dict]): a batch of
 #     prompts. It accepts: string prompt, a list of string prompts,
 #     a chat history in OpenAI format or a list of chat history.
@@ -34,13 +37,13 @@ print("streamlit version: ", st.__version__)
 #         "content": "You are welcome."
 #     }
 # ]
-#----------------------------------------------------------------------#
+# ----------------------------------------------------------------------#
 
 
-PRETRAINED_MODEL_NAME_OR_PATH = '../models/internlm2_5-1_8b-chat'
+PRETRAINED_MODEL_NAME_OR_PATH = "../models/internlm2_5-1_8b-chat"
 ADAPTER_PATH = None
 # 量化
-LOAD_IN_8BIT= False
+LOAD_IN_8BIT = False
 LOAD_IN_4BIT = False
 
 SYSTEM_PROMPT = """You are an AI assistant whose name is InternLM (书生·浦语).
@@ -49,15 +52,17 @@ SYSTEM_PROMPT = """You are an AI assistant whose name is InternLM (书生·浦�
 """
 
 TRANSFORMERS_CONFIG = TransformersConfig(
-    pretrained_model_name_or_path = PRETRAINED_MODEL_NAME_OR_PATH,
-    adapter_path = ADAPTER_PATH,
-    load_in_8bit = LOAD_IN_8BIT,
-    load_in_4bit = LOAD_IN_4BIT,
-    model_name = 'internlm2',
-    system_prompt = SYSTEM_PROMPT
+    pretrained_model_name_or_path=PRETRAINED_MODEL_NAME_OR_PATH,
+    adapter_path=ADAPTER_PATH,
+    load_in_8bit=LOAD_IN_8BIT,
+    load_in_4bit=LOAD_IN_4BIT,
+    model_name="internlm2",
+    system_prompt=SYSTEM_PROMPT,
 )
 
-tokenizer, processor, model = load_tokenizer_processor_and_model(config=TRANSFORMERS_CONFIG)
+tokenizer, processor, model = load_tokenizer_processor_and_model(
+    config=TRANSFORMERS_CONFIG
+)
 
 
 # App title
@@ -68,6 +73,7 @@ if "messages" not in st.session_state.keys():
     print("streamlit init messages")
     st.session_state.messages = []
 
+
 # chat
 def chat(
     prompts: list,
@@ -75,7 +81,7 @@ def chat(
     top_p: float = 0.8,
     top_k: int = 40,
     temperature: float = 0.8,
-    regenerate: bool = False
+    regenerate: bool = False,
 ) -> str:
     """聊天"""
     # 重新生成时要把最后的query和response弹出,重用query
@@ -86,12 +92,14 @@ def chat(
         else:
             return ""
 
-    print({"max_new_tokens":  max_new_tokens, "top_p": top_p, "temperature": temperature})
+    print(
+        {"max_new_tokens": max_new_tokens, "top_p": top_p, "temperature": temperature}
+    )
 
     history = []
     if len(history) > 2:
-        for i in range(0, len(prompts)-1, 2):
-            history.append([prompts[i]["content"], prompts[i+1]["content"]])
+        for i in range(0, len(prompts) - 1, 2):
+            history.append([prompts[i]["content"], prompts[i + 1]["content"]])
     query = prompts[-1]["content"]
     print("history:", history)
     print("query:", query)
@@ -99,16 +107,16 @@ def chat(
     # https://huggingface.co/internlm/internlm2-chat-1_8b/blob/main/modeling_internlm2.py#L1149
     # chat 调用的 generate
     response, history = model.chat(
-        tokenizer = tokenizer,
-        query = query,
-        history = history,
-        streamer = None,
-        max_new_tokens = max_new_tokens,
-        do_sample = True,
-        temperature = temperature,
-        top_p = top_p,
-        top_k = top_k,
-        meta_instruction = SYSTEM_PROMPT,
+        tokenizer=tokenizer,
+        query=query,
+        history=history,
+        streamer=None,
+        max_new_tokens=max_new_tokens,
+        do_sample=True,
+        temperature=temperature,
+        top_p=top_p,
+        top_k=top_k,
+        meta_instruction=SYSTEM_PROMPT,
     )
     print(f"query: {query}; response: {response}\n")
 
@@ -136,21 +144,35 @@ def clear_chat_history():
 def main():
     # Replicate Credentials
     with st.sidebar:
-        st.title('🦙💬 Llama 2 Chatbot')
-        st.write('This chatbot is created using the open-source Llama 2 LLM model from Meta.')
+        st.title("🦙💬 Llama 2 Chatbot")
+        st.write(
+            "This chatbot is created using the open-source Llama 2 LLM model from Meta."
+        )
 
-        st.subheader('Models and parameters')
-        selected_model = st.sidebar.selectbox('Choose a Llama2 model', ['Llama2-7B', 'Llama2-13B', 'Llama2-70B'], key='selected_model')
+        st.subheader("Models and parameters")
+        selected_model = st.sidebar.selectbox(
+            "Choose a Llama2 model",
+            ["Llama2-7B", "Llama2-13B", "Llama2-70B"],
+            key="selected_model",
+        )
 
-        max_new_tokens = st.sidebar.slider(label='max_new_tokens', min_value=1, max_value=2048, value=1024, step=1)
-        top_p = st.sidebar.slider(label='top_p', min_value=0.01, max_value=1.0, value=0.8, step=0.01)
-        top_k = st.sidebar.slider(label='top_k', min_value=1, max_value=100, value=40, step=1)
-        temperature = st.sidebar.slider(label='temperature', min_value=0.01, max_value=1.5, value=0.8, step=0.01)
+        max_new_tokens = st.sidebar.slider(
+            label="max_new_tokens", min_value=1, max_value=2048, value=1024, step=1
+        )
+        top_p = st.sidebar.slider(
+            label="top_p", min_value=0.01, max_value=1.0, value=0.8, step=0.01
+        )
+        top_k = st.sidebar.slider(
+            label="top_k", min_value=1, max_value=100, value=40, step=1
+        )
+        temperature = st.sidebar.slider(
+            label="temperature", min_value=0.01, max_value=1.5, value=0.8, step=0.01
+        )
 
-        st.subheader('Chat functions')
-        st.sidebar.button('🔄 Retry', on_click=regenerate)
-        st.sidebar.button('↩️ Undo', on_click=undo)
-        st.sidebar.button('🗑️ Clear', on_click=clear_chat_history)
+        st.subheader("Chat functions")
+        st.sidebar.button("🔄 Retry", on_click=regenerate)
+        st.sidebar.button("↩️ Undo", on_click=undo)
+        st.sidebar.button("🗑️ Clear", on_click=clear_chat_history)
 
     # Display or clear chat messages
     for message in st.session_state.messages:
@@ -164,16 +186,21 @@ def main():
             st.write(prompt)
 
     # Generate a new response if last message is not from assistant
-    if len(st.session_state.messages) > 0 and st.session_state.messages[-1]["role"] != "assistant":
+    if (
+        len(st.session_state.messages) > 0
+        and st.session_state.messages[-1]["role"] != "assistant"
+    ):
         with st.chat_message("assistant"):
             # with st.spinner("Thinking..."):
-                response = chat(st.session_state.messages, max_new_tokens, top_p, top_k, temperature)
-                placeholder = st.empty()
-                full_response = ''
-                for item in response:
-                    full_response += item
-                    placeholder.markdown(full_response)
+            response = chat(
+                st.session_state.messages, max_new_tokens, top_p, top_k, temperature
+            )
+            placeholder = st.empty()
+            full_response = ""
+            for item in response:
+                full_response += item
                 placeholder.markdown(full_response)
+            placeholder.markdown(full_response)
 
         message = {"role": "assistant", "content": full_response}
         st.session_state.messages.append(message)

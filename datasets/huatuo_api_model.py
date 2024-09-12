@@ -18,10 +18,10 @@ print(f"{ api_key = }")
 
 
 client = OpenAI(
-    api_key = api_key,  # 此处传token，不带Bearer
+    api_key=api_key,  # 此处传token，不带Bearer
     # base_url = "https://internlm-chat.intern-ai.org.cn/puyu/api/v1/",
     # base_url = "https://api.moonshot.cn/v1",
-    base_url = "https://dashscope.aliyuncs.com/compatible-mode/v1"
+    base_url="https://dashscope.aliyuncs.com/compatible-mode/v1",
 )
 
 

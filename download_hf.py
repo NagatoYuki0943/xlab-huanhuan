@@ -19,10 +19,10 @@ proxies = {"https": "http://localhost:7897"}
 
 
 snapshot_download(
-    repo_id = "internlm/internlm2-chat-1_8b",
-    local_dir = "./models/internlm2-chat-1_8b",
+    repo_id="internlm/internlm2-chat-1_8b",
+    local_dir="./models/internlm2-chat-1_8b",
     # proxies = proxies,
-    max_workers = 8,
+    max_workers=8,
     # endpoint = endpoint,
     # token = hf_token
 )

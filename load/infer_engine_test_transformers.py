@@ -2,10 +2,10 @@ import os
 from infer_engine import InferEngine, TransformersConfig
 
 
-PRETRAINED_MODEL_NAME_OR_PATH = '../models/internlm2_5-1_8b-chat'
+PRETRAINED_MODEL_NAME_OR_PATH = "../models/internlm2_5-1_8b-chat"
 ADAPTER_PATH = None
 # 量化
-LOAD_IN_8BIT= False
+LOAD_IN_8BIT = False
 LOAD_IN_4BIT = False
 
 SYSTEM_PROMPT = """You are an AI assistant whose name is InternLM (书生·浦语).
@@ -14,18 +14,18 @@ SYSTEM_PROMPT = """You are an AI assistant whose name is InternLM (书生·浦�
 """
 
 TRANSFORMERS_CONFIG = TransformersConfig(
-    pretrained_model_name_or_path = PRETRAINED_MODEL_NAME_OR_PATH,
-    adapter_path = ADAPTER_PATH,
-    load_in_8bit = LOAD_IN_8BIT,
-    load_in_4bit = LOAD_IN_4BIT,
-    model_name = 'internlm2',
-    system_prompt = SYSTEM_PROMPT
+    pretrained_model_name_or_path=PRETRAINED_MODEL_NAME_OR_PATH,
+    adapter_path=ADAPTER_PATH,
+    load_in_8bit=LOAD_IN_8BIT,
+    load_in_4bit=LOAD_IN_4BIT,
+    model_name="internlm2",
+    system_prompt=SYSTEM_PROMPT,
 )
 
 # 载入模型
 infer_engine = InferEngine(
-    backend = 'transformers', # transformers, lmdeploy
-    transformers_config = TRANSFORMERS_CONFIG,
+    backend="transformers",  # transformers, lmdeploy
+    transformers_config=TRANSFORMERS_CONFIG,
 )
 
 
@@ -61,29 +61,29 @@ infer_engine = InferEngine(
 # print("*" * 100)
 
 
-query = [{'role': 'user', 'content': "猫和老鼠的作者是谁?"}]
+query = [{"role": "user", "content": "猫和老鼠的作者是谁?"}]
 
 response = infer_engine.chat(
-    query = query,
-    history = None,
-    max_new_tokens = 1024,
-    temperature = 0.8,
-    top_p = 0.8,
-    top_k = 40,
+    query=query,
+    history=None,
+    max_new_tokens=1024,
+    temperature=0.8,
+    top_p=0.8,
+    top_k=40,
 )
 
-history = [[query[0]['content'], response]]
+history = [[query[0]["content"], response]]
 print("回答:", response)
 
 
 query = "讲一个猫和老鼠的小故事"
 
 response = infer_engine.chat(
-    query = query,
-    history = history,
-    max_new_tokens = 1024,
-    temperature = 0.8,
-    top_p = 0.8,
-    top_k = 40,
+    query=query,
+    history=history,
+    max_new_tokens=1024,
+    temperature=0.8,
+    top_p=0.8,
+    top_k=40,
 )
 print("回答:", response)

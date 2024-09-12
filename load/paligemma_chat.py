@@ -1,4 +1,8 @@
-from transformers import AutoProcessor, PaliGemmaForConditionalGeneration, GenerationConfig
+from transformers import (
+    AutoProcessor,
+    PaliGemmaForConditionalGeneration,
+    GenerationConfig,
+)
 from PIL import Image
 import requests
 import torch
@@ -20,20 +24,17 @@ print(model_inputs.keys())
 input_len = model_inputs["input_ids"].shape[-1]
 
 generation_config = GenerationConfig(
-    max_new_tokens = 1024,
-    do_sample = True,
-    num_beams = 1,
-    temperature = 0.8,
-    top_k = 40,
-    top_p = 0.8,
-    eos_token_id = [processor.tokenizer.eos_token_id]
+    max_new_tokens=1024,
+    do_sample=True,
+    num_beams=1,
+    temperature=0.8,
+    top_k=40,
+    top_p=0.8,
+    eos_token_id=[processor.tokenizer.eos_token_id],
 )
 
 with torch.inference_mode():
-    generation = model.generate(
-        **model_inputs,
-        generation_config = generation_config
-    )
+    generation = model.generate(**model_inputs, generation_config=generation_config)
 
 generation = generation[0][input_len:]
 decoded = processor.decode(generation, skip_special_tokens=True)

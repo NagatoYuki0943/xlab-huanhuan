@@ -26,15 +26,7 @@ system = """
 """
 
 
-xtuner_format = {
-    "conversation": [
-        {
-            "system": "",
-            "input": "",
-            "output": ""
-        }
-    ]
-}
+xtuner_format = {"conversation": [{"system": "", "input": "", "output": ""}]}
 
 
 for file_path, save_path in zip(file_paths, save_paths):
@@ -43,7 +35,7 @@ for file_path, save_path in zip(file_paths, save_paths):
     with open(file_path, "r", encoding="utf-8") as f:
         for line in f:
             data = json.loads(line)
-            if data['answer'].strip() == "" or data["question"].strip() == "":
+            if data["answer"].strip() == "" or data["question"].strip() == "":
                 print("empty data")
                 continue
             xtuner_format_c = deepcopy(xtuner_format)
