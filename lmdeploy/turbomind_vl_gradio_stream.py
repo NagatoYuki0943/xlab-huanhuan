@@ -1,9 +1,8 @@
-import os
 from PIL import Image
 import gradio as gr
 from infer_engine import InferEngine, LmdeployConfig
 from infer_utils import convert_to_multimodal_history
-from typing import Generator, Sequence
+from typing import Generator, Sequence, Any
 import threading
 from loguru import logger
 
@@ -42,6 +41,11 @@ class InterFace:
     lock = threading.Lock()
 
 
+enable_btn = gr.update(interactive=True)
+disable_btn = gr.update(interactive=False)
+btn = dict[str, Any]
+
+
 def multimodal_chat(
     query: dict,
     history: Sequence
@@ -51,7 +55,7 @@ def multimodal_chat(
     top_p: float = 0.8,
     top_k: int = 40,
     state_session_id: int = 0,
-) -> Generator[Sequence, None, None]:
+) -> Generator[tuple[Sequence, btn, btn, btn], None, None]:
     history = [] if history is None else list(history)
 
     logger.info(f"{state_session_id = }")
@@ -70,8 +74,8 @@ def multimodal_chat(
     if query_text is None or (
         len(query_text.strip()) == 0 and len(query["files"]) == 0
     ):
-        logger.warning(f"query is None, return history")
-        yield history
+        logger.warning("query is None, return history")
+        yield history, enable_btn, enable_btn, enable_btn
         return
     query_text = query_text.strip()
     logger.info(f"query_text: {query_text}")
@@ -94,7 +98,7 @@ def multimodal_chat(
     for file in query["files"]:
         history.append([(file,), None])
 
-    yield history + [[query_text, None]]
+    yield history + [[query_text, None]], disable_btn, disable_btn, disable_btn
 
     for response in infer_engine.chat_stream(
         query=multimodal_query,
@@ -105,7 +109,10 @@ def multimodal_chat(
         top_k=40,
         session_id=state_session_id,
     ):
-        yield history + [[query_text, response]]
+        yield history + [[query_text, response]], disable_btn, disable_btn, disable_btn
+
+    yield history + [[query_text, response]], enable_btn, enable_btn, enable_btn
+
     logger.info(f"history after: {history + [[query_text, response]]}")
 
 
@@ -117,7 +124,7 @@ def regenerate(
     top_p: float = 0.8,
     top_k: int = 40,
     state_session_id: int = 0,
-) -> Generator[Sequence, None, None]:
+) -> Generator[tuple[Sequence, btn, btn, btn], None, None]:
     history = [] if history is None else list(history)
 
     query = {"text": "", "files": []}
@@ -139,8 +146,8 @@ def regenerate(
             state_session_id=state_session_id,
         )
     else:
-        logger.warning(f"no history, can't regenerate")
-        yield history
+        logger.warning("no history, can't regenerate")
+        yield history, enable_btn, enable_btn, enable_btn
 
 
 def revocery(query: dict, history: Sequence | None = None) -> tuple[str, Sequence]:
@@ -239,7 +246,7 @@ def main():
                     label="示例问题 / Example questions",
                 )
 
-            # 回车提交
+            # 回车提交(无法禁止)
             query.submit(
                 multimodal_chat,
                 inputs=[
@@ -251,7 +258,7 @@ def main():
                     top_k,
                     state_session_id,
                 ],
-                outputs=[chatbot],
+                outputs=[chatbot, regen, undo, clear],
             )
 
             # 清空query
@@ -272,7 +279,7 @@ def main():
                     top_k,
                     state_session_id,
                 ],
-                outputs=[chatbot],
+                outputs=[chatbot, regen, undo, clear],
             )
 
             # 撤销

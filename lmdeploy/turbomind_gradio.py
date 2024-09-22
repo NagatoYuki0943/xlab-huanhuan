@@ -1,7 +1,6 @@
-import os
 import gradio as gr
 from infer_engine import InferEngine, LmdeployConfig
-from typing import Sequence
+from typing import Sequence, Any
 import threading
 from loguru import logger
 
@@ -41,6 +40,11 @@ class InterFace:
     lock = threading.Lock()
 
 
+enable_btn = gr.update(interactive=True)
+disable_btn = gr.update(interactive=False)
+btn = dict[str, Any]
+
+
 def chat(
     query: str,
     history: Sequence
@@ -50,7 +54,7 @@ def chat(
     top_p: float = 0.8,
     top_k: int = 40,
     state_session_id: int | None = None,
-) -> Sequence:
+) -> tuple[Sequence, btn, btn, btn, btn]:
     history = [] if history is None else list(history)
 
     logger.info(f"{state_session_id = }")
@@ -65,8 +69,8 @@ def chat(
 
     query = query.strip()
     if query is None or len(query) < 1:
-        logger.warning(f"query is None, return history")
-        return history
+        logger.warning("query is None, return history")
+        return history, enable_btn, enable_btn, enable_btn, enable_btn
     logger.info(f"query: {query}")
     logger.info(f"history before: {history}")
 
@@ -82,7 +86,7 @@ def chat(
     history.append([query, response])
     logger.info(f"history after: {history}")
 
-    return history
+    return history, enable_btn, enable_btn, enable_btn, enable_btn
 
 
 def regenerate(
@@ -93,7 +97,7 @@ def regenerate(
     top_p: float = 0.8,
     top_k: int = 40,
     state_session_id: int | None = None,
-) -> Sequence:
+) -> tuple[Sequence, btn, btn, btn, btn]:
     history = [] if history is None else list(history)
 
     # 重新生成时要把最后的query和response弹出,重用query
@@ -109,8 +113,8 @@ def regenerate(
             state_session_id=state_session_id,
         )
     else:
-        logger.warning(f"no history, can't regenerate")
-        return history
+        logger.warning("no history, can't regenerate")
+        return history, enable_btn, enable_btn, enable_btn, enable_btn
 
 
 def revocery(history: Sequence | None = None) -> tuple[str, Sequence]:
@@ -125,12 +129,12 @@ def revocery(history: Sequence | None = None) -> tuple[str, Sequence]:
 def combine_chatbot_and_query(
     query: str,
     history: Sequence | None = None,
-) -> Sequence:
+) -> tuple[Sequence, btn, btn, btn, btn]:
     history = [] if history is None else list(history)
     query = query.strip()
     if query is None or len(query) < 1:
-        return history
-    return history + [[query, None]]
+        return history, disable_btn, disable_btn, disable_btn, disable_btn
+    return history + [[query, None]], disable_btn, disable_btn, disable_btn, disable_btn
 
 
 def main():
@@ -140,15 +144,19 @@ def main():
 
         with gr.Row(equal_height=True):
             with gr.Column(scale=15):
-                gr.Markdown("""<h1><center>InternLM</center></h1>
-                    <center>InternLM2</center>
+                gr.Markdown("""<h1><center>🦙 LLaMA 3</center></h1>
+                    <center>🦙 LLaMA 3 Chatbot 💬</center>
                     """)
             # gr.Image(value=LOGO_PATH, scale=1, min_width=10,show_label=False, show_download_button=False)
 
         with gr.Row():
             with gr.Column(scale=4):
                 # 创建聊天框
-                chatbot = gr.Chatbot(height=500, show_copy_button=True)
+                chatbot = gr.Chatbot(
+                    height=500,
+                    show_copy_button=True,
+                    placeholder="内容由 AI 大模型生成，请仔细甄别。",
+                )
 
                 # 组内的组件没有间距
                 with gr.Group():
@@ -163,15 +171,6 @@ def main():
                         # variant https://www.gradio.app/docs/button
                         # scale https://www.gradio.app/guides/controlling-layout
                         submit = gr.Button("💬 Chat", variant="primary", scale=0)
-
-                gr.Examples(
-                    examples=[
-                        ["你是谁"],
-                        ["你可以帮我做什么"],
-                    ],
-                    inputs=[query],
-                    label="示例问题 / Example questions",
-                )
 
                 with gr.Row():
                     # 创建一个重新生成按钮，用于重新生成当前对话内容。
@@ -206,6 +205,22 @@ def main():
                             minimum=1, maximum=100, value=40, step=1, label="Top_k"
                         )
 
+                gr.Examples(
+                    examples=[
+                        ["你是谁"],
+                        ["你可以帮我做什么"],
+                    ],
+                    inputs=[query],
+                    label="示例问题 / Example questions",
+                )
+
+            # 拼接历史记录和问题
+            query.submit(
+                combine_chatbot_and_query,
+                inputs=[query, chatbot],
+                outputs=[chatbot, submit, regen, undo, clear],
+            )
+
             # 回车提交
             query.submit(
                 chat,
@@ -218,7 +233,7 @@ def main():
                     top_k,
                     state_session_id,
                 ],
-                outputs=[chatbot],
+                outputs=[chatbot, submit, regen, undo, clear],
             )
 
             # 清空query
@@ -228,11 +243,11 @@ def main():
                 outputs=[query],
             )
 
-            # 拼接历史记录和问题
-            query.submit(
+            # 拼接历史记录和问题(同时禁用按钮)
+            submit.click(
                 combine_chatbot_and_query,
                 inputs=[query, chatbot],
-                outputs=[chatbot],
+                outputs=[chatbot, submit, regen, undo, clear],
             )
 
             # 按钮提交
@@ -247,7 +262,7 @@ def main():
                     top_k,
                     state_session_id,
                 ],
-                outputs=[chatbot],
+                outputs=[chatbot, submit, regen, undo, clear],
             )
 
             # 清空query
@@ -257,11 +272,11 @@ def main():
                 outputs=[query],
             )
 
-            # 拼接历史记录和问题
-            submit.click(
+            # 拼接历史记录和问题(同时禁用按钮)
+            regen.click(
                 combine_chatbot_and_query,
                 inputs=[query, chatbot],
-                outputs=[chatbot],
+                outputs=[chatbot, submit, regen, undo, clear],
             )
 
             # 重新生成
@@ -275,7 +290,7 @@ def main():
                     top_k,
                     state_session_id,
                 ],
-                outputs=[chatbot],
+                outputs=[chatbot, submit, regen, undo, clear],
             )
 
             # 撤销
