@@ -267,7 +267,7 @@ def main():
                 outputs=[chatbot, regen, undo, clear],
             )
 
-            # 回车提交
+            # 回车提交(无法禁止按钮)
             query.submit(
                 multimodal_chat,
                 inputs=[

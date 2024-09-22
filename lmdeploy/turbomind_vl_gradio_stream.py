@@ -246,7 +246,7 @@ def main():
                     label="示例问题 / Example questions",
                 )
 
-            # 回车提交(无法禁止)
+            # 回车提交(无法禁止按钮)
             query.submit(
                 multimodal_chat,
                 inputs=[

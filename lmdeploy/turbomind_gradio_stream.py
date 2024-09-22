@@ -213,7 +213,7 @@ def main():
                     label="示例问题 / Example questions",
                 )
 
-            # 回车提交
+            # 回车提交(无法禁止按钮)
             query.submit(
                 chat_stream,
                 inputs=[

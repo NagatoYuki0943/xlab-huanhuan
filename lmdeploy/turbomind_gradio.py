@@ -221,7 +221,7 @@ def main():
                 outputs=[chatbot, submit, regen, undo, clear],
             )
 
-            # 回车提交
+            # 回车提交(无法禁止按钮)
             query.submit(
                 chat,
                 inputs=[
