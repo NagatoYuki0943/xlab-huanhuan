@@ -32,69 +32,65 @@ Commands:
 
 ```sh
 > lmdeploy chat --help
-usage: lmdeploy chat [-h] [--backend {pytorch,turbomind}] [--trust-remote-code] [--meta-instruction META_INSTRUCTION]
-                     [--cap {completion,infilling,chat,python}] [--chat-template CHAT_TEMPLATE] [--revision REVISION]
-                     [--download-dir DOWNLOAD_DIR] [--adapters [ADAPTERS ...]] [--tp TP] [--model-name MODEL_NAME]
+usage: lmdeploy chat [-h] [--backend {pytorch,turbomind}] [--chat-template CHAT_TEMPLATE] [--revision REVISION]
+                     [--download-dir DOWNLOAD_DIR] [--adapters [ADAPTERS ...]] [--device {cuda,ascend}] [--tp TP]
                      [--session-len SESSION_LEN] [--cache-max-entry-count CACHE_MAX_ENTRY_COUNT] [--enable-prefix-caching]
-                     [--model-format {hf,llama,awq}] [--quant-policy {0,4,8}] [--rope-scaling-factor ROPE_SCALING_FACTOR]
+                     [--model-format {hf,llama,awq,gptq}] [--quant-policy {0,4,8}]
+                     [--rope-scaling-factor ROPE_SCALING_FACTOR]
                      model_path
 
 Chat with pytorch or turbomind engine.
 
 positional arguments:
-  model_path            The path of a model. it could be one of the following options: - i) a local directory path of a turbomind model
-                        which is converted by `lmdeploy convert` command or download from ii) and iii). - ii) the model_id of a lmdeploy-
-                        quantized model hosted inside a model repo on huggingface.co, such as "internlm/internlm-chat-20b-4bit",
-                        "lmdeploy/internlm2_5-1_8b-chat-w4a16-4bit", etc. - iii) the model_id of a model hosted inside a model repo on huggingface.co,
-                        such as "internlm/internlm-chat-7b", "qwen/qwen-7b-chat ", "baichuan-inc/baichuan2-7b-chat" and so on. Type: str
+  model_path            The path of a model. it could be one of the following options: - i) a local directory path of a
+                        turbomind model which is converted by `lmdeploy convert` command or download from ii) and iii). -
+                        ii) the model_id of a lmdeploy-quantized model hosted inside a model repo on huggingface.co, such
+                        as "internlm/internlm-chat-20b-4bit", "lmdeploy/llama2-chat-70b-4bit", etc. - iii) the model_id of
+                        a model hosted inside a model repo on huggingface.co, such as "internlm/internlm-chat-7b",
+                        "qwen/qwen-7b-chat ", "baichuan-inc/baichuan2-7b-chat" and so on. Type: str
 
 options:
   -h, --help            show this help message and exit
   --backend {pytorch,turbomind}
                         Set the inference backend. Default: turbomind. Type: str
-  --trust-remote-code   Trust remote code for loading hf models. Default: True
-  --meta-instruction META_INSTRUCTION
-                        System prompt for ChatTemplateConfig. Deprecated. Please use --chat-template instead. Default: None. Type: str
-  --cap {completion,infilling,chat,python}
-                        The capability of a model. Deprecated. Please use --chat-template instead. Default: chat. Type: str
   --chat-template CHAT_TEMPLATE
                         A JSON file or string that specifies the chat template configuration. Please refer to
-                        https://lmdeploy.readthedocs.io/en/latest/advance/chat_template.html for the specification. Default: None. Type:
-                        str
-  --revision REVISION   The specific model version to use. It can be a branch name, a tag name, or a commit id. If unspecified, will use
-                        the default version.. Type: str
+                        https://lmdeploy.readthedocs.io/en/latest/advance/chat_template.html for the specification.
+                        Default: None. Type: str
+  --revision REVISION   The specific model version to use. It can be a branch name, a tag name, or a commit id. If
+                        unspecified, will use the default version.. Type: str
   --download-dir DOWNLOAD_DIR
-                        Directory to download and load the weights, default to the default cache directory of huggingface.. Type: str
+                        Directory to download and load the weights, default to the default cache directory of huggingface..
+                        Type: str
 
 PyTorch engine arguments:
   --adapters [ADAPTERS ...]
-                        Used to set path(s) of lora adapter(s). One can input key-value pairs in xxx=yyy format for multiple lora adapters.
-                        If only have one adapter, one can only input the path of the adapter.. Default: None. Type: str
+                        Used to set path(s) of lora adapter(s). One can input key-value pairs in xxx=yyy format for
+                        multiple lora adapters. If only have one adapter, one can only input the path of the adapter..
+                        Default: None. Type: str
+  --device {cuda,ascend}
+                        The device type of running. Default: cuda. Type: str
   --tp TP               GPU number used in tensor parallelism. Should be 2^n. Default: 1. Type: int
-  --model-name MODEL_NAME
-                        The name of the to-be-deployed model, such as llama-7b, llama-13b, vicuna-7b and etc. You can run `lmdeploy list`
-                        to get the supported model names. Default: None. Type: str
   --session-len SESSION_LEN
                         The max session length of a sequence. Default: None. Type: int
   --cache-max-entry-count CACHE_MAX_ENTRY_COUNT
-                        The percentage of free gpu memory occupied by the k/v cache, excluding weights . Default: 0.8. Type: float
+                        The percentage of free gpu memory occupied by the k/v cache, excluding weights . Default: 0.8.
+                        Type: float
   --enable-prefix-caching
                         Enable cache and match prefix. Default: False
 
 TurboMind engine arguments:
   --tp TP               GPU number used in tensor parallelism. Should be 2^n. Default: 1. Type: int
-  --model-name MODEL_NAME
-                        The name of the to-be-deployed model, such as llama-7b, llama-13b, vicuna-7b and etc. You can run `lmdeploy list`
-                        to get the supported model names. Default: None. Type: str
   --session-len SESSION_LEN
                         The max session length of a sequence. Default: None. Type: int
   --cache-max-entry-count CACHE_MAX_ENTRY_COUNT
-                        The percentage of free gpu memory occupied by the k/v cache, excluding weights . Default: 0.8. Type: float
+                        The percentage of free gpu memory occupied by the k/v cache, excluding weights . Default: 0.8.
+                        Type: float
   --enable-prefix-caching
                         Enable cache and match prefix. Default: False
-  --model-format {hf,llama,awq}
-                        The format of input model. `hf` meaning `hf_llama`, `llama` meaning `meta_llama`, `awq` meaning the quantized model
-                        by awq. Default: None. Type: str
+  --model-format {hf,llama,awq,gptq}
+                        The format of input model. `hf` means `hf_llama`, `llama` means `meta_llama`, `awq` represents the
+                        quantized model by AWQ, and `gptq` refers to the quantized model by GPTQ. Default: None. Type: str
   --quant-policy {0,4,8}
                         Quantize kv or not. 0: no quant; 4: 4bit kv; 8: 8bit kv. Default: 0. Type: int
   --rope-scaling-factor ROPE_SCALING_FACTOR
@@ -174,7 +170,7 @@ lmdeploy chat \
 
 ```sh
 > lmdeploy lite --help
-usage: lmdeploy lite [-h] {auto_awq,calibrate,kv_qparams,smooth_quant} ...
+usage: lmdeploy lite [-h] {auto_awq,auto_gptq,calibrate,smooth_quant} ...
 
 Compressing and accelerating LLMs with lmdeploy.lite module
 
@@ -184,11 +180,11 @@ options:
 Commands:
   This group has the following commands:
 
-  {auto_awq,calibrate,kv_qparams,smooth_quant}
+  {auto_awq,auto_gptq,calibrate,smooth_quant}
     auto_awq            Perform weight quantization using AWQ algorithm.
+    auto_gptq           Perform weight quantization using GPTQ algorithm.
     calibrate           Perform calibration on a given dataset.
-    kv_qparams          Export key and value stats.
-    smooth_quant        Perform w8a8a8 quantization using SmoothQuant.
+    smooth_quant        Perform w8a8 quantization using SmoothQuant.
 ```
 
 ### [KV Cache Quant](https://github.com/InternLM/lmdeploy/blob/main/docs/zh_cn/quantization/kv_quant.md)
@@ -239,13 +235,16 @@ lmdeploy chat \
 
 ### [W4A16](https://github.com/InternLM/lmdeploy/blob/main/docs/zh_cn/quantization/w4a16.md)
 
+> AWQ
+
 使用 AWQ 算法，实现模型 4bit 权重量化。
 
 ```sh
 > lmdeploy lite auto_awq --help
-usage: lmdeploy lite auto_awq [-h] [--revision REVISION] [--download-dir DOWNLOAD_DIR] [--work-dir WORK_DIR] [--calib-dataset CALIB_DATASET]
-                              [--calib-samples CALIB_SAMPLES] [--calib-seqlen CALIB_SEQLEN] [--batch-size BATCH_SIZE] [--search-scale SEARCH_SCALE]
-                              [--device {cuda,cpu}] [--w-bits W_BITS] [--w-sym] [--w-group-size W_GROUP_SIZE]
+usage: lmdeploy lite auto_awq [-h] [--revision REVISION] [--download-dir DOWNLOAD_DIR] [--work-dir WORK_DIR]
+                              [--calib-dataset CALIB_DATASET] [--calib-samples CALIB_SAMPLES] [--calib-seqlen CALIB_SEQLEN]
+                              [--batch-size BATCH_SIZE] [--search-scale SEARCH_SCALE] [--w-bits W_BITS] [--w-sym]
+                              [--w-group-size W_GROUP_SIZE]
                               model
 
 Perform weight quantization using AWQ algorithm.
@@ -255,10 +254,11 @@ positional arguments:
 
 options:
   -h, --help            show this help message and exit
-  --revision REVISION   The specific model version to use. It can be a branch name, a tag name, or a commit id. If unspecified, will use the default version..
-                        Type: str
+  --revision REVISION   The specific model version to use. It can be a branch name, a tag name, or a commit id. If
+                        unspecified, will use the default version.. Type: str
   --download-dir DOWNLOAD_DIR
-                        Directory to download and load the weights, default to the default cache directory of huggingface.. Type: str
+                        Directory to download and load the weights, default to the default cache directory of huggingface..
+                        Type: str
   --work-dir WORK_DIR   The working directory to save results. Default: ./work_dir. Type: str
   --calib-dataset CALIB_DATASET
                         The calibration dataset name. Default: ptb. Type: str
@@ -267,13 +267,46 @@ options:
   --calib-seqlen CALIB_SEQLEN
                         The sequence length for calibration. Default: 2048. Type: int
   --batch-size BATCH_SIZE
-                        The batch size for running the calib samples. Low GPU mem requires small batch_size. Large batch_size reduces the calibration time while
-                        costs more VRAM. Default: 1. Type: int
+                        The batch size for running the calib samples. Low GPU mem requires small batch_size. Large
+                        batch_size reduces the calibration time while costs more VRAM. Default: 1. Type: int
   --search-scale SEARCH_SCALE
-                        Whether search scale ratio. Default to False, which means only smooth quant with 0.5 ratio will be applied. Type: bool
-  --device {cuda,cpu}   Device type of running. Default: cuda. Type: str
+                        Whether search scale ratio. Default to False, which means only smooth quant with 0.5 ratio will be
+                        applied. Type: bool
   --w-bits W_BITS       Bit number for weight quantization. Default: 4. Type: int
   --w-sym               Whether to do symmetric quantization. Default: False
+  --w-group-size W_GROUP_SIZE
+                        Group size for weight quantization statistics. Default: 128. Type: int
+```
+
+> GPTQ
+
+```sh
+> lmdeploy lite auto_gptq --help
+usage: lmdeploy lite auto_gptq [-h] [--revision REVISION] [--work-dir WORK_DIR] [--calib-dataset CALIB_DATASET]
+                               [--calib-samples CALIB_SAMPLES] [--calib-seqlen CALIB_SEQLEN] [--batch-size BATCH_SIZE]
+                               [--w-bits W_BITS] [--w-group-size W_GROUP_SIZE]
+                               model
+
+Perform weight quantization using GPTQ algorithm.
+
+positional arguments:
+  model                 The path of model in hf format. Type: str
+
+options:
+  -h, --help            show this help message and exit
+  --revision REVISION   The specific model version to use. It can be a branch name, a tag name, or a commit id. If
+                        unspecified, will use the default version.. Type: str
+  --work-dir WORK_DIR   The working directory to save results. Default: ./work_dir. Type: str
+  --calib-dataset CALIB_DATASET
+                        The calibration dataset name. Default: ptb. Type: str
+  --calib-samples CALIB_SAMPLES
+                        The number of samples for calibration. Default: 128. Type: int
+  --calib-seqlen CALIB_SEQLEN
+                        The sequence length for calibration. Default: 2048. Type: int
+  --batch-size BATCH_SIZE
+                        The batch size for running the calib samples. Low GPU mem requires small batch_size. Large
+                        batch_size reduces the calibration time while costs more VRAM. Default: 1. Type: int
+  --w-bits W_BITS       Bit number for weight quantization. Default: 4. Type: int
   --w-group-size W_GROUP_SIZE
                         Group size for weight quantization statistics. Default: 128. Type: int
 ```
@@ -387,11 +420,12 @@ print(response)
 
 ```sh
 > lmdeploy lite smooth_quant --help
-usage: lmdeploy lite smooth_quant [-h] [--work-dir WORK_DIR] [--calib-dataset CALIB_DATASET] [--calib-samples CALIB_SAMPLES]
-                                  [--calib-seqlen CALIB_SEQLEN] [--batch-size BATCH_SIZE] [--search-scale SEARCH_SCALE] [--device {cuda,cpu}]
+usage: lmdeploy lite smooth_quant [-h] [--work-dir WORK_DIR] [--calib-dataset CALIB_DATASET]
+                                  [--calib-samples CALIB_SAMPLES] [--calib-seqlen CALIB_SEQLEN] [--batch-size BATCH_SIZE]
+                                  [--search-scale SEARCH_SCALE]
                                   model
 
-Perform w8a8a8 quantization using SmoothQuant.
+Perform w8a8 quantization using SmoothQuant.
 
 positional arguments:
   model                 The name or path of the model to be loaded. Type: str
@@ -406,11 +440,11 @@ options:
   --calib-seqlen CALIB_SEQLEN
                         The sequence length for calibration. Default: 2048. Type: int
   --batch-size BATCH_SIZE
-                        The batch size for running the calib samples. Low GPU mem requires small batch_size. Large batch_size reduces the
-                        calibration time while costs more VRAM. Default: 1. Type: int
+                        The batch size for running the calib samples. Low GPU mem requires small batch_size. Large
+                        batch_size reduces the calibration time while costs more VRAM. Default: 1. Type: int
   --search-scale SEARCH_SCALE
-                        Whether search scale ratio. Default to False, which means only smooth quant with 0.5 ratio will be applied. Type: bool
-  --device {cuda,cpu}   Device type of running. Default: cuda. Type: str
+                        Whether search scale ratio. Default to False, which means only smooth quant with 0.5 ratio will be
+                        applied. Type: bool
 ```
 
 使用 8 bit 整数对神经网络模型进行量化和推理的功能。
@@ -489,14 +523,15 @@ Commands:
 > lmdeploy serve api_server -h
 usage: lmdeploy serve api_server [-h] [--server-name SERVER_NAME] [--server-port SERVER_PORT]
                                  [--allow-origins ALLOW_ORIGINS [ALLOW_ORIGINS ...]] [--allow-credentials]
-                                 [--allow-methods ALLOW_METHODS [ALLOW_METHODS ...]] [--allow-headers ALLOW_HEADERS [ALLOW_HEADERS ...]]
-                                 [--qos-config-path QOS_CONFIG_PATH] [--backend {pytorch,turbomind}]
-                                 [--log-level {CRITICAL,FATAL,ERROR,WARN,WARNING,INFO,DEBUG,NOTSET}] [--api-keys [API_KEYS ...]] [--ssl]
-                                 [--meta-instruction META_INSTRUCTION] [--chat-template CHAT_TEMPLATE]
-                                 [--cap {completion,infilling,chat,python}] [--revision REVISION] [--download-dir DOWNLOAD_DIR]
-                                 [--adapters [ADAPTERS ...]] [--tp TP] [--model-name MODEL_NAME] [--session-len SESSION_LEN]
+                                 [--allow-methods ALLOW_METHODS [ALLOW_METHODS ...]]
+                                 [--allow-headers ALLOW_HEADERS [ALLOW_HEADERS ...]] [--backend {pytorch,turbomind}]
+                                 [--log-level {CRITICAL,FATAL,ERROR,WARN,WARNING,INFO,DEBUG,NOTSET}]
+                                 [--api-keys [API_KEYS ...]] [--ssl] [--model-name MODEL_NAME]
+                                 [--chat-template CHAT_TEMPLATE] [--revision REVISION] [--download-dir DOWNLOAD_DIR]
+                                 [--adapters [ADAPTERS ...]] [--device {cuda,ascend}] [--tp TP] [--session-len SESSION_LEN]
                                  [--max-batch-size MAX_BATCH_SIZE] [--cache-max-entry-count CACHE_MAX_ENTRY_COUNT]
-                                 [--cache-block-seq-len CACHE_BLOCK_SEQ_LEN] [--enable-prefix-caching] [--model-format {hf,llama,awq}]
+                                 [--cache-block-seq-len CACHE_BLOCK_SEQ_LEN] [--enable-prefix-caching]
+                                 [--max-prefill-token-num MAX_PREFILL_TOKEN_NUM] [--model-format {hf,llama,awq,gptq}]
                                  [--quant-policy {0,4,8}] [--rope-scaling-factor ROPE_SCALING_FACTOR]
                                  [--num-tokens-per-iter NUM_TOKENS_PER_ITER] [--max-prefill-iters MAX_PREFILL_ITERS]
                                  [--vision-max-batch-size VISION_MAX_BATCH_SIZE]
@@ -505,11 +540,12 @@ usage: lmdeploy serve api_server [-h] [--server-name SERVER_NAME] [--server-port
 Serve LLMs with restful api using fastapi.
 
 positional arguments:
-  model_path            The path of a model. it could be one of the following options: - i) a local directory path of a turbomind model which is
-                        converted by `lmdeploy convert` command or download from ii) and iii). - ii) the model_id of a lmdeploy-quantized model
-                        hosted inside a model repo on huggingface.co, such as "internlm/internlm-chat-20b-4bit",
-                        "lmdeploy/llama2-chat-70b-4bit", etc. - iii) the model_id of a model hosted inside a model repo on huggingface.co, such
-                        as "internlm/internlm-chat-7b", "qwen/qwen-7b-chat ", "baichuan-inc/baichuan2-7b-chat" and so on. Type: str
+  model_path            The path of a model. it could be one of the following options: - i) a local directory path of a
+                        turbomind model which is converted by `lmdeploy convert` command or download from ii) and iii). -
+                        ii) the model_id of a lmdeploy-quantized model hosted inside a model repo on huggingface.co, such
+                        as "internlm/internlm-chat-20b-4bit", "lmdeploy/llama2-chat-70b-4bit", etc. - iii) the model_id of
+                        a model hosted inside a model repo on huggingface.co, such as "internlm/internlm-chat-7b",
+                        "qwen/qwen-7b-chat ", "baichuan-inc/baichuan2-7b-chat" and so on. Type: str
 
 options:
   -h, --help            show this help message and exit
@@ -524,8 +560,6 @@ options:
                         A list of allowed http methods for cors. Default: ['*']. Type: str
   --allow-headers ALLOW_HEADERS [ALLOW_HEADERS ...]
                         A list of allowed http headers for cors. Default: ['*']. Type: str
-  --qos-config-path QOS_CONFIG_PATH
-                        Qos policy config path. Default: . Type: str
   --backend {pytorch,turbomind}
                         Set the inference backend. Default: turbomind. Type: str
   --log-level {CRITICAL,FATAL,ERROR,WARN,WARNING,INFO,DEBUG,NOTSET}
@@ -533,59 +567,67 @@ options:
   --api-keys [API_KEYS ...]
                         Optional list of space separated API keys. Default: None. Type: str
   --ssl                 Enable SSL. Requires OS Environment variables 'SSL_KEYFILE' and 'SSL_CERTFILE'. Default: False
-  --meta-instruction META_INSTRUCTION
-                        System prompt for ChatTemplateConfig. Deprecated. Please use --chat-template instead. Default: None. Type: str
+  --model-name MODEL_NAME
+                        The name of the served model. It can be accessed by the RESTful API `/v1/models`. If it is not
+                        specified, `model_path` will be adopted. Default: None. Type: str
   --chat-template CHAT_TEMPLATE
                         A JSON file or string that specifies the chat template configuration. Please refer to
-                        https://lmdeploy.readthedocs.io/en/latest/advance/chat_template.html for the specification. Default: None. Type: str
-  --cap {completion,infilling,chat,python}
-                        The capability of a model. Deprecated. Please use --chat-template instead. Default: chat. Type: str
-  --revision REVISION   The specific model version to use. It can be a branch name, a tag name, or a commit id. If unspecified, will use the
-                        default version.. Type: str
+                        https://lmdeploy.readthedocs.io/en/latest/advance/chat_template.html for the specification.
+                        Default: None. Type: str
+  --revision REVISION   The specific model version to use. It can be a branch name, a tag name, or a commit id. If
+                        unspecified, will use the default version.. Type: str
   --download-dir DOWNLOAD_DIR
-                        Directory to download and load the weights, default to the default cache directory of huggingface.. Type: str
+                        Directory to download and load the weights, default to the default cache directory of huggingface..
+                        Type: str
 
 PyTorch engine arguments:
   --adapters [ADAPTERS ...]
-                        Used to set path(s) of lora adapter(s). One can input key-value pairs in xxx=yyy format for multiple lora adapters. If
-                        only have one adapter, one can only input the path of the adapter.. Default: None. Type: str
+                        Used to set path(s) of lora adapter(s). One can input key-value pairs in xxx=yyy format for
+                        multiple lora adapters. If only have one adapter, one can only input the path of the adapter..
+                        Default: None. Type: str
+  --device {cuda,ascend}
+                        The device type of running. Default: cuda. Type: str
   --tp TP               GPU number used in tensor parallelism. Should be 2^n. Default: 1. Type: int
-  --model-name MODEL_NAME
-                        The name of the to-be-deployed model, such as llama-7b, llama-13b, vicuna-7b and etc. You can run `lmdeploy list` to get
-                        the supported model names. Default: None. Type: str
   --session-len SESSION_LEN
                         The max session length of a sequence. Default: None. Type: int
   --max-batch-size MAX_BATCH_SIZE
-                        Maximum batch size. Default: 128. Type: int
+                        Maximum batch size. If not specified, the engine will automatically set it according to the device.
+                        Default: None. Type: int
   --cache-max-entry-count CACHE_MAX_ENTRY_COUNT
-                        The percentage of free gpu memory occupied by the k/v cache, excluding weights . Default: 0.8. Type: float
+                        The percentage of free gpu memory occupied by the k/v cache, excluding weights . Default: 0.8.
+                        Type: float
   --cache-block-seq-len CACHE_BLOCK_SEQ_LEN
-                        The length of the token sequence in a k/v block. For Turbomind Engine, if the GPU compute capability is >= 8.0, it
-                        should be a multiple of 32, otherwise it should be a multiple of 64. For Pytorch Engine, if Lora Adapter is specified,
-                        this parameter will be ignored. Default: 64. Type: int
+                        The length of the token sequence in a k/v block. For Turbomind Engine, if the GPU compute
+                        capability is >= 8.0, it should be a multiple of 32, otherwise it should be a multiple of 64. For
+                        Pytorch Engine, if Lora Adapter is specified, this parameter will be ignored. Default: 64. Type:
+                        int
   --enable-prefix-caching
                         Enable cache and match prefix. Default: False
+  --max-prefill-token-num MAX_PREFILL_TOKEN_NUM
+                        the max number of tokens per iteration during prefill. Default: 8192. Type: int
 
 TurboMind engine arguments:
   --tp TP               GPU number used in tensor parallelism. Should be 2^n. Default: 1. Type: int
-  --model-name MODEL_NAME
-                        The name of the to-be-deployed model, such as llama-7b, llama-13b, vicuna-7b and etc. You can run `lmdeploy list` to get
-                        the supported model names. Default: None. Type: str
   --session-len SESSION_LEN
                         The max session length of a sequence. Default: None. Type: int
   --max-batch-size MAX_BATCH_SIZE
-                        Maximum batch size. Default: 128. Type: int
+                        Maximum batch size. If not specified, the engine will automatically set it according to the device.
+                        Default: None. Type: int
   --cache-max-entry-count CACHE_MAX_ENTRY_COUNT
-                        The percentage of free gpu memory occupied by the k/v cache, excluding weights . Default: 0.8. Type: float
+                        The percentage of free gpu memory occupied by the k/v cache, excluding weights . Default: 0.8.
+                        Type: float
   --cache-block-seq-len CACHE_BLOCK_SEQ_LEN
-                        The length of the token sequence in a k/v block. For Turbomind Engine, if the GPU compute capability is >= 8.0, it
-                        should be a multiple of 32, otherwise it should be a multiple of 64. For Pytorch Engine, if Lora Adapter is specified,
-                        this parameter will be ignored. Default: 64. Type: int
+                        The length of the token sequence in a k/v block. For Turbomind Engine, if the GPU compute
+                        capability is >= 8.0, it should be a multiple of 32, otherwise it should be a multiple of 64. For
+                        Pytorch Engine, if Lora Adapter is specified, this parameter will be ignored. Default: 64. Type:
+                        int
   --enable-prefix-caching
                         Enable cache and match prefix. Default: False
-  --model-format {hf,llama,awq}
-                        The format of input model. `hf` meaning `hf_llama`, `llama` meaning `meta_llama`, `awq` meaning the quantized model by
-                        awq. Default: None. Type: str
+  --max-prefill-token-num MAX_PREFILL_TOKEN_NUM
+                        the max number of tokens per iteration during prefill. Default: 8192. Type: int
+  --model-format {hf,llama,awq,gptq}
+                        The format of input model. `hf` means `hf_llama`, `llama` means `meta_llama`, `awq` represents the
+                        quantized model by AWQ, and `gptq` refers to the quantized model by GPTQ. Default: None. Type: str
   --quant-policy {0,4,8}
                         Quantize kv or not. 0: no quant; 4: 4bit kv; 8: 8bit kv. Default: 0. Type: int
   --rope-scaling-factor ROPE_SCALING_FACTOR
@@ -604,7 +646,7 @@ Vision model arguments:
 
 ```sh
 export HF_MODEL=internlm/internlm2_5-1_8b-chat
-export IP_ADDR=127.0.0.1
+export IP_ADDR=0.0.0.0
 export PORT=23333
 
 # pytorch后端
@@ -614,9 +656,7 @@ lmdeploy serve api_server \
     --backend pytorch \
     --tp 1 \
     --cache-max-entry-count 0.8 \
-    --log-level DEBUG \ # CRITICAL,FATAL,ERROR,WARN,WARNING,INFO,DEBUG,NOTSET
-    --api-keys "" \
-    --ssl False \
+    --log-level INFO \ # CRITICAL,FATAL,ERROR,WARN,WARNING,INFO,DEBUG,NOTSET
     --server-name $IP_ADDR \
     --server-port $PORT
 
@@ -629,9 +669,7 @@ lmdeploy serve api_server \
     --tp 1 \
     --cache-max-entry-count 0.8 \
     --quant-policy 0 \
-    --log-level DEBUG \ # CRITICAL,FATAL,ERROR,WARN,WARNING,INFO,DEBUG,NOTSET
-    --api-keys "" \
-    --ssl False \
+    --log-level INFO \ # CRITICAL,FATAL,ERROR,WARN,WARNING,INFO,DEBUG,NOTSET
     --server-name $IP_ADDR \
     --server-port $PORT
 
@@ -643,11 +681,9 @@ lmdeploy serve api_server \
     --tp 1 \
     --cache-max-entry-count 0.8 \
     --quant-policy 0 \
-    --log-level DEBUG \
-    --api-keys "" \
-    --ssl False \
-    --server-name $IP_ADDR \
-    --server-port $PORT
+    --log-level INFO \
+    --server-name 0.0.0.0 \
+    --server-port 23333
 
 # 启动后访问 127.0.0.1:23333
 ```
@@ -671,7 +707,7 @@ options:
 ```
 
 ```sh
-export IP_ADDR=127.0.0.1
+export IP_ADDR=0.0.0.0
 export PORT=23333
 lmdeploy serve api_client $IP_ADDR:$PORT
 
@@ -686,19 +722,20 @@ lmdeploy serve api_client http://127.0.0.1:23333
 
 ```sh
 > lmdeploy serve gradio -h
-usage: lmdeploy serve gradio [-h] [--server-name SERVER_NAME] [--server-port SERVER_PORT] [--share] [--backend {pytorch,turbomind}]
-                             [--revision REVISION] [--download-dir DOWNLOAD_DIR] [--meta-instruction META_INSTRUCTION]
-                             [--chat-template CHAT_TEMPLATE] [--cap {completion,infilling,chat,python}] [--tp TP] [--model-name MODEL_NAME]
-                             [--session-len SESSION_LEN] [--max-batch-size MAX_BATCH_SIZE] [--cache-max-entry-count CACHE_MAX_ENTRY_COUNT]
-                             [--cache-block-seq-len CACHE_BLOCK_SEQ_LEN] [--enable-prefix-caching] [--model-format {hf,llama,awq}]
+usage: lmdeploy serve gradio [-h] [--server-name SERVER_NAME] [--server-port SERVER_PORT] [--share]
+                             [--backend {pytorch,turbomind}] [--revision REVISION] [--download-dir DOWNLOAD_DIR]
+                             [--chat-template CHAT_TEMPLATE] [--tp TP] [--device {cuda,ascend}] [--session-len SESSION_LEN]
+                             [--max-batch-size MAX_BATCH_SIZE] [--cache-max-entry-count CACHE_MAX_ENTRY_COUNT]
+                             [--cache-block-seq-len CACHE_BLOCK_SEQ_LEN] [--enable-prefix-caching]
+                             [--max-prefill-token-num MAX_PREFILL_TOKEN_NUM] [--model-format {hf,llama,awq,gptq}]
                              [--quant-policy {0,4,8}] [--rope-scaling-factor ROPE_SCALING_FACTOR]
                              model_path_or_server
 
 Serve LLMs with web UI using gradio.
 
 positional arguments:
-  model_path_or_server  The path of the deployed model or the tritonserver url or restful api url. for example: - ./workspace - 0.0.0.0:23333 -
-                        http://0.0.0.0:23333. Type: str
+  model_path_or_server  The path of the deployed model or the tritonserver url or restful api url. for example: -
+                        ./workspace - 0.0.0.0:23333 - http://0.0.0.0:23333. Type: str
 
 options:
   -h, --help            show this help message and exit
@@ -709,56 +746,60 @@ options:
   --share               Whether to create a publicly shareable link for the app. Default: False
   --backend {pytorch,turbomind}
                         Set the inference backend. Default: turbomind. Type: str
-  --revision REVISION   The specific model version to use. It can be a branch name, a tag name, or a commit id. If unspecified, will use the
-                        default version.. Type: str
+  --revision REVISION   The specific model version to use. It can be a branch name, a tag name, or a commit id. If
+                        unspecified, will use the default version.. Type: str
   --download-dir DOWNLOAD_DIR
-                        Directory to download and load the weights, default to the default cache directory of huggingface.. Type: str
-  --meta-instruction META_INSTRUCTION
-                        System prompt for ChatTemplateConfig. Deprecated. Please use --chat-template instead. Default: None. Type: str
+                        Directory to download and load the weights, default to the default cache directory of huggingface..
+                        Type: str
   --chat-template CHAT_TEMPLATE
                         A JSON file or string that specifies the chat template configuration. Please refer to
-                        https://lmdeploy.readthedocs.io/en/latest/advance/chat_template.html for the specification. Default: None. Type: str
-  --cap {completion,infilling,chat,python}
-                        The capability of a model. Deprecated. Please use --chat-template instead. Default: chat. Type: str
+                        https://lmdeploy.readthedocs.io/en/latest/advance/chat_template.html for the specification.
+                        Default: None. Type: str
 
 PyTorch engine arguments:
   --tp TP               GPU number used in tensor parallelism. Should be 2^n. Default: 1. Type: int
-  --model-name MODEL_NAME
-                        The name of the to-be-deployed model, such as llama-7b, llama-13b, vicuna-7b and etc. You can run `lmdeploy list` to get
-                        the supported model names. Default: None. Type: str
+  --device {cuda,ascend}
+                        The device type of running. Default: cuda. Type: str
   --session-len SESSION_LEN
                         The max session length of a sequence. Default: None. Type: int
   --max-batch-size MAX_BATCH_SIZE
-                        Maximum batch size. Default: 128. Type: int
+                        Maximum batch size. If not specified, the engine will automatically set it according to the device.
+                        Default: None. Type: int
   --cache-max-entry-count CACHE_MAX_ENTRY_COUNT
-                        The percentage of free gpu memory occupied by the k/v cache, excluding weights . Default: 0.8. Type: float
+                        The percentage of free gpu memory occupied by the k/v cache, excluding weights . Default: 0.8.
+                        Type: float
   --cache-block-seq-len CACHE_BLOCK_SEQ_LEN
-                        The length of the token sequence in a k/v block. For Turbomind Engine, if the GPU compute capability is >= 8.0, it
-                        should be a multiple of 32, otherwise it should be a multiple of 64. For Pytorch Engine, if Lora Adapter is specified,
-                        this parameter will be ignored. Default: 64. Type: int
+                        The length of the token sequence in a k/v block. For Turbomind Engine, if the GPU compute
+                        capability is >= 8.0, it should be a multiple of 32, otherwise it should be a multiple of 64. For
+                        Pytorch Engine, if Lora Adapter is specified, this parameter will be ignored. Default: 64. Type:
+                        int
   --enable-prefix-caching
                         Enable cache and match prefix. Default: False
+  --max-prefill-token-num MAX_PREFILL_TOKEN_NUM
+                        the max number of tokens per iteration during prefill. Default: 8192. Type: int
 
 TurboMind engine arguments:
   --tp TP               GPU number used in tensor parallelism. Should be 2^n. Default: 1. Type: int
-  --model-name MODEL_NAME
-                        The name of the to-be-deployed model, such as llama-7b, llama-13b, vicuna-7b and etc. You can run `lmdeploy list` to get
-                        the supported model names. Default: None. Type: str
   --session-len SESSION_LEN
                         The max session length of a sequence. Default: None. Type: int
   --max-batch-size MAX_BATCH_SIZE
-                        Maximum batch size. Default: 128. Type: int
+                        Maximum batch size. If not specified, the engine will automatically set it according to the device.
+                        Default: None. Type: int
   --cache-max-entry-count CACHE_MAX_ENTRY_COUNT
-                        The percentage of free gpu memory occupied by the k/v cache, excluding weights . Default: 0.8. Type: float
+                        The percentage of free gpu memory occupied by the k/v cache, excluding weights . Default: 0.8.
+                        Type: float
   --cache-block-seq-len CACHE_BLOCK_SEQ_LEN
-                        The length of the token sequence in a k/v block. For Turbomind Engine, if the GPU compute capability is >= 8.0, it
-                        should be a multiple of 32, otherwise it should be a multiple of 64. For Pytorch Engine, if Lora Adapter is specified,
-                        this parameter will be ignored. Default: 64. Type: int
+                        The length of the token sequence in a k/v block. For Turbomind Engine, if the GPU compute
+                        capability is >= 8.0, it should be a multiple of 32, otherwise it should be a multiple of 64. For
+                        Pytorch Engine, if Lora Adapter is specified, this parameter will be ignored. Default: 64. Type:
+                        int
   --enable-prefix-caching
                         Enable cache and match prefix. Default: False
-  --model-format {hf,llama,awq}
-                        The format of input model. `hf` meaning `hf_llama`, `llama` meaning `meta_llama`, `awq` meaning the quantized model by
-                        awq. Default: None. Type: str
+  --max-prefill-token-num MAX_PREFILL_TOKEN_NUM
+                        the max number of tokens per iteration during prefill. Default: 8192. Type: int
+  --model-format {hf,llama,awq,gptq}
+                        The format of input model. `hf` means `hf_llama`, `llama` means `meta_llama`, `awq` represents the
+                        quantized model by AWQ, and `gptq` refers to the quantized model by GPTQ. Default: None. Type: str
   --quant-policy {0,4,8}
                         Quantize kv or not. 0: no quant; 4: 4bit kv; 8: 8bit kv. Default: 0. Type: int
   --rope-scaling-factor ROPE_SCALING_FACTOR
@@ -769,13 +810,12 @@ TurboMind engine arguments:
 
 ```sh
 export HF_MODEL=internlm/internlm2_5-1_8b-chat
-export IP_ADDR=127.0.0.1
+export IP_ADDR=0.0.0.0
 export GRADIO_PORT=6006
 
 # 使用pytorch后端
 lmdeploy serve gradio \
     $HF_MODEL \
-    --model-name internlm2_5-1_8b-chat \
     --backend pytorch \
     --tp 1 \
     --cache-max-entry-count 0.8 \
@@ -785,7 +825,6 @@ lmdeploy serve gradio \
 # 使用turbomind后端
 lmdeploy serve gradio \
     $HF_MODEL \
-    --model-name internlm2_5-1_8b-chat \
     --backend turbomind \
     --model-format hf \
     --tp 1 \
@@ -796,7 +835,6 @@ lmdeploy serve gradio \
 
 lmdeploy serve gradio \
     ../models/internlm2_5-1_8b-chat \
-    --model-name internlm2_5-1_8b-chat \
     --backend turbomind \
     --model-format hf \
     --tp 1 \
@@ -810,7 +848,7 @@ lmdeploy serve gradio \
 
 ```sh
 export HF_MODEL=internlm/internlm2_5-1_8b-chat
-export IP_ADDR=127.0.0.1
+export IP_ADDR=0.0.0.0
 export PORT=23333
 export GRADIO_PORT=6006
 
@@ -822,9 +860,7 @@ lmdeploy serve api_server \
     --tp 1 \
     --cache-max-entry-count 0.8 \
     --quant-policy 0 \
-    --log-level DEBUG \ # CRITICAL,FATAL,ERROR,WARN,WARNING,INFO,DEBUG,NOTSET
-    --api-keys "" \
-    --ssl False \
+    --log-level INFO \ # CRITICAL,FATAL,ERROR,WARN,WARNING,INFO,DEBUG,NOTSET
     --server-name $IP_ADDR \
     --server-port $PORT
 
@@ -842,13 +878,11 @@ lmdeploy serve api_server \
     --tp 1 \
     --cache-max-entry-count 0.8 \
     --quant-policy 0 \
-    --log-level DEBUG \
-    --api-keys "" \
-    --ssl False \
+    --log-level INFO \
     --server-name 127.0.0.1 \
     --server-port 23333
 
-lmdeploy serve gradio http://localhost:23333 \
+lmdeploy serve gradio http://127.0.0.1:23333 \
     --server-name 0.0.0.0 \
     --server-port 6006
 ```
@@ -863,36 +897,38 @@ lmdeploy serve gradio http://localhost:23333 \
 
 ```sh
 > lmdeploy convert --help
-usage: lmdeploy convert [-h] [--model-format {hf,llama,awq}] [--tp TP] [--revision REVISION] [--download-dir DOWNLOAD_DIR]
-                        [--tokenizer-path TOKENIZER_PATH] [--dst-path DST_PATH] [--quant-path QUANT_PATH] [--group-size GROUP_SIZE]
-                        [--trust-remote-code]
+usage: lmdeploy convert [-h] [--model-format {hf,llama,awq,gptq}] [--tp TP] [--revision REVISION]
+                        [--download-dir DOWNLOAD_DIR] [--tokenizer-path TOKENIZER_PATH] [--dst-path DST_PATH]
+                        [--group-size GROUP_SIZE] [--chat-template CHAT_TEMPLATE]
                         model_name model_path
 
 Convert LLMs to turbomind format.
 
 positional arguments:
-  model_name            The name of the to-be-deployed model, such as llama-7b, llama-13b, vicuna-7b and etc. You can run `lmdeploy list` to get
-                        the supported model names. Type: str
+  model_name            deprecated and unused, it will be removed on 2024.12.31. It was originally used to specify the name
+                        of the built-in chat template, but now it is substituted with a clearer parameter `--chat-
+                        template`. Type: str
   model_path            The directory path of the model. Type: str
 
 options:
   -h, --help            show this help message and exit
-  --model-format {hf,llama,awq}
-                        The format of input model. `hf` meaning `hf_llama`, `llama` meaning `meta_llama`, `awq` meaning the quantized model by
-                        awq. Default: None. Type: str
+  --model-format {hf,llama,awq,gptq}
+                        The format of input model. `hf` means `hf_llama`, `llama` means `meta_llama`, `awq` represents the
+                        quantized model by AWQ, and `gptq` refers to the quantized model by GPTQ. Default: None. Type: str
   --tp TP               GPU number used in tensor parallelism. Should be 2^n. Default: 1. Type: int
-  --revision REVISION   The specific model version to use. It can be a branch name, a tag name, or a commit id. If unspecified, will use the
-                        default version.. Type: str
+  --revision REVISION   The specific model version to use. It can be a branch name, a tag name, or a commit id. If
+                        unspecified, will use the default version.. Type: str
   --download-dir DOWNLOAD_DIR
-                        Directory to download and load the weights, default to the default cache directory of huggingface.. Type: str
+                        Directory to download and load the weights, default to the default cache directory of huggingface..
+                        Type: str
   --tokenizer-path TOKENIZER_PATH
                         The path of tokenizer model. Default: None. Type: str
   --dst-path DST_PATH   The destination path that saves outputs. Default: workspace. Type: str
-  --quant-path QUANT_PATH
-                        Path of the quantized model, which can be none. Default: None. Type: str
   --group-size GROUP_SIZE
                         A parameter used in awq to quantize fp16 weights to 4 bits. Default: 0. Type: int
-  --trust-remote-code   trust remote code from huggingface. Default: False
+  --chat-template CHAT_TEMPLATE
+                        the name of the built-in chat template, which can be overviewed by `lmdeploy list`. Default: None.
+                        Type: str
 ```
 
 > example
@@ -984,8 +1020,9 @@ options:
 
 ```sh
 > lmdeploy list
-The older chat template name like "internlm2-7b", "qwen-7b" and so on are deprecated and will be removed in the future. The supported chat template names are:
+The supported chat template names are:
 baichuan2
+base
 chatglm
 chatglm3
 codegeex4
@@ -1016,6 +1053,7 @@ llama3_1
 llava-chatml
 llava-v1
 mini-gemini-vicuna
+minicpmv-2d6
 mistral
 mixtral
 phi-3
@@ -1043,7 +1081,8 @@ Check the environmental information.
 options:
   -h, --help            show this help message and exit
   --dump-file DUMP_FILE
-                        The file path to save env info. Only support file format in `json`, `yml`, `pkl`. Default: None. Type: str
+                        The file path to save env info. Only support file format in `json`, `yml`, `pkl`. Default: None.
+                        Type: str
 ```
 
 ```sh
@@ -1074,11 +1113,11 @@ PyTorch compiling details: PyTorch built with:
   - Build settings: BLAS_INFO=mkl, BUILD_TYPE=Release, CUDA_VERSION=12.1, CUDNN_VERSION=8.9.2, CXX_COMPILER=/opt/rh/devtoolset-9/root/usr/bin/c++, CXX_FLAGS= -D_GLIBCXX_USE_CXX11_ABI=0 -fabi-version=11 -fvisibility-inlines-hidden -DUSE_PTHREADPOOL -DNDEBUG -DUSE_KINETO -DLIBKINETO_NOROCTRACER -DUSE_FBGEMM -DUSE_QNNPACK -DUSE_PYTORCH_QNNPACK -DUSE_XNNPACK -DSYMBOLICATE_MOBILE_DEBUG_HANDLE -O2 -fPIC -Wall -Wextra -Werror=return-type -Werror=non-virtual-dtor -Werror=bool-operation -Wnarrowing -Wno-missing-field-initializers -Wno-type-limits -Wno-array-bounds -Wno-unknown-pragmas -Wno-unused-parameter -Wno-unused-function -Wno-unused-result -Wno-strict-overflow -Wno-strict-aliasing -Wno-stringop-overflow -Wsuggest-override -Wno-psabi -Wno-error=pedantic -Wno-error=old-style-cast -Wno-missing-braces -fdiagnostics-color=always -faligned-new -Wno-unused-but-set-variable -Wno-maybe-uninitialized -fno-math-errno -fno-trapping-math -Werror=format -Wno-stringop-overflow, LAPACK_INFO=mkl, PERF_WITH_AVX=1, PERF_WITH_AVX2=1, PERF_WITH_AVX512=1, TORCH_VERSION=2.2.2, USE_CUDA=ON, USE_CUDNN=ON, USE_EXCEPTION_PTR=1, USE_GFLAGS=OFF, USE_GLOG=OFF, USE_MKL=ON, USE_MKLDNN=ON, USE_MPI=OFF, USE_NCCL=1, USE_NNPACK=ON, USE_OPENMP=ON, USE_ROCM=OFF, USE_ROCM_KERNEL_ASSERT=OFF, 
 
 TorchVision: 0.17.2+cu121
-LMDeploy: 0.5.3+
-transformers: 4.44.0
-gradio: 4.40.0
-fastapi: 0.112.0
-pydantic: 2.8.2
+LMDeploy: 0.6.0+5249ce0
+transformers: 4.44.2
+gradio: 4.44.0
+fastapi: 0.115.0
+pydantic: 2.9.2
 triton: 2.2.0
 NVIDIA Topology: 
         GPU0    NIC0    NIC1    NIC2    NIC3    NIC4    CPU Affinity    NUMA Affinity   GPU NUMA ID
