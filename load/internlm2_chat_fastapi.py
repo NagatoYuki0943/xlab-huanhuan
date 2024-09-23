@@ -1,5 +1,5 @@
-# https://fastapi.tiangolo.com/zh/tutorial/body/
-import uvicorn
+# https://github.com/vllm-project/vllm/blob/main/vllm/entrypoints/api_server.py
+
 from fastapi import FastAPI
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel, Field
@@ -30,10 +30,15 @@ TRANSFORMERS_CONFIG = TransformersConfig(
 
 
 # 载入模型
-infer_engine: InferEngine = InferEngine(
-    backend="transformers",  # transformers, lmdeploy
-    transformers_config=TRANSFORMERS_CONFIG,
-)
+infer_engine: InferEngine = None
+
+def init_engine():
+    global infer_engine
+    infer_engine = infer_engine or InferEngine(
+        backend="transformers",  # transformers, lmdeploy
+        transformers_config=TRANSFORMERS_CONFIG,
+    )
+init_engine()
 
 
 app = FastAPI()
@@ -90,6 +95,23 @@ class Response(BaseModel):
 async def chat(query: Query):
     print(query)
 
+    if query.stream:
+        async def generate():
+            length = 0
+            for response in infer_engine.chat_stream(
+                query.query,
+                None,
+                query.max_new_tokens,
+                query.temperature,
+                query.top_p,
+                query.top_k,
+                random_uuid_int(),
+            ):
+                yield response[length:]
+                length = len(response)
+
+        return StreamingResponse(generate(), media_type="text/plain")
+
     response = infer_engine.chat(
         query.query,
         None,
@@ -103,44 +125,8 @@ async def chat(query: Query):
     return Response(text=response)
 
 
-# 将请求体作为 JSON 读取
-# 在函数内部，你可以直接访问模型对象的所有属性
-# http://127.0.0.1:8000/docs
-@app.post("/chat_stream")
-async def chat_stream(query: Query):
-    print(query)
-
-    async def generate():
-        length = 0
-        for response in infer_engine.chat_stream(
-            query.query,
-            None,
-            query.max_new_tokens,
-            query.temperature,
-            query.top_p,
-            query.top_k,
-            random_uuid_int(),
-        ):
-            yield response[length:]
-            length = len(response)
-
-    return StreamingResponse(generate(), media_type="text/plain")
-
-
+# run: uvicorn internlm2_chat_fastapi:app --reload --port=8000
 # run: uvicorn main:app --reload --port=8000
 #   main: main.py 文件(一个 Python「模块」)。
 #   app: 在 main.py 文件中通过 app = FastAPI() 创建的对象。
 #   --reload: 让服务器在更新代码后重新启动。仅在开发时使用该选项。
-if __name__ == "__main__":
-    import os
-    from pathlib import Path
-
-    # 从环境变量中获取端口号，默认为 8000
-    port = int(os.getenv("PORT", 8000))
-
-    # 从环境变量中获取主机地址，默认为 0.0.0.0
-    host = os.getenv("HOST", "0.0.0.0")
-
-    file = Path(__file__).stem  # get file name without suffix
-    # 不使用 reload = True 时可以直接传递 app 对象
-    uvicorn.run(app=f"{file}:app", host=host, port=port, reload=True)
