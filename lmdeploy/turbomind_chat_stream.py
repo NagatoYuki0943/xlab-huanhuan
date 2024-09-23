@@ -37,8 +37,8 @@ while True:
     if query.lower() == "exit":
         break
 
-    print(f"回答: ", end="", flush=True)
-    length = 0
+    print("回答: ", end="", flush=True)
+    responses = []
     for response in infer_engine.chat_stream(
         query=query,
         history=history,
@@ -47,7 +47,8 @@ while True:
         top_p=0.8,
         top_k=40,
     ):
-        print(response[length:], flush=True, end="")
-        length = len(response)
-    history.append([query, response])
-    print("\n回答: ", response)
+        responses.append(response)
+        print(response, flush=True, end="")
+    _response = "".join(responses)
+    history.append([query, _response])
+    print("\n回答: ", _response)

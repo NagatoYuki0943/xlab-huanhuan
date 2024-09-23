@@ -100,6 +100,7 @@ def multimodal_chat(
 
     yield history + [[query_text, None]], disable_btn, disable_btn, disable_btn
 
+    responses = []
     for response in infer_engine.chat_stream(
         query=multimodal_query,
         history=multimodal_history,
@@ -109,11 +110,13 @@ def multimodal_chat(
         top_k=40,
         session_id=state_session_id,
     ):
-        yield history + [[query_text, response]], disable_btn, disable_btn, disable_btn
+        responses.append(response)
+        yield history + [[query_text, "".join(responses)]], disable_btn, disable_btn, disable_btn
 
-    yield history + [[query_text, response]], enable_btn, enable_btn, enable_btn
+    _response = "".join(responses)
+    yield history + [[query_text, _response]], enable_btn, enable_btn, enable_btn
 
-    logger.info(f"history after: {history + [[query_text, response]]}")
+    logger.info(f"history after: {history + [[query_text, _response]]}")
 
 
 def regenerate(

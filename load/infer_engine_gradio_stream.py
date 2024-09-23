@@ -77,6 +77,7 @@ def chat_stream(
 
     yield history + [[query, None]], disable_btn, disable_btn, disable_btn, disable_btn
 
+    responses = []
     for response in infer_engine.chat_stream(
         query=query,
         history=history,
@@ -86,17 +87,19 @@ def chat_stream(
         top_k=top_k,
         session_id=state_session_id,
     ):
+        responses.append(response)
         yield (
-            history + [[query, response]],
+            history + [[query, "".join(responses)]],
             disable_btn,
             disable_btn,
             disable_btn,
             disable_btn,
         )
 
-    yield history + [[query, response]], enable_btn, enable_btn, enable_btn, enable_btn
+    _response = "".join(responses)
+    yield history + [[query, _response]], enable_btn, enable_btn, enable_btn, enable_btn
 
-    logger.info(f"history after: {history + [[query, response]]}")
+    logger.info(f"history after: {history + [[query, _response]]}")
 
 
 def regenerate(
