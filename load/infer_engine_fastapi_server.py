@@ -125,7 +125,7 @@ async def chat(query: Query):
     return Response(text=response)
 
 
-# run: uvicorn internlm2_chat_fastapi:app --reload --port=8000
+# run: uvicorn infer_engine_fastapi_server:app --reload --port=8000
 # run: uvicorn main:app --reload --port=8000
 #   main: main.py 文件(一个 Python「模块」)。
 #   app: 在 main.py 文件中通过 app = FastAPI() 创建的对象。
