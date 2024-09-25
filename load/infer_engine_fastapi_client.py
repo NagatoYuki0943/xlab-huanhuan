@@ -22,6 +22,7 @@ def requests_chat(data: dict):
             yield output
 
 
+# help: https://www.perplexity.ai/search/wo-shi-yong-requests-shi-xian-q_g712n3SBObB5xH_2fnMQ
 def httpx_sync_chat(data: dict):
     stream = data["stream"]
     with httpx.Client() as client:
