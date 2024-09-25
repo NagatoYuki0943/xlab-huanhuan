@@ -87,9 +87,6 @@ class Response(BaseModel):
         examples=["InternLM (书生·浦语) is a conversational language model that is developed by Shanghai AI Laboratory (上海人工智能实验室)."]
     )
 
-    def __str__(self):
-        return self.response
-
 
 # 将请求体作为 JSON 读取
 # 在函数内部，你可以直接访问模型对象的所有属性
