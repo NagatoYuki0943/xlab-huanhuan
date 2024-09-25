@@ -2,6 +2,7 @@
 
 import requests
 import httpx
+import aiohttp
 import json
 
 
@@ -13,13 +14,16 @@ def requests_chat(data: dict):
     response: requests.Response = requests.post(
         URL, json=data, timeout=60, stream=stream
     )
-    for chunk in response.iter_lines(
-        chunk_size=8192, decode_unicode=False, delimiter=b"\n"
-    ):
-        if chunk:
-            decoded = chunk.decode("utf-8")
-            output = json.loads(decoded)
-            yield output
+    if not stream:
+        yield response.json()
+    else:
+        for chunk in response.iter_lines(
+            chunk_size=8192, decode_unicode=False, delimiter=b"\n"
+        ):
+            if chunk:
+                decoded = chunk.decode("utf-8")
+                output = json.loads(decoded)
+                yield output
 
 
 # help: https://www.perplexity.ai/search/wo-shi-yong-requests-shi-xian-q_g712n3SBObB5xH_2fnMQ
@@ -53,8 +57,25 @@ async def httpx_async_chat(data: dict):
                         yield output
 
 
-async def readex_async_chat(data: dict):
-    async for output in httpx_async_chat(data):
+async def aiohttp_async_chat(data: dict):
+    stream = data["stream"]
+
+    async with aiohttp.ClientSession() as session:
+        async with session.post(URL, json=data, timeout=60) as response:
+            if not stream:
+                data = await response.text('utf-8')
+                yield json.loads(data)
+            else:
+                # 使用 content.iter_any() 逐块读取响应体
+                async for chunk in response.content.iter_any():
+                    # 处理每个数据块
+                    decoded = chunk.decode('utf-8')
+                    output = json.loads(decoded)
+                    yield output
+
+
+async def async_chat(data: dict, func: callable):
+    async for output in func(data):
         print(output)
 
 
@@ -88,5 +109,10 @@ if __name__ == "__main__":
 
     import asyncio
 
-    asyncio.run(readex_async_chat(data))
-    asyncio.run(readex_async_chat(data_stream))
+    asyncio.run(async_chat(data, httpx_async_chat))
+    asyncio.run(async_chat(data_stream, httpx_async_chat))
+
+    print("\n")
+
+    asyncio.run(async_chat(data, aiohttp_async_chat))
+    asyncio.run(async_chat(data_stream, aiohttp_async_chat))
