@@ -81,7 +81,7 @@ class Query(BaseModel):
 
 
 class Response(BaseModel):
-    text: str = Field(
+    response: str = Field(
         None,
         description="Generated text response",
         examples=["InternLM (书生·浦语) is a conversational language model that is developed by Shanghai AI Laboratory (上海人工智能实验室)."]
@@ -94,8 +94,17 @@ class Response(BaseModel):
 @app.post("/chat", response_model=Response)
 async def chat(query: Query):
     print(query)
-    if not query.messages:
+
+    if not query.messages or len(query.messages) == 0:
         raise HTTPException(status_code=400, detail="No messages provided")
+
+    role = query.messages[-1].get("role", "")
+    if role not in ["user", "assistant"]:
+        raise HTTPException(status_code=400, detail="Invalid role")
+
+    content = query.messages[-1].get("content", "")
+    if not content:
+        raise HTTPException(status_code=400, detail="content is empty")
 
     if query.stream:
         async def generate():
@@ -124,11 +133,11 @@ async def chat(query: Query):
         random_uuid_int(),
     )
 
-    return Response(text=response)
+    return Response(response=response)
 
 
-# run: uvicorn infer_engine_fastapi_server:app --reload --port=8000
-# run: uvicorn main:app --reload --port=8000
+# uvicorn infer_engine_fastapi_server:app --reload --port=8000
+# uvicorn main:app --reload --port=8000
 #   main: main.py 文件(一个 Python「模块」)。
 #   app: 在 main.py 文件中通过 app = FastAPI() 创建的对象。
 #   --reload: 让服务器在更新代码后重新启动。仅在开发时使用该选项。

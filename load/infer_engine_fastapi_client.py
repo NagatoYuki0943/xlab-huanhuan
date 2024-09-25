@@ -9,7 +9,7 @@ def requests_chat(data: dict):
     data["stream"] = False
     response: requests.Response = requests.post(url, json=data, timeout=60)
     if response.status_code!= 200:
-        raise Exception(f"Error: {response.status_code} {response.text}")
+        print(f"Error: {response.status_code} {response.text}")
     return response.json()
 
 
@@ -31,7 +31,7 @@ def httpx_sync_chat(data: dict):
     with httpx.Client() as client:
         response: httpx.Response = client.post(url, json=data, timeout=60)
         if response.status_code!= 200:
-            raise Exception(f"Error: {response.status_code} {response.text}")
+            print(f"Error: {response.status_code} {response.text}")
         return response.json()
 
 
@@ -40,7 +40,7 @@ async def httpx_async_chat(data: dict):
     async with httpx.AsyncClient() as client:
         response: httpx.Response = await client.post(url, json=data, timeout=60)
         if response.status_code!= 200:
-            raise Exception(f"Error: {response.status_code} {response.text}")
+            print(f"Error: {response.status_code} {response.text}")
         return response.json()
 
 
