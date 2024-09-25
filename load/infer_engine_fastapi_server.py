@@ -1,4 +1,5 @@
 # https://github.com/vllm-project/vllm/blob/main/vllm/entrypoints/api_server.py
+# https://github.com/NagatoYuki0943/fastapi-learn/blob/main/xx_stream/server.py
 
 from fastapi import FastAPI, HTTPException
 from fastapi.responses import StreamingResponse
@@ -117,7 +118,7 @@ async def chat(query: Query):
                 query.top_k,
                 random_uuid_int(),
             ):
-                yield Response(response=response).model_dump_json()
+                yield Response(response=response).model_dump_json() + "\n"
 
         return StreamingResponse(generate())
 

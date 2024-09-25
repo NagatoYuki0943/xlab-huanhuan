@@ -1,77 +1,91 @@
+# copy from https://github.com/NagatoYuki0943/fastapi-learn/blob/main/xx_stream/client.py
+
 import requests
 import httpx
+import json
 
 
-url = "http://localhost:8000/chat"
+URL = "http://localhost:8000/chat"
 
 
 def requests_chat(data: dict):
-    data["stream"] = False
-    response: requests.Response = requests.post(url, json=data, timeout=60)
-    if response.status_code!= 200:
-        print(f"Error: {response.status_code} {response.text}")
-    return response.json()
-
-
-def requests_stream_chat(data: dict):
-    data["stream"] = True
-    response: requests.Response = requests.post(url, json=data, timeout=60, stream=True)
-    if response.status_code!= 200:
-        raise Exception(f"Error: {response.status_code} {response.text}")
-    for line in response.iter_lines():
-        if line:
-            chunk = line.decode('utf-8')
-            if chunk.startswith('data:') and chunk != 'data: [DONE]':
-                delta = chunk.split('data: ')[1]
-                print(delta)
+    stream = data["stream"]
+    response: requests.Response = requests.post(
+        URL, json=data, timeout=60, stream=stream
+    )
+    for chunk in response.iter_lines(
+        chunk_size=8192, decode_unicode=False, delimiter=b"\n"
+    ):
+        if chunk:
+            decoded = chunk.decode("utf-8")
+            output = json.loads(decoded)
+            yield output
 
 
 def httpx_sync_chat(data: dict):
-    data["stream"] = False
+    stream = data["stream"]
     with httpx.Client() as client:
-        response: httpx.Response = client.post(url, json=data, timeout=60)
-        if response.status_code!= 200:
-            print(f"Error: {response.status_code} {response.text}")
-        return response.json()
+        if not stream:
+            response: httpx.Response = client.post(URL, json=data, timeout=60)
+            yield response.json()
+        else:
+            with client.stream("POST", URL, json=data, timeout=60) as response:
+                chunk: str
+                for chunk in response.iter_lines():
+                    if chunk:
+                        output: dict = json.loads(chunk)
+                        yield output
 
 
 async def httpx_async_chat(data: dict):
-    data["stream"] = False
+    stream = data["stream"]
     async with httpx.AsyncClient() as client:
-        response: httpx.Response = await client.post(url, json=data, timeout=60)
-        if response.status_code!= 200:
-            print(f"Error: {response.status_code} {response.text}")
-        return response.json()
+        if not stream:
+            response: httpx.Response = await client.post(URL, json=data, timeout=60)
+            yield response.json()
+        else:
+            async with client.stream("POST", URL, json=data, timeout=60) as response:
+                chunk: str
+                async for chunk in response.aiter_lines():
+                    if chunk:
+                        output: dict = json.loads(chunk)
+                        yield output
 
 
-if __name__ == '__main__':
+async def readex_async_chat(data: dict):
+    async for output in httpx_async_chat(data):
+        print(output)
+
+
+if __name__ == "__main__":
     data = {
-        "messages": [
-            {
-                "content": "讲一个猫和老鼠的故事",
-                "role": "user"
-            }
-        ],
+        "messages": [{"content": "讲一个猫和老鼠的故事", "role": "user"}],
         "max_new_tokens": 1024,
         "temperature": 0.8,
         "top_p": 0.8,
         "top_k": 50,
         "stream": False,
     }
+    data_stream = data.copy()
+    data_stream["stream"] = True
 
-    ret = requests_chat(data)
-    print(ret)
-    print()
+    for output in requests_chat(data):
+        print(output)
 
-    # ret = requests_stream_chat(data)
-    # print(ret)
-    # print()
+    for output in requests_chat(data_stream):
+        print(output)
 
-    ret = httpx_sync_chat(data)
-    print(ret)
-    print()
+    print("\n")
+
+    for output in httpx_sync_chat(data):
+        print(output)
+
+    for output in httpx_sync_chat(data_stream):
+        print(output)
+
+    print("\n")
 
     import asyncio
-    ret = asyncio.run(httpx_async_chat(data))
-    print(ret)
-    print()
+
+    asyncio.run(readex_async_chat(data))
+    asyncio.run(readex_async_chat(data_stream))
