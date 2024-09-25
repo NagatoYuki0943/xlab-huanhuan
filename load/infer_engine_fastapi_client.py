@@ -46,7 +46,7 @@ async def httpx_async_chat(data: dict):
 
 if __name__ == '__main__':
     data = {
-        "query": [
+        "messages": [
             {
                 "content": "讲一个猫和老鼠的故事",
                 "role": "user"

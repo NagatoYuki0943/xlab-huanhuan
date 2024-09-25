@@ -1,6 +1,6 @@
 # https://github.com/vllm-project/vllm/blob/main/vllm/entrypoints/api_server.py
 
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel, Field
 
@@ -46,7 +46,7 @@ app = FastAPI()
 
 # 与声明查询参数一样，包含默认值的模型属性是可选的，否则就是必选的。默认值为 None 的模型属性也是可选的。
 class Query(BaseModel):
-    query: list[dict[str, str]] = Field(
+    messages: list[dict[str, str]] = Field(
         None,
         description="List of dictionaries containing the input text and the corresponding user id",
         examples=[
@@ -94,12 +94,14 @@ class Response(BaseModel):
 @app.post("/chat", response_model=Response)
 async def chat(query: Query):
     print(query)
+    if not query.messages:
+        raise HTTPException(status_code=400, detail="No messages provided")
 
     if query.stream:
         async def generate():
             length = 0
             for response in infer_engine.chat_stream(
-                query.query,
+                query.messages,
                 None,
                 query.max_new_tokens,
                 query.temperature,
@@ -113,7 +115,7 @@ async def chat(query: Query):
         return StreamingResponse(generate(), media_type="text/plain")
 
     response = infer_engine.chat(
-        query.query,
+        query.messages,
         None,
         query.max_new_tokens,
         query.temperature,
