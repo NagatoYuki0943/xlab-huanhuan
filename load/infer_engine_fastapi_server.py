@@ -87,6 +87,9 @@ class Response(BaseModel):
         examples=["InternLM (书生·浦语) is a conversational language model that is developed by Shanghai AI Laboratory (上海人工智能实验室)."]
     )
 
+    def __str__(self):
+        return self.response
+
 
 # 将请求体作为 JSON 读取
 # 在函数内部，你可以直接访问模型对象的所有属性
@@ -108,7 +111,6 @@ async def chat(query: Query):
 
     if query.stream:
         async def generate():
-            length = 0
             for response in infer_engine.chat_stream(
                 query.messages,
                 None,
@@ -118,10 +120,9 @@ async def chat(query: Query):
                 query.top_k,
                 random_uuid_int(),
             ):
-                yield response[length:]
-                length = len(response)
+                yield Response(response=response).model_dump_json()
 
-        return StreamingResponse(generate(), media_type="text/plain")
+        return StreamingResponse(generate())
 
     response = infer_engine.chat(
         query.messages,
