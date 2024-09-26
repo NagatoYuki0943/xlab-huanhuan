@@ -54,7 +54,7 @@ class Query(BaseModel):
             [{"role": "user", "content": "你是谁?"}]
         ]
     )
-    max_new_tokens: int = Field(
+    max_tokens: int = Field(
         1024, ge=1, le=2048, description="Maximum number of new tokens to generate"
     )
     temperature: float = Field(
@@ -115,7 +115,7 @@ async def chat(query: Query):
             for response in infer_engine.chat_stream(
                 query.messages,
                 None,
-                query.max_new_tokens,
+                query.max_tokens,
                 query.temperature,
                 query.top_p,
                 query.top_k,
@@ -128,7 +128,7 @@ async def chat(query: Query):
     response = infer_engine.chat(
         query.messages,
         None,
-        query.max_new_tokens,
+        query.max_tokens,
         query.temperature,
         query.top_p,
         query.top_k,

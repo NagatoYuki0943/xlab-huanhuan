@@ -11,24 +11,28 @@ URL = "http://localhost:8000/chat"
 
 def requests_chat(data: dict):
     stream = data["stream"]
+
     response: requests.Response = requests.post(
         URL, json=data, timeout=60, stream=stream
     )
     if not stream:
         yield response.json()
     else:
+        chunk: bytes
         for chunk in response.iter_lines(
             chunk_size=8192, decode_unicode=False, delimiter=b"\n"
         ):
+            print(type(chunk))
             if chunk:
-                decoded = chunk.decode("utf-8")
-                output = json.loads(decoded)
+                decoded: str = chunk.decode("utf-8")
+                output: dict = json.loads(decoded)
                 yield output
 
 
 # help: https://www.perplexity.ai/search/wo-shi-yong-requests-shi-xian-q_g712n3SBObB5xH_2fnMQ
 def httpx_sync_chat(data: dict):
     stream = data["stream"]
+
     with httpx.Client() as client:
         if not stream:
             response: httpx.Response = client.post(URL, json=data, timeout=60)
@@ -44,6 +48,7 @@ def httpx_sync_chat(data: dict):
 
 async def httpx_async_chat(data: dict):
     stream = data["stream"]
+
     async with httpx.AsyncClient() as client:
         if not stream:
             response: httpx.Response = await client.post(URL, json=data, timeout=60)
@@ -63,15 +68,17 @@ async def aiohttp_async_chat(data: dict):
     async with aiohttp.ClientSession() as session:
         async with session.post(URL, json=data, timeout=60) as response:
             if not stream:
-                data = await response.text('utf-8')
+                data: str = await response.text('utf-8')
                 yield json.loads(data)
             else:
                 # 使用 content.iter_any() 逐块读取响应体
+                chunk: bytes
                 async for chunk in response.content.iter_any():
-                    # 处理每个数据块
-                    decoded = chunk.decode('utf-8')
-                    output = json.loads(decoded)
-                    yield output
+                    if chunk:
+                        # 处理每个数据块
+                        decoded: str = chunk.decode('utf-8')
+                        output: dict = json.loads(decoded)
+                        yield output
 
 
 async def async_chat(data: dict, func: callable):
@@ -81,8 +88,8 @@ async def async_chat(data: dict, func: callable):
 
 if __name__ == "__main__":
     data = {
-        "messages": [{"content": "讲一个猫和老鼠的故事", "role": "user"}],
-        "max_new_tokens": 1024,
+        "messages": [{"role": "user", "content": "讲一个猫和老鼠的故事"}],
+        "max_tokens": 1024,
         "temperature": 0.8,
         "top_p": 0.8,
         "top_k": 50,
