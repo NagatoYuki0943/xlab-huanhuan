@@ -19,7 +19,7 @@ headers = {
 
 # https://github.com/InternLM/lmdeploy/blob/main/lmdeploy/serve/openai/api_client.py
 def requests_chat(data: dict):
-    stream = data["stream"]
+    stream: bool = data["stream"]
 
     response: requests.Response = requests.post(
         URL, json=data, headers=headers, timeout=60, stream=stream
@@ -38,7 +38,7 @@ def requests_chat(data: dict):
 
 # help: https://www.perplexity.ai/search/wo-shi-yong-requests-shi-xian-q_g712n3SBObB5xH_2fnMQ
 def httpx_sync_chat(data: dict):
-    stream = data["stream"]
+    stream: bool = data["stream"]
 
     with httpx.Client() as client:
         if not stream:
@@ -57,7 +57,7 @@ def httpx_sync_chat(data: dict):
 
 
 async def httpx_async_chat(data: dict):
-    stream = data["stream"]
+    stream: bool = data["stream"]
 
     async with httpx.AsyncClient() as client:
         if not stream:
@@ -77,7 +77,7 @@ async def httpx_async_chat(data: dict):
 
 # https://www.perplexity.ai/search/wo-shi-yong-aiohttpshi-xian-mo-6J27VL0aQsGNCykznLPlMw
 async def aiohttp_async_chat(data: dict):
-    stream = data["stream"]
+    stream: bool = data["stream"]
 
     async with aiohttp.ClientSession() as session:
         async with session.post(
