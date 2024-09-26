@@ -22,7 +22,6 @@ def requests_chat(data: dict):
         for chunk in response.iter_lines(
             chunk_size=8192, decode_unicode=False, delimiter=b"\n"
         ):
-            print(type(chunk))
             if chunk:
                 decoded: str = chunk.decode("utf-8")
                 output: dict = json.loads(decoded)
