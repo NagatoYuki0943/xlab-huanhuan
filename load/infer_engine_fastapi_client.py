@@ -8,24 +8,32 @@ import json
 
 URL = "http://localhost:8000/chat"
 
+api_key = "I AM AN API_KEY"
 
+headers = {
+    "accept": "application/json",
+    "content-type": "application/json",
+    "Authorization": f"Bearer {api_key}",
+}
+
+
+# https://github.com/InternLM/lmdeploy/blob/main/lmdeploy/serve/openai/api_client.py
 def requests_chat(data: dict):
     stream = data["stream"]
 
     response: requests.Response = requests.post(
-        URL, json=data, timeout=60, stream=stream
+        URL, json=data, headers=headers, timeout=60, stream=stream
     )
     if not stream:
         yield response.json()
     else:
         chunk: bytes
         for chunk in response.iter_lines(
-            chunk_size=8192, decode_unicode=False, delimiter=b"\n"
+            chunk_size=8192, decode_unicode=False, delimiter=b"\n\n"
         ):
             if chunk:
                 decoded: str = chunk.decode("utf-8")
-                output: dict = json.loads(decoded)
-                yield output
+                yield json.loads(decoded)
 
 
 # help: https://www.perplexity.ai/search/wo-shi-yong-requests-shi-xian-q_g712n3SBObB5xH_2fnMQ
@@ -34,15 +42,18 @@ def httpx_sync_chat(data: dict):
 
     with httpx.Client() as client:
         if not stream:
-            response: httpx.Response = client.post(URL, json=data, timeout=60)
+            response: httpx.Response = client.post(
+                URL, json=data, headers=headers, timeout=60
+            )
             yield response.json()
         else:
-            with client.stream("POST", URL, json=data, timeout=60) as response:
+            with client.stream(
+                "POST", URL, json=data, headers=headers, timeout=60
+            ) as response:
                 chunk: str
                 for chunk in response.iter_lines():
                     if chunk:
-                        output: dict = json.loads(chunk)
-                        yield output
+                        yield json.loads(chunk)
 
 
 async def httpx_async_chat(data: dict):
@@ -50,34 +61,41 @@ async def httpx_async_chat(data: dict):
 
     async with httpx.AsyncClient() as client:
         if not stream:
-            response: httpx.Response = await client.post(URL, json=data, timeout=60)
+            response: httpx.Response = await client.post(
+                URL, json=data, headers=headers, timeout=60
+            )
             yield response.json()
         else:
-            async with client.stream("POST", URL, json=data, timeout=60) as response:
+            async with client.stream(
+                "POST", URL, json=data, headers=headers, timeout=60
+            ) as response:
                 chunk: str
                 async for chunk in response.aiter_lines():
                     if chunk:
-                        output: dict = json.loads(chunk)
-                        yield output
+                        yield json.loads(chunk)
 
 
+# https://www.perplexity.ai/search/wo-shi-yong-aiohttpshi-xian-mo-6J27VL0aQsGNCykznLPlMw
 async def aiohttp_async_chat(data: dict):
     stream = data["stream"]
 
     async with aiohttp.ClientSession() as session:
-        async with session.post(URL, json=data, timeout=60) as response:
+        async with session.post(
+            URL, json=data, headers=headers, timeout=60
+        ) as response:
             if not stream:
-                data: str = await response.text('utf-8')
+                data: str = await response.text("utf-8")
                 yield json.loads(data)
             else:
-                # 使用 content.iter_any() 逐块读取响应体
                 chunk: bytes
+                buffer = ""
                 async for chunk in response.content.iter_any():
                     if chunk:
-                        # 处理每个数据块
-                        decoded: str = chunk.decode('utf-8')
-                        output: dict = json.loads(decoded)
-                        yield output
+                        buffer += chunk.decode("utf-8")
+                        # openai api returns \n\n as a delimiter for messages
+                        while "\n\n" in buffer:
+                            message, buffer = buffer.split("\n\n", 1)
+                            yield json.loads(message)
 
 
 async def async_chat(data: dict, func: callable):
