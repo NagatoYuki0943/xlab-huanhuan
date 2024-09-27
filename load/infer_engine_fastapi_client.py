@@ -10,10 +10,11 @@ URL = "http://localhost:8000/chat"
 
 api_key = "I AM AN API_KEY"
 
+# https://www.perplexity.ai/search/xia-mian-shi-yi-ge-http-qing-q-dxXvXy_8TbaGcy3n_EJ6gA
 headers = {
-    "accept": "application/json",
-    "content-type": "application/json",
-    "Authorization": f"Bearer {api_key}",
+    "accept": "application/json", # Accept头部用于指定客户端能够接受的响应内容类型
+    "content-type": "application/json", # Content-Type头部指定了请求体的媒体类型
+    "Authorization": f"Bearer {api_key}", # Authorization头部用于发送客户端的身份验证凭据, 使用了Bearer令牌认证方式,将API密钥作为访问令牌发送
 }
 
 
