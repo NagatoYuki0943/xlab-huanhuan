@@ -460,7 +460,7 @@ def convert_openai_to_gradio_format(
         history (Sequence[Sequence]):聊天历史记录
             example: [
                 ['What is the capital of France?', 'The capital of France is Paris.'],
-                [('What is in the image?', Image1), 'There is a dog in the image.'],
+                ['What is in the image?', 'There is a dog in the image.'],
             ]
         query (str | None): 查询语句
             example: 'How dare you!'
