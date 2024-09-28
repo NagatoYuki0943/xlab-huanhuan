@@ -2,7 +2,7 @@
 # https://platform.moonshot.cn/docs/api/chat
 import os
 from openai import OpenAI
-from openai.types.chat.chat_completion import ChatCompletion
+from openai import Stream
 
 
 """
@@ -27,7 +27,7 @@ client = OpenAI(
 messages = [{"role": "user", "content": "hello"}]
 
 
-response: ChatCompletion = client.chat.completions.create(
+response: Stream = client.chat.completions.create(
     messages=messages,
     # model="moonshot-v1-8k",
     model="internlm/internlm2_5-7b-chat",
@@ -39,17 +39,48 @@ response: ChatCompletion = client.chat.completions.create(
     temperature=0.8,
     top_p=0.8,
 )
+print(response)
+# <openai.Stream object at 0x000002294D483AF0>
+
 
 responses = []
-print("response: ", end="", flush=True)
+# print("response: ", end="", flush=True)
 for idx, chunk in enumerate(response):
-    # print("Chunk received, value: ", chunk)
+    print(chunk)
     # ChatCompletionChunk(
-    #   id='chatcmpl-8dfd6c5040264572be0ab1c15fcd35ac',
-    #   choices=[
-    #       Choice(delta=ChoiceDelta(content='', function_call=None, role='assistant', tool_calls=None), finish_reason=None, index=0, logprobs=None)
-    #   ],
-    #   created=1716469234, model='moonshot-v1-8k', object='chat.completion.chunk', system_fingerprint=None, usage=None
+    #     id='chatcmpl-66f77c34b90ececb38615406',
+    #     choices=[
+    #         Choice(
+    #             delta=ChoiceDelta(content='.', function_call=None, refusal=None, role=None, tool_calls=None),
+    #             finish_reason=None,
+    #             index=0,
+    #             logprobs=None
+    #         )
+    #     ],
+    #     created=1727495220,
+    #     model='moonshot-v1-8k',
+    #     object='chat.completion.chunk',
+    #     service_tier=None,
+    #     system_fingerprint='fpv0_e61aef71',
+    #     usage=None
+    # )
+    # ChatCompletionChunk(
+    #     id='chatcmpl-66f77c34b90ececb38615406',
+    #     choices=[
+    #         Choice(
+    #             delta=ChoiceDelta(content=None, function_call=None, refusal=None, role=None, tool_calls=None),
+    #             finish_reason='stop',
+    #             index=0,
+    #             logprobs=None,
+    #             usage={'prompt_tokens': 8, 'completion_tokens': 24, 'total_tokens': 32}
+    #         )
+    #     ],
+    #     created=1727495220,
+    #     model='moonshot-v1-8k',
+    #     object='chat.completion.chunk',
+    #     service_tier=None,
+    #     system_fingerprint='fpv0_e61aef71',
+    #     usage=None
     # )
 
     chunk_message = chunk.choices[0].delta
@@ -57,7 +88,7 @@ for idx, chunk in enumerate(response):
         continue
     content = chunk_message.content
 
-    print(content, end="", flush=True)
+    # print(content, end="", flush=True)
     responses.append(content)
 
 print("\ncomplete response: ", "".join(responses))
