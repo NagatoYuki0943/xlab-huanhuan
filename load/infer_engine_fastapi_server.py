@@ -88,7 +88,7 @@ class Response(BaseModel):
         examples=["InternLM (书生·浦语) is a conversational language model that is developed by Shanghai AI Laboratory (上海人工智能实验室)."]
     )
 
-    def __str__(self) -> str:
+    def __repr__(self) -> str:
         return self.model_dump_json()
 
 
