@@ -47,15 +47,24 @@ app = FastAPI()
 
 # 与声明查询参数一样，包含默认值的模型属性是可选的，否则就是必选的。默认值为 None 的模型属性也是可选的。
 class Query(BaseModel):
+    model: str | None  = Field(
+        None,
+        description="The model used for generating the response",
+        examples=["gpt4o", "gpt4"],
+    )
     messages: list[dict[str, str]] = Field(
         None,
         description="List of dictionaries containing the input text and the corresponding user id",
-        examples=[
-            [{"role": "user", "content": "你是谁?"}]
-        ]
+        examples=[[{"role": "user", "content": "你是谁?"}]],
     )
     max_tokens: int = Field(
         1024, ge=1, le=2048, description="Maximum number of new tokens to generate"
+    )
+    n: int = Field(
+        1,
+        ge=1,
+        le=10,
+        description="Number of completions to generate for each prompt",
     )
     temperature: float = Field(
         0.8,
