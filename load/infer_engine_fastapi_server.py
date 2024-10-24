@@ -33,12 +33,15 @@ TRANSFORMERS_CONFIG = TransformersConfig(
 # 载入模型
 infer_engine: InferEngine = None
 
+
 def init_engine():
     global infer_engine
     infer_engine = infer_engine or InferEngine(
         backend="transformers",  # transformers, lmdeploy
         transformers_config=TRANSFORMERS_CONFIG,
     )
+
+
 init_engine()
 
 
@@ -47,12 +50,12 @@ app = FastAPI()
 
 # 与声明查询参数一样，包含默认值的模型属性是可选的，否则就是必选的。默认值为 None 的模型属性也是可选的。
 class ChatRequest(BaseModel):
-    model: str | None  = Field(
+    model: str | None = Field(
         None,
         description="The model used for generating the response",
         examples=["gpt4o", "gpt4"],
     )
-    messages: list[dict[str, str]] = Field(
+    messages: list[dict[str, str | list]] = Field(
         None,
         description="List of dictionaries containing the input text and the corresponding user id",
         examples=[[{"role": "user", "content": "你是谁?"}]],
@@ -94,7 +97,9 @@ class Response(BaseModel):
     response: str = Field(
         None,
         description="Generated text response",
-        examples=["InternLM (书生·浦语) is a conversational language model that is developed by Shanghai AI Laboratory (上海人工智能实验室)."]
+        examples=[
+            "InternLM (书生·浦语) is a conversational language model that is developed by Shanghai AI Laboratory (上海人工智能实验室)."
+        ],
     )
 
     def __repr__(self) -> str:
@@ -120,6 +125,7 @@ async def chat(request: ChatRequest):
         raise HTTPException(status_code=400, detail="content is empty")
 
     if request.stream:
+
         async def generate():
             for response in infer_engine.chat_stream(
                 request.messages,

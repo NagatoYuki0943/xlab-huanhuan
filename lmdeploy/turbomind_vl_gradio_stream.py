@@ -111,7 +111,12 @@ def multimodal_chat(
         session_id=state_session_id,
     ):
         responses.append(response)
-        yield history + [[query_text, "".join(responses)]], disable_btn, disable_btn, disable_btn
+        yield (
+            history + [[query_text, "".join(responses)]],
+            disable_btn,
+            disable_btn,
+            disable_btn,
+        )
 
     _response = "".join(responses)
     yield history + [[query_text, _response]], enable_btn, enable_btn, enable_btn
