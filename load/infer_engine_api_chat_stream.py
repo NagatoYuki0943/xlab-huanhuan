@@ -11,10 +11,17 @@ linux:
 powershell:
     $env:API_KEY = "your token"
 """
+# URL = "http://localhost:8000/v1/chat/completions"
+# URL = "https://api.moonshot.cn/v1/chat/completions"
+URL = "https://api.siliconflow.cn/v1/chat/completions"
+
+API_KEY = os.getenv("API_KEY", "I AM AN API_KEY")
+print(f"API_KEY: {API_KEY}")
+
 api_config = ApiConfig(
-    base_url="https://api.moonshot.cn/v1",
-    api_key=os.getenv("API_KEY", "I AM AN API_KEY"),
-    model="moonshot-v1-8k",
+    base_url=URL,
+    api_key=API_KEY,
+    model="internlm/internlm2_5-7b-chat",
 )
 
 

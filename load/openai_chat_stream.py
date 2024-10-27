@@ -14,17 +14,17 @@ linux:
 powershell:
     $env:API_KEY = "your token"
 """
-api_key = os.getenv("API_KEY", "I AM AN API_KEY")
-
+API_KEY = os.getenv("API_KEY", "I AM AN API_KEY")
+print(f"API_KEY: {API_KEY}")
 
 client = OpenAI(
-    api_key=api_key,  # 此处传token，不带Bearer
+    api_key=API_KEY,  # 此处传token，不带Bearer
     # base_url="https://api.moonshot.cn/v1",
     base_url="https://api.siliconflow.cn/v1/",
 )
 
 
-messages = [{"role": "user", "content": "hello"}]
+messages = [{"role": "user", "content": "猫和老鼠的作者是谁?"}]
 
 
 try:
