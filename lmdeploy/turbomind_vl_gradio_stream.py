@@ -1,3 +1,4 @@
+from pathlib import Path
 from PIL import Image
 import gradio as gr
 from infer_engine import InferEngine, LmdeployConfig
@@ -315,11 +316,13 @@ def main():
         default_concurrency_limit=100,  # 最大并发限制
     )
 
+    allowed_paths = [str(Path("../images").resolve())]
     demo.launch(
         server_name="0.0.0.0",
         server_port=7860,
         share=True,
         max_threads=100,
+        allowed_paths=allowed_paths,
     )
 
 
