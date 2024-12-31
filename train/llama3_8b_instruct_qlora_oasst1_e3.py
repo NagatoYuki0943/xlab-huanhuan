@@ -19,7 +19,7 @@ merge adapter:
 
     ex:
         xtuner convert merge \
-            models/Meta-Llama-3-8B-Instruct \
+            models/Meta-Llama-3.1-8B-Instruct \
             work_dirs/llama3_8b_instruct_qlora_oasst1_e3/epoch_3_hf \
             work_dirs/llama3_8b_instruct_qlora_oasst1_e3/epoch_3_merged \
             --max-shard-size 2GB
@@ -29,7 +29,7 @@ chat:
 
     ex:
         xtuner chat \
-            models/Meta-Llama-3-8B-Instruct \
+            models/Meta-Llama-3.1-8B-Instruct \
             --adapter work_dirs/llama3_8b_instruct_qlora_oasst1_e3/epoch_3_hf \
             --bits 8 --temperature 0.7 --top-k 50 --top-p 0.9
 
@@ -75,7 +75,7 @@ from xtuner.utils import PROMPT_TEMPLATE, SYSTEM_TEMPLATE
 #                          PART 1  Settings                           #
 #######################################################################
 # Model
-pretrained_model_name_or_path = "./models/Meta-Llama-3-8B-Instruct"
+pretrained_model_name_or_path = "./models/Meta-Llama-3.1-8B-Instruct"
 use_varlen_attn = False
 
 # Data
@@ -93,8 +93,8 @@ sequence_parallel_size = 1
 # batch size per device, set to 1 if `use_varlen_attn` = True
 # To clarify, enlarging the batch size essentially enlarges the `max_length`.
 # For example, doubling the max length is tantamount to doubling the batch size
-batch_size = 4  # per_device
-accumulative_counts = 4
+batch_size = 1  # per_device
+accumulative_counts = 16
 accumulative_counts *= sequence_parallel_size
 dataloader_num_workers = 0
 max_epochs = 3
