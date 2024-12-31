@@ -11,7 +11,7 @@ convert:
         xtuner convert pth_to_hf \
             train/llama3_8b_instruct_qlora_oasst1_e3.py \
             work_dirs/llama3_8b_instruct_qlora_oasst1_e3/epoch_3.pth \
-            work_dirs/llama3_8b_instruct_qlora_oasst1_e3/epoch_3.hf \
+            work_dirs/llama3_8b_instruct_qlora_oasst1_e3/epoch_3_hf \
             --max-shard-size 2GB
 
 merge adapter:
@@ -20,7 +20,7 @@ merge adapter:
     ex:
         xtuner convert merge \
             models/Meta-Llama-3-8B-Instruct \
-            work_dirs/llama3_8b_instruct_qlora_oasst1_e3/epoch_3.hf \
+            work_dirs/llama3_8b_instruct_qlora_oasst1_e3/epoch_3_hf \
             work_dirs/llama3_8b_instruct_qlora_oasst1_e3/epoch_3_merged \
             --max-shard-size 2GB
 
@@ -30,7 +30,7 @@ chat:
     ex:
         xtuner chat \
             models/Meta-Llama-3-8B-Instruct \
-            --adapter work_dirs/llama3_8b_instruct_qlora_oasst1_e3/epoch_3.hf \
+            --adapter work_dirs/llama3_8b_instruct_qlora_oasst1_e3/epoch_3_hf \
             --bits 8 --temperature 0.7 --top-k 50 --top-p 0.9
 
 验证数据集是否正确构建:
@@ -93,8 +93,8 @@ sequence_parallel_size = 1
 # batch size per device, set to 1 if `use_varlen_attn` = True
 # To clarify, enlarging the batch size essentially enlarges the `max_length`.
 # For example, doubling the max length is tantamount to doubling the batch size
-batch_size = 1  # per_device
-accumulative_counts = 16
+batch_size = 4  # per_device
+accumulative_counts = 4
 accumulative_counts *= sequence_parallel_size
 dataloader_num_workers = 0
 max_epochs = 3
