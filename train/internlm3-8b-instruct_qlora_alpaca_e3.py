@@ -19,7 +19,7 @@ merge adapter:
 
     ex:
         xtuner convert merge \
-            models/internlm2_5-1_8b-chat \
+            models/internlm3-8b-instruct \
             work_dirs/internlm3-8b-instruct_qlora_alpaca_e3/epoch_3_hf \
             work_dirs/internlm3-8b-instruct_qlora_alpaca_e3/epoch_3_merged \
             --max-shard-size 2GB
@@ -29,7 +29,7 @@ chat:
 
     ex:
         xtuner chat \
-            models/internlm2_5-1_8b-chat \
+            models/internlm3-8b-instruct \
             --adapter work_dirs/internlm3-8b-instruct_qlora_alpaca_e3/epoch_3_hf \
             --bits 8 --temperature 0.7 --top-k 50 --top-p 0.9
 
