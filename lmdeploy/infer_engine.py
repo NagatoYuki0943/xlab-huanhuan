@@ -605,7 +605,7 @@ class LmdeployLocalEngine(LmdeployEngine):
         logger.info(f"use_vl_engine: {self.use_vl_engine}")
 
     # https://github.com/InternLM/lmdeploy/blob/main/lmdeploy/serve/async_engine.py#L453-L528
-    def __stream_infer(
+    def _stream_infer(
         self,
         prompts: list[str] | str | list[dict] | list[list[dict]],
         session_ids: int | list[int],
@@ -642,7 +642,7 @@ class LmdeployLocalEngine(LmdeployEngine):
         ), "the length of prompts and session_ids should be the same"
 
         if gen_config is None:
-            gen_config = GenerationConfig()
+            gen_config = GenerationConfig(do_sample=True)
         # set random if it is not set
         if not isinstance(gen_config, list) and gen_config.random_seed is None:
             gen_config.random_seed = random.getrandbits(64)
@@ -711,7 +711,7 @@ class LmdeployLocalEngine(LmdeployEngine):
         proc.join()
 
     # https://github.com/InternLM/lmdeploy/blob/main/lmdeploy/serve/async_engine.py#L453-L528
-    def __stream_infer_single(
+    def _stream_infer_single(
         self,
         prompt: str | list[dict],
         session_id: int,
@@ -738,7 +738,7 @@ class LmdeployLocalEngine(LmdeployEngine):
         from lmdeploy.serve.async_engine import GenOut, _get_event_loop
 
         if gen_config is None:
-            gen_config = GenerationConfig()
+            gen_config = GenerationConfig(do_sample=True)
         # set random if it is not set
         if gen_config.random_seed is None:
             gen_config.random_seed = random.getrandbits(64)
@@ -818,7 +818,7 @@ class LmdeployLocalEngine(LmdeployEngine):
         from lmdeploy.serve.async_engine import GenOut
 
         if gen_config is None:
-            gen_config = GenerationConfig()
+            gen_config = GenerationConfig(do_sample=True)
         # set random if it is not set
         if gen_config.random_seed is None:
             gen_config.random_seed = random.getrandbits(64)
@@ -877,6 +877,7 @@ class LmdeployLocalEngine(LmdeployEngine):
         gen_config = GenerationConfig(
             n=1,
             max_new_tokens=max_new_tokens,
+            do_sample=True,
             top_p=top_p,
             top_k=top_k,
             temperature=temperature,
@@ -941,6 +942,7 @@ class LmdeployLocalEngine(LmdeployEngine):
         gen_config = GenerationConfig(
             n=1,
             max_new_tokens=max_new_tokens,
+            do_sample=True,
             top_p=top_p,
             top_k=top_k,
             temperature=temperature,
@@ -959,7 +961,7 @@ class LmdeployLocalEngine(LmdeployEngine):
         # 放入 [] 或者 [[{},{}]] 格式返回一个response列表
         response: Response
         # for response in self.pipe.stream_infer(
-        for response in self.__stream_infer_single(
+        for response in self._stream_infer_single(
             # async for response in self.chat_stream_local(
             prompt=messages,
             session_id=session_id,
