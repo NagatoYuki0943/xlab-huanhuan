@@ -25,16 +25,16 @@ Commands:
     convert             Convert LLMs to turbomind format.
     list                List the supported model names.
     check_env           Check the environmental information.
-    chat                Chat with pytorch or turbomind engine
+    chat                Chat with pytorch or turbomind engine.
 ```
 
 ## 聊天
 
 ```sh
 > lmdeploy chat --help
-usage: lmdeploy chat [-h] [--backend {pytorch,turbomind}] [--chat-template CHAT_TEMPLATE] [--revision REVISION] [--download-dir DOWNLOAD_DIR] [--adapters [ADAPTERS ...]] [--device {cuda,ascend,maca}] [--eager-mode]
-                     [--dtype {auto,float16,bfloat16}] [--tp TP] [--session-len SESSION_LEN] [--cache-max-entry-count CACHE_MAX_ENTRY_COUNT] [--enable-prefix-caching] [--quant-policy {0,4,8}] [--model-format {hf,llama,awq,gptq}]
-                     [--rope-scaling-factor ROPE_SCALING_FACTOR]
+usage: lmdeploy chat [-h] [--backend {pytorch,turbomind}] [--chat-template CHAT_TEMPLATE] [--revision REVISION] [--download-dir DOWNLOAD_DIR] [--adapters [ADAPTERS ...]] [--device {cuda,ascend,maca,camb}] [--eager-mode]
+                     [--dtype {auto,float16,bfloat16}] [--tp TP] [--session-len SESSION_LEN] [--cache-max-entry-count CACHE_MAX_ENTRY_COUNT] [--enable-prefix-caching] [--quant-policy {0,4,8}] [--model-format {hf,awq,gptq}]
+                     [--rope-scaling-factor ROPE_SCALING_FACTOR] [--communicator {nccl,native}]
                      model_path
 
 Chat with pytorch or turbomind engine.
@@ -58,7 +58,7 @@ PyTorch engine arguments:
   --adapters [ADAPTERS ...]
                         Used to set path(s) of lora adapter(s). One can input key-value pairs in xxx=yyy format for multiple lora adapters. If only have one adapter, one can only input the path of the adapter.. Default: None. Type:
                         str
-  --device {cuda,ascend,maca}
+  --device {cuda,ascend,maca,camb}
                         The device type of running. Default: cuda. Type: str
   --eager-mode          Whether to enable eager mode. If True, cuda graph would be disabled. Default: False
   --dtype {auto,float16,bfloat16}
@@ -87,10 +87,12 @@ TurboMind engine arguments:
                         Enable cache and match prefix. Default: False
   --quant-policy {0,4,8}
                         Quantize kv or not. 0: no quant; 4: 4bit kv; 8: 8bit kv. Default: 0. Type: int
-  --model-format {hf,llama,awq,gptq}
-                        The format of input model. `hf` means `hf_llama`, `llama` means `meta_llama`, `awq` represents the quantized model by AWQ, and `gptq` refers to the quantized model by GPTQ. Default: None. Type: str
+  --model-format {hf,awq,gptq}
+                        The format of input model. `hf` means `hf_llama`, `awq` represents the quantized model by AWQ, and `gptq` refers to the quantized model by GPTQ. Default: None. Type: str
   --rope-scaling-factor ROPE_SCALING_FACTOR
                         Rope scaling factor. Default: 0.0. Type: float
+  --communicator {nccl,native}
+                        Communication backend for multi-GPU inference. Default: nccl. Type: str
 ```
 
 > example
@@ -238,7 +240,7 @@ lmdeploy chat \
 ```sh
 > lmdeploy lite auto_awq --help
 usage: lmdeploy lite auto_awq [-h] [--revision REVISION] [--download-dir DOWNLOAD_DIR] [--work-dir WORK_DIR] [--calib-dataset CALIB_DATASET] [--calib-samples CALIB_SAMPLES] [--calib-seqlen CALIB_SEQLEN] [--batch-size BATCH_SIZE]
-                              [--search-scale] [--device DEVICE] [--w-bits W_BITS] [--w-sym] [--w-group-size W_GROUP_SIZE]
+                              [--search-scale] [--dtype {auto,float16,bfloat16}] [--device DEVICE] [--w-bits W_BITS] [--w-sym] [--w-group-size W_GROUP_SIZE]
                               model
 
 Perform weight quantization using AWQ algorithm.
@@ -261,6 +263,9 @@ options:
   --batch-size BATCH_SIZE
                         The batch size for running the calib samples. Low GPU mem requires small batch_size. Large batch_size reduces the calibration time while costs more VRAM. Default: 1. Type: int
   --search-scale        Whether search scale ratio. Default to be disabled, which means only smooth quant with 0.5 ratio will be applied
+  --dtype {auto,float16,bfloat16}
+                        data type for model weights and activations. The "auto" option will use FP16 precision for FP32 and FP16 models, and BF16 precision for BF16 models. This option will be ignored if the model is a quantized
+                        model. Default: auto. Type: str
   --device DEVICE       Device for weight quantization (cuda or npu). Default: cuda. Type: str
   --w-bits W_BITS       Bit number for weight quantization. Default: 4. Type: int
   --w-sym               Whether to do symmetric quantization. Default: False
@@ -272,8 +277,8 @@ options:
 
 ```sh
 > lmdeploy lite auto_gptq --help
-usage: lmdeploy lite auto_gptq [-h] [--revision REVISION] [--work-dir WORK_DIR] [--calib-dataset CALIB_DATASET] [--calib-samples CALIB_SAMPLES] [--calib-seqlen CALIB_SEQLEN] [--batch-size BATCH_SIZE] [--w-bits W_BITS]
-                               [--w-group-size W_GROUP_SIZE]
+usage: lmdeploy lite auto_gptq [-h] [--revision REVISION] [--work-dir WORK_DIR] [--calib-dataset CALIB_DATASET] [--calib-samples CALIB_SAMPLES] [--calib-seqlen CALIB_SEQLEN] [--batch-size BATCH_SIZE] [--dtype {auto,float16,bfloat16}]
+                               [--w-bits W_BITS] [--w-group-size W_GROUP_SIZE]
                                model
 
 Perform weight quantization using GPTQ algorithm.
@@ -293,6 +298,9 @@ options:
                         The sequence length for calibration. Default: 2048. Type: int
   --batch-size BATCH_SIZE
                         The batch size for running the calib samples. Low GPU mem requires small batch_size. Large batch_size reduces the calibration time while costs more VRAM. Default: 1. Type: int
+  --dtype {auto,float16,bfloat16}
+                        data type for model weights and activations. The "auto" option will use FP16 precision for FP32 and FP16 models, and BF16 precision for BF16 models. This option will be ignored if the model is a quantized
+                        model. Default: auto. Type: str
   --w-bits W_BITS       Bit number for weight quantization. Default: 4. Type: int
   --w-group-size W_GROUP_SIZE
                         Group size for weight quantization statistics. Default: 128. Type: int
@@ -404,7 +412,9 @@ print(response)
 
 ```sh
 > lmdeploy lite smooth_quant --help
-usage: lmdeploy lite smooth_quant [-h] [--work-dir WORK_DIR] [--calib-dataset CALIB_DATASET] [--calib-samples CALIB_SAMPLES] [--calib-seqlen CALIB_SEQLEN] [--batch-size BATCH_SIZE] [--search-scale] model
+usage: lmdeploy lite smooth_quant [-h] [--work-dir WORK_DIR] [--device DEVICE] [--calib-dataset CALIB_DATASET] [--calib-samples CALIB_SAMPLES] [--calib-seqlen CALIB_SEQLEN] [--batch-size BATCH_SIZE] [--search-scale]
+                                  [--dtype {auto,float16,bfloat16}] [--quant-dtype {int8,float8_e4m3fn,float8_e5m2,fp8}] [--revision REVISION] [--download-dir DOWNLOAD_DIR]
+                                  model
 
 Perform w8a8 quantization using SmoothQuant.
 
@@ -414,6 +424,7 @@ positional arguments:
 options:
   -h, --help            show this help message and exit
   --work-dir WORK_DIR   The working directory for outputs. defaults to "./work_dir". Type: str
+  --device DEVICE       Device for weight quantization (cuda or npu). Default: cuda. Type: str
   --calib-dataset CALIB_DATASET
                         The calibration dataset name. Default: ptb. Type: str
   --calib-samples CALIB_SAMPLES
@@ -423,6 +434,14 @@ options:
   --batch-size BATCH_SIZE
                         The batch size for running the calib samples. Low GPU mem requires small batch_size. Large batch_size reduces the calibration time while costs more VRAM. Default: 1. Type: int
   --search-scale        Whether search scale ratio. Default to be disabled, which means only smooth quant with 0.5 ratio will be applied
+  --dtype {auto,float16,bfloat16}
+                        data type for model weights and activations. The "auto" option will use FP16 precision for FP32 and FP16 models, and BF16 precision for BF16 models. This option will be ignored if the model is a quantized
+                        model. Default: auto. Type: str
+  --quant-dtype {int8,float8_e4m3fn,float8_e5m2,fp8}
+                        data type for the quantized model weights and activations.Note "fp8" is the short version of "float8_e4m3fn". Default: int8. Type: str
+  --revision REVISION   The specific model version to use. It can be a branch name, a tag name, or a commit id. If unspecified, will use the default version.. Type: str
+  --download-dir DOWNLOAD_DIR
+                        Directory to download and load the weights, default to the default cache directory of huggingface.. Type: str
 ```
 
 使用 8 bit 整数对神经网络模型进行量化和推理的功能。
@@ -497,14 +516,15 @@ Commands:
 ### api_server
 
 ```sh
-> lmdeploy serve api_server -h
+> lmdeploy serve api_server --help
 usage: lmdeploy serve api_server [-h] [--server-name SERVER_NAME] [--server-port SERVER_PORT] [--allow-origins ALLOW_ORIGINS [ALLOW_ORIGINS ...]] [--allow-credentials] [--allow-methods ALLOW_METHODS [ALLOW_METHODS ...]]
-                                 [--allow-headers ALLOW_HEADERS [ALLOW_HEADERS ...]] [--proxy-url PROXY_URL] [--backend {pytorch,turbomind}] [--log-level {CRITICAL,FATAL,ERROR,WARN,WARNING,INFO,DEBUG,NOTSET}]
-                                 [--api-keys [API_KEYS ...]] [--ssl] [--model-name MODEL_NAME] [--max-log-len MAX_LOG_LEN] [--disable-fastapi-docs] [--chat-template CHAT_TEMPLATE] [--revision REVISION] [--download-dir DOWNLOAD_DIR]
-                                 [--adapters [ADAPTERS ...]] [--device {cuda,ascend,maca}] [--eager-mode] [--dtype {auto,float16,bfloat16}] [--tp TP] [--session-len SESSION_LEN] [--max-batch-size MAX_BATCH_SIZE]
-                                 [--cache-max-entry-count CACHE_MAX_ENTRY_COUNT] [--cache-block-seq-len CACHE_BLOCK_SEQ_LEN] [--enable-prefix-caching] [--max-prefill-token-num MAX_PREFILL_TOKEN_NUM] [--quant-policy {0,4,8}]
-                                 [--model-format {hf,llama,awq,gptq}] [--rope-scaling-factor ROPE_SCALING_FACTOR] [--num-tokens-per-iter NUM_TOKENS_PER_ITER] [--max-prefill-iters MAX_PREFILL_ITERS]
-                                 [--vision-max-batch-size VISION_MAX_BATCH_SIZE]
+                                 [--allow-headers ALLOW_HEADERS [ALLOW_HEADERS ...]] [--proxy-url PROXY_URL] [--max-concurrent-requests MAX_CONCURRENT_REQUESTS] [--backend {pytorch,turbomind}]
+                                 [--log-level {CRITICAL,FATAL,ERROR,WARN,WARNING,INFO,DEBUG,NOTSET}] [--api-keys [API_KEYS ...]] [--ssl] [--model-name MODEL_NAME] [--max-log-len MAX_LOG_LEN] [--disable-fastapi-docs]
+                                 [--chat-template CHAT_TEMPLATE] [--tool-call-parser TOOL_CALL_PARSER | --reasoning-parser REASONING_PARSER] [--revision REVISION] [--download-dir DOWNLOAD_DIR] [--adapters [ADAPTERS ...]]
+                                 [--device {cuda,ascend,maca,camb}] [--eager-mode] [--dtype {auto,float16,bfloat16}] [--tp TP] [--session-len SESSION_LEN] [--max-batch-size MAX_BATCH_SIZE]
+                                 [--cache-max-entry-count CACHE_MAX_ENTRY_COUNT] [--cache-block-seq-len CACHE_BLOCK_SEQ_LEN] [--enable-prefix-caching] [--max-prefill-token-num MAX_PREFILL_TOKEN_NUM] [--quant-policy {0,4,8}] [--dp DP]
+                                 [--dp-rank DP_RANK] [--ep EP] [--enable-microbatch] [--model-format {hf,awq,gptq}] [--rope-scaling-factor ROPE_SCALING_FACTOR] [--num-tokens-per-iter NUM_TOKENS_PER_ITER]
+                                 [--max-prefill-iters MAX_PREFILL_ITERS] [--communicator {nccl,native}] [--vision-max-batch-size VISION_MAX_BATCH_SIZE]
                                  model_path
 
 Serve LLMs with restful api using fastapi.
@@ -529,6 +549,9 @@ options:
                         A list of allowed http headers for cors. Default: ['*']. Type: str
   --proxy-url PROXY_URL
                         The proxy url for api server.. Default: None. Type: str
+  --max-concurrent-requests MAX_CONCURRENT_REQUESTS
+                        This refers to the number of concurrent requests that the server can handle. The server is designed to process the engine’s tasks once the maximum number of concurrent requests is reached, regardless of any
+                        additional requests sent by clients concurrently during that time. Default to None.. Type: int
   --backend {pytorch,turbomind}
                         Set the inference backend. Default: turbomind. Type: str
   --log-level {CRITICAL,FATAL,ERROR,WARN,WARNING,INFO,DEBUG,NOTSET}
@@ -544,6 +567,10 @@ options:
                         Disable FastAPI's OpenAPI schema, Swagger UI, and ReDoc endpoint. Default: False
   --chat-template CHAT_TEMPLATE
                         A JSON file or string that specifies the chat template configuration. Please refer to https://lmdeploy.readthedocs.io/en/latest/advance/chat_template.html for the specification. Default: None. Type: str
+  --tool-call-parser TOOL_CALL_PARSER
+                        The registered tool parser name dict_keys(['internlm', 'llama3', 'qwen']). Default to None.. Type: str
+  --reasoning-parser REASONING_PARSER
+                        The registered reasoning parser name from dict_keys(['deepseek-r1', 'qwen-qwq']). Default to None.. Type: str
   --revision REVISION   The specific model version to use. It can be a branch name, a tag name, or a commit id. If unspecified, will use the default version.. Type: str
   --download-dir DOWNLOAD_DIR
                         Directory to download and load the weights, default to the default cache directory of huggingface.. Type: str
@@ -552,7 +579,7 @@ PyTorch engine arguments:
   --adapters [ADAPTERS ...]
                         Used to set path(s) of lora adapter(s). One can input key-value pairs in xxx=yyy format for multiple lora adapters. If only have one adapter, one can only input the path of the adapter.. Default: None. Type:
                         str
-  --device {cuda,ascend,maca}
+  --device {cuda,ascend,maca,camb}
                         The device type of running. Default: cuda. Type: str
   --eager-mode          Whether to enable eager mode. If True, cuda graph would be disabled. Default: False
   --dtype {auto,float16,bfloat16}
@@ -574,6 +601,10 @@ PyTorch engine arguments:
                         the max number of tokens per iteration during prefill. Default: 8192. Type: int
   --quant-policy {0,4,8}
                         Quantize kv or not. 0: no quant; 4: 4bit kv; 8: 8bit kv. Default: 0. Type: int
+  --dp DP               data parallelism. dp_rank is required when pytorch engine is used.. Default: 1. Type: int
+  --dp-rank DP_RANK     data parallelism rank, all ranks between 0 ~ dp should be created.. Default: 0. Type: int
+  --ep EP               expert parallelism. dp is required when pytorch engine is used.. Default: 1. Type: int
+  --enable-microbatch   enable microbatch for specified model. Default: False
 
 TurboMind engine arguments:
   --dtype {auto,float16,bfloat16}
@@ -595,14 +626,16 @@ TurboMind engine arguments:
                         the max number of tokens per iteration during prefill. Default: 8192. Type: int
   --quant-policy {0,4,8}
                         Quantize kv or not. 0: no quant; 4: 4bit kv; 8: 8bit kv. Default: 0. Type: int
-  --model-format {hf,llama,awq,gptq}
-                        The format of input model. `hf` means `hf_llama`, `llama` means `meta_llama`, `awq` represents the quantized model by AWQ, and `gptq` refers to the quantized model by GPTQ. Default: None. Type: str
+  --model-format {hf,awq,gptq}
+                        The format of input model. `hf` means `hf_llama`, `awq` represents the quantized model by AWQ, and `gptq` refers to the quantized model by GPTQ. Default: None. Type: str
   --rope-scaling-factor ROPE_SCALING_FACTOR
                         Rope scaling factor. Default: 0.0. Type: float
   --num-tokens-per-iter NUM_TOKENS_PER_ITER
                         the number of tokens processed in a forward pass. Default: 0. Type: int
   --max-prefill-iters MAX_PREFILL_ITERS
                         the max number of forward passes in prefill stage. Default: 1. Type: int
+  --communicator {nccl,native}
+                        Communication backend for multi-GPU inference. Default: nccl. Type: str
 
 Vision model arguments:
   --vision-max-batch-size VISION_MAX_BATCH_SIZE
@@ -688,11 +721,11 @@ lmdeploy serve api_client http://127.0.0.1:23333
 ### gradio
 
 ```sh
-> lmdeploy serve gradio -h
+> lmdeploy serve gradio --help
 usage: lmdeploy serve gradio [-h] [--server-name SERVER_NAME] [--server-port SERVER_PORT] [--share] [--backend {pytorch,turbomind}] [--max-log-len MAX_LOG_LEN] [--revision REVISION] [--download-dir DOWNLOAD_DIR]
-                             [--chat-template CHAT_TEMPLATE] [--device {cuda,ascend,maca}] [--eager-mode] [--dtype {auto,float16,bfloat16}] [--tp TP] [--session-len SESSION_LEN] [--max-batch-size MAX_BATCH_SIZE]
-                             [--cache-max-entry-count CACHE_MAX_ENTRY_COUNT] [--cache-block-seq-len CACHE_BLOCK_SEQ_LEN] [--enable-prefix-caching] [--max-prefill-token-num MAX_PREFILL_TOKEN_NUM] [--model-format {hf,llama,awq,gptq}]
-                             [--quant-policy {0,4,8}] [--rope-scaling-factor ROPE_SCALING_FACTOR]
+                             [--chat-template CHAT_TEMPLATE] [--device {cuda,ascend,maca,camb}] [--eager-mode] [--dtype {auto,float16,bfloat16}] [--tp TP] [--session-len SESSION_LEN] [--max-batch-size MAX_BATCH_SIZE]
+                             [--cache-max-entry-count CACHE_MAX_ENTRY_COUNT] [--cache-block-seq-len CACHE_BLOCK_SEQ_LEN] [--enable-prefix-caching] [--max-prefill-token-num MAX_PREFILL_TOKEN_NUM] [--model-format {hf,awq,gptq}]
+                             [--quant-policy {0,4,8}] [--rope-scaling-factor ROPE_SCALING_FACTOR] [--communicator {nccl,native}]
                              model_path_or_server
 
 Serve LLMs with web UI using gradio.
@@ -718,7 +751,7 @@ options:
                         A JSON file or string that specifies the chat template configuration. Please refer to https://lmdeploy.readthedocs.io/en/latest/advance/chat_template.html for the specification. Default: None. Type: str
 
 PyTorch engine arguments:
-  --device {cuda,ascend,maca}
+  --device {cuda,ascend,maca,camb}
                         The device type of running. Default: cuda. Type: str
   --eager-mode          Whether to enable eager mode. If True, cuda graph would be disabled. Default: False
   --dtype {auto,float16,bfloat16}
@@ -757,12 +790,14 @@ TurboMind engine arguments:
                         Enable cache and match prefix. Default: False
   --max-prefill-token-num MAX_PREFILL_TOKEN_NUM
                         the max number of tokens per iteration during prefill. Default: 8192. Type: int
-  --model-format {hf,llama,awq,gptq}
-                        The format of input model. `hf` means `hf_llama`, `llama` means `meta_llama`, `awq` represents the quantized model by AWQ, and `gptq` refers to the quantized model by GPTQ. Default: None. Type: str
+  --model-format {hf,awq,gptq}
+                        The format of input model. `hf` means `hf_llama`, `awq` represents the quantized model by AWQ, and `gptq` refers to the quantized model by GPTQ. Default: None. Type: str
   --quant-policy {0,4,8}
                         Quantize kv or not. 0: no quant; 4: 4bit kv; 8: 8bit kv. Default: 0. Type: int
   --rope-scaling-factor ROPE_SCALING_FACTOR
                         Rope scaling factor. Default: 0.0. Type: float
+  --communicator {nccl,native}
+                        Communication backend for multi-GPU inference. Default: nccl. Type: str
 ```
 
 > 启动 gradio
@@ -854,7 +889,8 @@ lmdeploy serve gradio http://127.0.0.1:23333 \
 
 ```sh
 > lmdeploy serve proxy -h
-usage: lmdeploy serve proxy [-h] [--server-name SERVER_NAME] [--server-port SERVER_PORT] [--strategy {random,min_expected_latency,min_observed_latency}] [--api-keys [API_KEYS ...]] [--ssl]
+usage: lmdeploy serve proxy [-h] [--server-name SERVER_NAME] [--server-port SERVER_PORT] [--strategy {random,min_expected_latency,min_observed_latency}] [--disable-cache-status] [--api-keys [API_KEYS ...]] [--ssl]
+                            [--log-level {CRITICAL,FATAL,ERROR,WARN,WARNING,INFO,DEBUG,NOTSET}]
 
 Proxy server that manages distributed api_server nodes.
 
@@ -866,9 +902,13 @@ options:
                         Server port of the proxy. Default: 8000. Type: int
   --strategy {random,min_expected_latency,min_observed_latency}
                         the strategy to dispatch requests to nodes. Default: min_expected_latency. Type: str
+  --disable-cache-status
+                        Whether to disable cache status of the proxy. If set, the proxy will forget the status of the previous time. Default: False
   --api-keys [API_KEYS ...]
                         Optional list of space separated API keys. Default: None. Type: str
   --ssl                 Enable SSL. Requires OS Environment variables 'SSL_KEYFILE' and 'SSL_CERTFILE'. Default: False
+  --log-level {CRITICAL,FATAL,ERROR,WARN,WARNING,INFO,DEBUG,NOTSET}
+                        Set the log level. Default: ERROR. Type: str
 ```
 
 ## 转换模型格式
@@ -877,7 +917,7 @@ options:
 
 ```sh
 > lmdeploy convert --help
-usage: lmdeploy convert [-h] [--model-format {hf,llama,awq,gptq}] [--tp TP] [--revision REVISION] [--download-dir DOWNLOAD_DIR] [--tokenizer-path TOKENIZER_PATH] [--dst-path DST_PATH] [--group-size GROUP_SIZE]
+usage: lmdeploy convert [-h] [--model-format {hf,awq,gptq}] [--tp TP] [--revision REVISION] [--download-dir DOWNLOAD_DIR] [--tokenizer-path TOKENIZER_PATH] [--dst-path DST_PATH] [--group-size GROUP_SIZE]
                         [--chat-template CHAT_TEMPLATE] [--dtype {auto,float16,bfloat16}]
                         model_name model_path
 
@@ -889,8 +929,8 @@ positional arguments:
 
 options:
   -h, --help            show this help message and exit
-  --model-format {hf,llama,awq,gptq}
-                        The format of input model. `hf` means `hf_llama`, `llama` means `meta_llama`, `awq` represents the quantized model by AWQ, and `gptq` refers to the quantized model by GPTQ. Default: None. Type: str
+  --model-format {hf,awq,gptq}
+                        The format of input model. `hf` means `hf_llama`, `awq` represents the quantized model by AWQ, and `gptq` refers to the quantized model by GPTQ. Default: None. Type: str
   --tp TP               GPU number used in tensor parallelism. Should be 2^n. Default: 1. Type: int
   --revision REVISION   The specific model version to use. It can be a branch name, a tag name, or a commit id. If unspecified, will use the default version.. Type: str
   --download-dir DOWNLOAD_DIR
@@ -1003,39 +1043,47 @@ codegeex4
 codellama
 cogvlm
 cogvlm2
-dbrx
 deepseek
 deepseek-coder
+deepseek-r1
+deepseek-v3
 deepseek-vl
-falcon
+deepseek-vl2
 gemma
 glm4
 internlm
 internlm-xcomposer2
 internlm-xcomposer2d5
 internlm2
+internlm3
 internvl-internlm2
 internvl-phi3
 internvl-zh
 internvl-zh-hermes2
 internvl2-internlm2
 internvl2-phi3
+internvl2_5
 llama
 llama2
 llama3
 llama3_1
 llama3_2
+llama4
 llava-chatml
 llava-v1
-mini-gemini-vicuna
 minicpm3
 minicpmv-2d6
 mistral
 mixtral
 molmo
 phi-3
+phi-4
 puyu
 qwen
+qwen2d5
+qwen2d5-vl
+qwq
+qwq_preview
 solar
 ultracm
 ultralm
@@ -1063,6 +1111,7 @@ options:
 
 ```sh
 > lmdeploy check_env
+
 sys.platform: linux
 Python: 3.10.14 (main, May  6 2024, 19:42:50) [GCC 11.2.0]
 CUDA available: True
