@@ -21,6 +21,7 @@ proxies = {"https": "http://localhost:7897"}
 snapshot_download(
     repo_id="internlm/internlm2-chat-1_8b",
     local_dir="./models/internlm2-chat-1_8b",
+    repo_type=None, # set None or "model" to download model, set "dataset" to download dataset, set "space" to download space
     # proxies = proxies,
     max_workers=8,
     # endpoint = endpoint,
